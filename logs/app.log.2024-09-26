@@ -1,0 +1,37 @@
+2024-09-26 10:10:24 - [90m response ответ[39m 200
+2024-09-26 10:11:38 - [90m response ответ[39m 200
+2024-09-26 10:11:38 - Необработанное исключение
+Traceback (most recent call last):
+  File "C:\Python\BattleKnigt\tets.py", line 23, in <module>
+    gg()
+  File "C:\Python\BattleKnigt\tets.py", line 14, in gg
+    match = re.search(pattern, response.text)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\__init__.py", line 176, in search
+    return _compile(pattern, flags).search(string)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\__init__.py", line 294, in _compile
+    p = _compiler.compile(pattern, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\_compiler.py", line 743, in compile
+    p = _parser.parse(p, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\_parser.py", line 980, in parse
+    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\_parser.py", line 455, in _parse_sub
+    itemsappend(_parse(source, state, verbose, nested + 1,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python311\Lib\re\_parser.py", line 865, in _parse
+    raise source.error("missing ), unterminated subpattern",
+re.error: missing ), unterminated subpattern at position 34
+2024-09-26 10:13:08 - [90m response ответ[39m 200
+2024-09-26 10:14:45 - [90m response ответ[39m 200
+2024-09-26 10:17:48 - [90m response ответ[39m 200
+2024-09-26 10:41:14 - [90m response ответ[39m 200
+2024-09-26 10:43:11 - [90m response ответ[39m 200
+2024-09-26 10:44:00 - [90m response ответ[39m 200
+2024-09-26 10:44:16 - [90m response ответ[39m 200
+2024-09-26 10:55:14 - [90m response ответ[39m 200
+2024-09-26 12:37:35 - [90m response ответ[39m 200
+залупа

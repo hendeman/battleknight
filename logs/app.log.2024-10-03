@@ -1,0 +1,47 @@
+19:11:02 DEBUG GET otvet 200
+19:11:03 DEBUG POST otvet 200
+19:11:04 DEBUG GET otvet 200
+19:11:04 ERROR Необработанное исключение
+Traceback (most recent call last):
+  File "C:\Python\BattleKnigt\test.py", line 81, in <module>
+    mercenary = get_mercenary()
+                ^^^^^^^^^^^^^^^
+  File "C:\Python\BattleKnigt\test.py", line 52, in get_mercenary
+    soup = BeautifulSoup(response, 'lxml')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\BattleKnigt\venv\Lib\site-packages\bs4\__init__.py", line 315, in __init__
+    elif len(markup) <= 256 and (
+         ^^^^^^^^^^^
+TypeError: object of type 'Response' has no len()
+19:13:09 DEBUG GET otvet 200
+19:13:52 DEBUG GET otvet 200
+19:13:54 DEBUG POST otvet 200
+19:13:54 DEBUG GET otvet 200
+19:30:52 DEBUG GET otvet 200
+19:30:53 DEBUG POST otvet 200
+19:30:54 DEBUG GET otvet 200
+19:31:58 DEBUG GET otvet 200
+19:31:59 DEBUG POST otvet 200
+19:32:00 DEBUG GET otvet 200
+19:32:55 DEBUG GET otvet 200
+19:32:56 DEBUG POST otvet 200
+19:32:57 DEBUG GET otvet 200
+19:33:18 DEBUG POST otvet 200
+19:33:20 DEBUG GET otvet 200
+19:33:22 DEBUG POST otvet 200
+19:33:22 DEBUG GET otvet 200
+20:02:24 DEBUG GET otvet 200
+20:02:25 DEBUG POST otvet 200
+20:02:25 DEBUG GET otvet 200
+20:20:50 DEBUG GET otvet 200
+22:07:35 DEBUG GET otvet 200
+22:07:37 DEBUG POST otvet 200
+22:07:37 DEBUG GET otvet 200
+22:07:42 DEBUG GET otvet 200
+22:07:42 DEBUG GET otvet 200
+22:07:43 DEBUG POST otvet 200
+22:13:40 DEBUG GET otvet 200
+22:13:42 DEBUG POST otvet 200
+22:13:42 DEBUG GET otvet 200
+22:13:47 DEBUG GET otvet 200
+22:13:47 DEBUG POST otvet 200
