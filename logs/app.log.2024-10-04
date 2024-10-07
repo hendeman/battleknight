@@ -1,0 +1,54 @@
+00:12:05 DEBUG GET otvet 200
+00:12:07 DEBUG POST otvet 200
+00:14:13 DEBUG GET otvet 200
+00:14:14 DEBUG POST otvet 200
+18:08:12 DEBUG GET otvet 200
+18:08:28 DEBUG GET otvet 200
+18:08:28 ERROR Необработанное исключение
+Traceback (most recent call last):
+  File "C:\Python\BattleKnigt\auctioneer.py", line 56, in <module>
+    buy_ring()
+  File "C:\Python\BattleKnigt\auctioneer.py", line 45, in buy_ring
+    if int(value) <= target_number:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '<=' not supported between instances of 'int' and 'str'
+18:08:52 DEBUG GET otvet 200
+19:35:38 DEBUG GET otvet 200
+19:35:42 INFO Попытка атаки на 39727
+19:35:44 DEBUG GET otvet 200
+19:35:44 INFO Количество здоровья: 898
+19:35:45 DEBUG GET otvet 200
+19:35:45 INFO Мы находимся в группе, отдыхаем 10 минут
+20:43:26 DEBUG GET otvet 200
+21:38:03 DEBUG GET otvet 200
+21:38:03 ERROR Необработанное исключение
+Traceback (most recent call last):
+  File "C:\Python\BattleKnigt\auctioneer.py", line 70, in <module>
+    buy_ring()
+  File "C:\Python\BattleKnigt\auctioneer.py", line 44, in buy_ring
+    bid_value = bid_text_input['value']
+                ~~~~~~~~~~~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+21:40:08 DEBUG GET otvet 200
+21:41:09 DEBUG GET otvet 200
+21:54:16 DEBUG GET otvet 200
+21:54:16 INFO Количество золота на руках: 140
+22:55:47 INFO Попытка атаки на 39727
+22:55:59 DEBUG GET otvet 200
+22:55:59 INFO Количество здоровья: 128
+22:56:00 DEBUG GET otvet 200
+22:56:01 DEBUG GET otvet 200
+22:56:01 INFO Нет совпадений. Проверке парсинг состония дуэли
+22:56:01 INFO Количество здоровья: 128
+22:56:57 DEBUG POST otvet 200
+22:56:57 INFO Попытка атаки на 39727
+22:56:58 DEBUG GET otvet 200
+22:56:58 INFO Количество здоровья: 128
+22:57:00 DEBUG GET otvet 200
+22:57:00 DEBUG GET otvet 200
+22:57:00 INFO Нет совпадений. Проверке парсинг состония дуэли
+22:57:00 INFO Количество здоровья: 128
+22:57:33 DEBUG POST otvet 200
+22:57:33 INFO Попытка атаки на 39727
+22:57:34 DEBUG GET otvet 200
+22:57:34 INFO Атака 39727 произведена успешно
