@@ -68,7 +68,9 @@ def hire_mercenary(id_mercenary):
 
 
 def pas_group():
-    payload = {'dicePassValue: ': '1'}
+    make_request(url_group)  # попробуй url_group_pas
+    time.sleep(2)
+    payload = {'dicePassValue: ': 1}
     post_request(url_group_pas, payload)
     print("Запрос на ПАС группы выполнен")
     time.sleep(2)
@@ -110,8 +112,9 @@ def get_mercenary():
         return s
 
 
-def go_group():
+def go_group(time_wait=0):
     if create_group():
+        time.sleep(time_wait)
         pas_group()
         # сюда нужно вписать ожидание час и проверку на то что группа пройдена ну и pas_group() перед проверкой
         while True:
@@ -140,5 +143,4 @@ if __name__ == "__main__":
     # когда будет кнопка пас, то проверить ссылку https://s32-ru.battleknight.gameforge.com/groupmission/group/
     # проверить вручную нападание через ссылку и посмотреть теги h4 и h3
     # попробовать перейти по ссылке рыцаря и прочитать надпись на дуэли
-    print("dada")
-    make_attack('39727', heals_point=False)
+    make_attack('916540', heals_point=False)
