@@ -55,7 +55,6 @@ castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'Coast
            'CapitalCity': "Эндалайн",
            'TradingPostOne': "Гранд", 'TradingPostTwo': "Талмет", 'TradingPostThree': "Брент",
            'VillageOne': "Терент", 'VillageTwo': "Хатвиг", 'VillageThree': "Рамстилл"}
-
 castles_all = {**castles, **castles_island}
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
