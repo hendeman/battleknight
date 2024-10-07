@@ -140,5 +140,5 @@ if __name__ == "__main__":
     # когда будет кнопка пас, то проверить ссылку https://s32-ru.battleknight.gameforge.com/groupmission/group/
     # проверить вручную нападание через ссылку и посмотреть теги h4 и h3
     # попробовать перейти по ссылке рыцаря и прочитать надпись на дуэли
-    # ывывпывп
+    print("dada")
     make_attack('39727', heals_point=False)
