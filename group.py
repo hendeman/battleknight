@@ -70,7 +70,7 @@ def hire_mercenary(id_mercenary):
 def pas_group():
     make_request(url_group)  # попробуй url_group_pas
     time.sleep(2)
-    payload = {'dicePassValue: ': 1}
+    payload = {'dicePassValue': 1}
     post_request(url_group_pas, payload)
     print("Запрос на ПАС группы выполнен")
     time.sleep(2)
