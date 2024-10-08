@@ -118,9 +118,14 @@ def get_gold_for_player(gamer) -> int:
     return gold
 
 
-def update_players_gold(dict_gamer, list_of_players, date):
+def update_players_gold(dict_gamer, list_of_players):
     for gamer in list_of_players:
-        list_of_players[gamer].setdefault('time', dict_gamer[gamer]['time'] if gamer in dict_gamer else date)
+        list_of_players[gamer].setdefault('time',
+                                          dict_gamer[gamer].get('time', date) if gamer in dict_gamer else date)
+        list_of_players[gamer].setdefault('win_status',
+                                          dict_gamer[gamer].get('win_status', None) if gamer in dict_gamer else None)
+        list_of_players[gamer].setdefault('spoil',
+                                          dict_gamer[gamer].get('spoil', None) if gamer in dict_gamer else None)
         list_of_players[gamer]["gold"] = get_gold_for_player(gamer)
 
     return list_of_players
@@ -149,7 +154,7 @@ def set_initial_gold():
         p_log("Файла не существует, будет создан новый", level='warning')
         dict_gamer = {}
 
-    filtered_dct = update_players_gold(dict_gamer, list_of_players, date)
+    filtered_dct = update_players_gold(dict_gamer, list_of_players)
 
     # filtered_dct = {key: dict_gamer[key] for key in list_of_players}
     with open("gamer_gold.pickle", 'wb') as file_gamer:
@@ -179,6 +184,8 @@ def online_tracking():
                 if flag:
                     received_gold, win_status = pars_gold_duel(resp, gold_info=True, win_status=True)
                     dict_gamer[gamer]["time"] = current_date
+                    dict_gamer[gamer]["win_status"] = win_status
+                    dict_gamer[gamer]["spoil"] = received_gold
 
                     # Отправить в орден коровку
                     if win_status == "lupatik выиграл" and received_gold > 100:
