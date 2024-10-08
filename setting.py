@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 today = date.today()
-GOLD_DAY = 29461
+GOLD_DAY = 2000
 CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "07:00"
@@ -23,9 +23,11 @@ write_flag = False
 deco_func = False
 exclusion_list = ["Ksusha", "kimbow"]
 
-FILE_NAME = "all_dct.pickle"
-STAT_FILE_NAME = "stat_dct.pickle"
-STAT_FILE_LOSS = 'loss.pickle'
+FILE_NAME = "pickles_data/all_dct.pickle"
+STAT_FILE_NAME = "pickles_data/stat_dct.pickle"
+STAT_FILE_LOSS = 'pickles_data/loss.pickle'
+GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
+NICKS_GAMER = 'pickles_data/nicks.pickle'
 
 url = 'https://s32-ru.battleknight.gameforge.com/clan/members'
 url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'

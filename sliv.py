@@ -10,7 +10,7 @@ from logs.logs import p_log
 from module.all_function import current_time, time_sleep, get_config_value
 from module.data_pars import heals, pars_gold_duel
 from module.http_requests import make_request, post_request
-from setting import status_list, waiting_time, status_list_eng
+from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
 
 date = datetime(2024, 9, 17, 19)
 
@@ -146,7 +146,7 @@ def set_initial_gold():
         list_of_players = json.load(file)
 
     try:
-        with open("gamer_gold.pickle", 'rb') as file_gamer:
+        with open(GOLD_GAMER, 'rb') as file_gamer:
             p_log("Сканирование добычи игроков...")
             dict_gamer = pickle.load(file_gamer)
 
@@ -157,13 +157,13 @@ def set_initial_gold():
     filtered_dct = update_players_gold(dict_gamer, list_of_players)
 
     # filtered_dct = {key: dict_gamer[key] for key in list_of_players}
-    with open("gamer_gold.pickle", 'wb') as file_gamer:
+    with open(GOLD_GAMER, 'wb') as file_gamer:
         pickle.dump(filtered_dct, file_gamer)
         p_log("Файл игроков успешно сохранен", level='debug')
 
 
 def online_tracking():
-    with open("gamer_gold.pickle", 'rb') as file_gamer:
+    with open(GOLD_GAMER, 'rb') as file_gamer:
         p_log("online_tracking", level='debug')
         dict_gamer = pickle.load(file_gamer)
         filtered_data = {key: value for key, value in dict_gamer.items() if
@@ -197,7 +197,7 @@ def online_tracking():
                             orden_message(message)
                             p_log("Отправлено сообщение в орден")
 
-                    with open("gamer_gold.pickle", 'wb') as file_gamer:
+                    with open(GOLD_GAMER, 'wb') as file_gamer:
                         pickle.dump(dict_gamer, file_gamer)
                     time_sleep()
                     return "sleep"
@@ -215,7 +215,7 @@ def online_tracking_only():
             break
 
 
-def reduce_experience(name_file="nicks.pickle"):
+def reduce_experience(name_file=NICKS_GAMER):
     # setup_logging()
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
@@ -251,7 +251,7 @@ def reduce_experience(name_file="nicks.pickle"):
             online_tracking_only()
 
 
-def korovk_reduce_experience(name_file="nicks.pickle"):
+def korovk_reduce_experience(name_file=NICKS_GAMER):
     def update_knight_data(loaded_dict, nick, current_date, received_gold):
         loaded_dict[nick]["data"] = current_date
         loaded_dict[nick]["gold"] = received_gold
@@ -308,7 +308,7 @@ def korovk_reduce_experience(name_file="nicks.pickle"):
         p_log("Все рыцари успешно пройдены")
 
 
-def change_pickle_file(name_file="gamer_gold.pickle"):
+def change_pickle_file(name_file=GOLD_GAMER):
     with open(name_file, 'rb+') as f:
         loaded_dict = pickle.load(f)
         # delete_list = list(loaded_dict.keys())
@@ -324,7 +324,7 @@ def change_pickle_file(name_file="gamer_gold.pickle"):
         p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
 
 
-def create_pickle_file(name_file="nicks.pickle"):
+def create_pickle_file(name_file=NICKS_GAMER):
     with open(name_file, 'rb+') as f:
         loaded_dict = pickle.load(f)
         with open(url_nicks, 'r', encoding='utf-8') as file_nicks:
@@ -341,7 +341,7 @@ def create_pickle_file(name_file="nicks.pickle"):
         p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
 
 
-def read_pickle_file(name_file="nicks.pickle"):
+def read_pickle_file(name_file=NICKS_GAMER):
     with open(f"{name_file}", 'rb') as f:
         loaded_dict = pickle.load(f)
         dct = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]["gold"], reverse=True)}
@@ -413,7 +413,6 @@ def click(url="https://s32-ru.battleknight.gameforge.com/world"):
 
 
 if __name__ == "__main__":
-    # name_file_pickle = "gamer_gold.pickle" # "nicks.pickle" or "gamer_gold.pickle" or "new_nicks.pickle" or "korov.pickle"
     set_initial_gold()
     online_tracking_only()
     # time_sleep()
@@ -422,11 +421,11 @@ if __name__ == "__main__":
     #     time_sleep()
     # reduce_experience()
     # online_tracking_only()
-    # korovk_reduce_experience(name_file="korov.pickle")
+    # korovk_reduce_experience(name_file="/pickles_data/korov.pickle")
     # while True:
     #     click()
     # create_pickle_file()
-    # change_pickle_file(name_file="gamer_gold.pickle")
-    # read_pickle_file(name_file="gamer_gold.pickle")
+    # change_pickle_file(name_file=GOLD_GAMER)
+    # read_pickle_file(name_file=GOLD_GAMER)
     # test_pars()
     # set_initial_gold()
