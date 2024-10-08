@@ -13,6 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from module.all_function import remove_cyrillic, day, syntax_day, save_file, create_folder
+from module.http_requests import make_request, post_request
 from setting import url_stat, cookies, headers, STAT_FILE_NAME, folder_name, excel_file_path, STAT_FILE_LOSS, \
     folder_name_loss
 
@@ -62,7 +63,7 @@ def get_statistic() -> dict:
             'sort': 'loot',
             'searchUser': ''  # укажите значение, если необходимо
         }
-        stat = requests.post(url_stat, cookies=cookies, headers=headers, data=param)
+        stat = post_request(url_stat, param)
         with open(f'{folder_name}\\{i + 100}_BattleKnight.html', 'w', encoding='utf-8') as file:
             file.write(stat.text)
         soup = BeautifulSoup(stat.text, 'lxml')
@@ -92,7 +93,7 @@ def dict_values_difference(pars_dct: dict) -> list:
                     loaded_dict[key1]['victory'] > 10:
                 print("*", end="")
                 url = f'https://s32-ru.battleknight.gameforge.com/common/profile/{key1}/Scores/Player'
-                resp = requests.get(url, cookies=cookies, headers=headers)
+                resp = make_request(url)
                 with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w', encoding='utf-8') as file2:
                     file2.write(resp.text)
 
