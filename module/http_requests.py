@@ -37,3 +37,4 @@ def post_request(make_post_url, data):
         except RequestException as e:
             p_log("Connection error:", e, level='warning')
             p_log("Try again after 5 seconds...", level='warning')
+            time.sleep(5)  # Подождать некоторое время перед повторной попыткой

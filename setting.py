@@ -1,4 +1,9 @@
 from datetime import date
+import os
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 today = date.today()
 GOLD_DAY = 29461
@@ -39,11 +44,8 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, br'
 }
 
-cookies = {"BattleKnight": "1ac91687b806a88ae7efa37045538b88%23872161",
-           "gf-cookie-consent-4449562312": "|7|1",
-           "gf-token-production": "8399cb0a-c288-4ab3-8866-becab8084870",
-           "gf_pz_token": "7a5e1530-1cf2-4c93-b52e-f9070cef467a",
-           "pc_idt": "APOAx-JAuZR3qtYWKY0aLVBRvROKydsq3RfdpRHR8La0hpAWPiJYqTma7sctQW4mRfoJoevmu-MgK1nZLy1M1vaYtNqc41H4QZBTBI0k8MlqwNsvsvwT2iPAcxKWNv9eKtt9CZ0SL5g0BJcjfHul1S9hb4I-YPJVxnjApw"}
+cookies_str = os.getenv('COOKIES')
+cookies = json.loads(cookies_str) if cookies_str else {}
 
 castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван", 'TradingPostFour': 'Милей'}
 castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'CoastalFortressTwo': "Гастайн",
@@ -53,7 +55,6 @@ castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'Coast
            'CapitalCity': "Эндалайн",
            'TradingPostOne': "Гранд", 'TradingPostTwo': "Талмет", 'TradingPostThree': "Брент",
            'VillageOne': "Терент", 'VillageTwo': "Хатвиг", 'VillageThree': "Рамстилл"}
-
 castles_all = {**castles, **castles_island}
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
