@@ -57,3 +57,5 @@
 /временное/
 __pycache__/
 module/__pycache__/
+/.env
+logs/app.log.*
