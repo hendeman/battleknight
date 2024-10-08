@@ -60,3 +60,4 @@ module/__pycache__/
 /.env
 logs/app.log.*
 /nicksflower.txt
+/pickles_data/
