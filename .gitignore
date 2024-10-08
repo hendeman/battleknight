@@ -41,3 +41,5 @@
 /testov.py
 /tets.py
 /tt.py
+__pycache__/
+*.pyc
