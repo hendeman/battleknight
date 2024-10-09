@@ -3,8 +3,7 @@ import time
 from bs4 import BeautifulSoup
 import re
 
-from game_play import check_progressbar, seconds_to_hhmmss
-from module.all_function import no_cache
+from module.all_function import no_cache, format_time
 from module.http_requests import make_request, post_request
 
 # Регулярное выражение для поиска
@@ -115,7 +114,7 @@ def get_mercenary():
 def go_group(time_wait=0):
     if create_group():
         if time_wait:
-            print(f"Ожидание игроков для группы {seconds_to_hhmmss(time_wait)} ...")
+            print(f"Ожидание игроков для группы {format_time(time_wait)} ...")
         time.sleep(time_wait)
         if "К сожалению, у вас недостаточно очков миссий" in pas_group():
             print("Группа успешно завершена с игроком")
