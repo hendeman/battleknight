@@ -3,7 +3,8 @@ import multiprocessing
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-
+from auctioneer import buy_ring
+from group import go_group
 from logs.logs import p_log
 from module.all_function import get_random_value, get_config_value, time_sleep_main, wait_until, no_cache, \
     get_name_mount, format_time
@@ -337,9 +338,19 @@ def autoplay():
             process_name = "reduce_experience" if (count_work + 2) % 3 == 0 and get_config_value(
                 "reduce_experience") else "online_tracking_only"
             common_actions(process_function, process_name)
-            # вставить вызов группы, только уменьшить время выполнения online_tracking_only
+
+            # создание Групповой миссии
+            if (count_work + 2) % 3 == 1:
+                go_group(3600)
+                timer_group = check_progressbar()
+                if timer_group:
+                    p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
+                buy_ring()  # покупка кольца на аукционе
+                time_sleep(timer_group)
+
         count_work += 1
         post_travel(out='CityOne', where='GhostTown', how='horse')
+
         # синхронизация общей программы
         if (count_work + 2) % 3 == 0:
             time_begin = wait_until(start_game)
@@ -363,9 +374,9 @@ def wrapper_function(func1, func2, process_name):
 
 def common_actions(process_function, process_name):
     if get_config_value("attack"):
-        run_process_for_hours(process_function, 6.5, process_name)
+        run_process_for_hours(process_function, 6, process_name)
     else:
-        time_sleep(6.5 * 60 * 60 + 900 + get_config_value("correct_time"))
+        time_sleep(6 * 60 * 60 + 900 + get_config_value("correct_time"))
 
 
 def run_process_for_hours(target_function, hours, process_name):

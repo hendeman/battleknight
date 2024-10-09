@@ -137,7 +137,6 @@ def go_group(time_wait=0):
                     else:
                         delete_group()
                         break
-            check_progressbar()
 
 
 if __name__ == "__main__":
