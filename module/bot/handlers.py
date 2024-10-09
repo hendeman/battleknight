@@ -78,7 +78,7 @@ def register_handlers(bot):
                 try:
                     # Переоткрываем файл, если наступила полночь
                     current_time = datetime.now()
-                    if current_time.hour == 0 and current_time.minute == 20:
+                    if current_time.hour == 7 and current_time.minute == 00:
                         last_position = 0
 
                     with open(LOG_FILE, 'r', encoding='utf-8') as f:
