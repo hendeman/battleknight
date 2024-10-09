@@ -3,9 +3,9 @@ import time
 from bs4 import BeautifulSoup
 import re
 
+from game_play import check_progressbar, seconds_to_hhmmss
 from module.all_function import no_cache
 from module.http_requests import make_request, post_request
-from sliv import make_attack
 
 # Регулярное выражение для поиска
 pattern = re.compile(r'acquireMerc\d+npc')
@@ -74,7 +74,7 @@ def pas_group():
     post_request(url_group_pas, payload)
     print("Запрос на ПАС группы выполнен")
     time.sleep(2)
-    make_request(url_group)
+    return BeautifulSoup(make_request(url_group).text, 'lxml')
 
 
 def delete_group():
@@ -114,33 +114,31 @@ def get_mercenary():
 
 def go_group(time_wait=0):
     if create_group():
+        if time_wait:
+            print(f"Ожидание игроков для группы {seconds_to_hhmmss(time_wait)} ...")
         time.sleep(time_wait)
-        pas_group()
-        # сюда нужно вписать ожидание час и проверку на то что группа пройдена ну и pas_group() перед проверкой
-        while True:
-            mercenary = get_mercenary()
-            time.sleep(4)
-            if not mercenary:
-                delete_group()
-                time.sleep(2)
-                if not create_group():
-                    break
-            elif isinstance(mercenary, Exception):
-                delete_group()
-                break
-            else:
-                if hire_mercenary(mercenary):
-                    break
-                else:
+        if "К сожалению, у вас недостаточно очков миссий" in pas_group():
+            print("Группа успешно завершена с игроком")
+        else:
+            while True:
+                mercenary = get_mercenary()
+                time.sleep(4)
+                if not mercenary:
+                    delete_group()
+                    time.sleep(2)
+                    if not create_group():
+                        break
+                elif isinstance(mercenary, Exception):
                     delete_group()
                     break
+                else:
+                    if hire_mercenary(mercenary):
+                        break
+                    else:
+                        delete_group()
+                        break
+            check_progressbar()
 
 
 if __name__ == "__main__":
-    # go_group()
-    # create_group()
-    # pas_group()
-    # когда будет кнопка пас, то проверить ссылку https://s32-ru.battleknight.gameforge.com/groupmission/group/
-    # проверить вручную нападание через ссылку и посмотреть теги h4 и h3
-    # попробовать перейти по ссылке рыцаря и прочитать надпись на дуэли
-    make_attack('916540', heals_point=False)
+    go_group(3600)
