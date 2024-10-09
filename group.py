@@ -73,7 +73,7 @@ def pas_group():
     post_request(url_group_pas, payload)
     print("Запрос на ПАС группы выполнен")
     time.sleep(2)
-    return BeautifulSoup(make_request(url_group).text, 'lxml')
+    return BeautifulSoup(make_request(url_group).text, 'lxml').text
 
 
 def delete_group():
@@ -139,4 +139,4 @@ def go_group(time_wait=0):
 
 
 if __name__ == "__main__":
-    go_group(3600)
+    go_group(5400)
