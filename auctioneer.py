@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 
-from game_play import put_gold
 from module.all_function import no_cache
 from module.http_requests import make_request, post_request
 
@@ -80,4 +79,3 @@ def buy_ring():
 
 if __name__ == "__main__":
     buy_ring()
-    # put_gold()
