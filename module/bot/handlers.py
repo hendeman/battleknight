@@ -1,3 +1,4 @@
+import pickle
 import re
 import threading
 import time
@@ -156,3 +157,23 @@ def register_handlers(bot):
         if message.chat.id == CHAT_ID:
             is_running = False
             bot.send_message(CHAT_ID, "Остановка отправки логов.")
+
+    @bot.message_handler(commands=['win'])
+    def send_last_logs(message):
+        if message.chat.id == CHAT_ID:
+            for user_id in ALLOWED_USERS:
+                with open('pickles_data/gamer_gold.pickle', 'rb') as game_file:
+                    loaded_dict = pickle.load(game_file)
+                    dct = {v['name']: (v['win_status'], v['spoil']) for k, v in loaded_dict.items() if v['win_status']}
+                    if not dct:
+                        bot.send_message(user_id, f"Вражеский список атак пуст")
+                    else:
+                        result = []
+                        for name, (action, amount) in dct.items():
+                            if 'lupatik' in action:
+                                result.append(f"{action} {name}, получено {amount} серебра")
+                            else:
+                                result.append(f"{action}, отдано {amount} серебра")
+
+                        st = "\n".join(result)
+                        bot.send_message(user_id, st)
