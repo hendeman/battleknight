@@ -79,7 +79,7 @@ def register_handlers(bot):
                 try:
                     # Переоткрываем файл, если наступила полночь
                     current_time = datetime.now()
-                    if current_time.hour == 7 and current_time.minute == 00:
+                    if current_time.hour == 7 and current_time.minute == 0:
                         last_position = 0
 
                     with open(LOG_FILE, 'r', encoding='utf-8') as f:
@@ -134,10 +134,11 @@ def register_handlers(bot):
                             time.sleep(1)  # Задержка 1 секунда
                             # Проверяем время каждые 1 секунду
                             current_time = datetime.now()
-                            if current_time.hour == 0 and current_time.minute == 20:
+                            if current_time.hour == 7 and current_time.minute == 0:
                                 last_position = 0
                                 time.sleep(60)
                                 break  # Прерываем задержку, чтобы выполнить новую проверку логов
+                    time.sleep(600)
 
                 except FileNotFoundError:
                     logging.error(f"Файл {LOG_FILE} не найден.")
