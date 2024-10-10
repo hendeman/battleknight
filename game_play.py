@@ -374,9 +374,9 @@ def wrapper_function(func1, func2, process_name):
 
 def common_actions(process_function, process_name):
     if get_config_value("attack"):
-        run_process_for_hours(process_function, 6, process_name)
+        run_process_for_hours(process_function, 5.9, process_name)
     else:
-        time_sleep(6 * 60 * 60 + 900 + get_config_value("correct_time"))
+        time_sleep(5.9 * 60 * 60 + 900 + get_config_value("correct_time"))
 
 
 def run_process_for_hours(target_function, hours, process_name):

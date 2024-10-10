@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup
 
+from logs.logs import p_log
 from module.all_function import no_cache
 from module.http_requests import make_request, post_request
 
-url_file = 'auctioneer.html'
 url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
 url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
 
@@ -17,11 +17,11 @@ def place_bet(id_item, bet):
     resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}', payload)
     try:
         if resp.json()['result']:
-            print("Ставка выполнена успешно")
+            p_log("Ставка выполнена успешно")
         else:
-            print(f"Ошибка ставки, неверное количество серебра")
+            p_log(f"Ошибка ставки, неверное количество серебра")
     except ValueError:
-        print("Ошибка ставки. Ошибка json(). Неверный id_item")
+        p_log("Ошибка ставки. Ошибка json(). Неверный id_item", level='warning')
 
 
 def payout(soup, silver_out: int):
@@ -30,10 +30,10 @@ def payout(soup, silver_out: int):
     resp = post_request(url_payout, payload)
     after_silver = silver_count(BeautifulSoup(resp.text, 'lxml'))
     if after_silver - to_silver == silver_out:
-        print(f"Из казны взято {silver_out} серебра")
+        p_log(f"Из казны взято {silver_out} серебра")
         return after_silver
     else:
-        print(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
+        p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
 
 
 def buy_ring():
@@ -58,22 +58,22 @@ def buy_ring():
                 bid_value = bid_text_input['value']
                 dct[id_item] = bid_value
     target_number = silver_count(soup)
-    print(f"На руках {target_number} серебра")
-    print(dct)
+    p_log(f"На руках {target_number} серебра")
+    p_log(dct, level='debug')
 
     if not dct:
-        print("Нет колец на аукционе")
+        p_log("Нет колец на аукционе")
     else:
         min_key = min(dct, key=lambda k: int(dct[k]))
         min_value = int(dct[min_key])
         if min_value > target_number:
             need_silver = min_value - target_number
-            print(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
+            p_log(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
             if need_silver < 500:
                 after_silver = payout(soup, need_silver)
                 place_bet(min_key, after_silver)
         else:
-            print(f"Будет куплено кольцо с id={min_key}")
+            p_log(f"Будет куплено кольцо с id={min_key}")
             place_bet(min_key, target_number)
 
 

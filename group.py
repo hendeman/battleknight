@@ -3,6 +3,7 @@ import time
 from bs4 import BeautifulSoup
 import re
 
+from logs.logs import p_log
 from module.all_function import no_cache, format_time
 from module.http_requests import make_request, post_request
 
@@ -45,12 +46,12 @@ def create_group():
     try:
         result = post_request('https://s32-ru.battleknight.gameforge.com/groupmission/foundGroup/', payload).json()
         if result:
-            print("Группа успешно создана")
+            p_log("Группа успешно создана")
             return True
         else:
-            print("Ошибка создания группы. Проверьте post-запрос")
+            p_log("Ошибка создания группы. Проверьте post-запрос")
     except ValueError:
-        print("Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков")
+        p_log("Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков", level='warning')
 
 
 def hire_mercenary(id_mercenary):
@@ -58,12 +59,12 @@ def hire_mercenary(id_mercenary):
         f"https://s32-ru.battleknight.gameforge.com/groupmission/addNPC/{id_mercenary}?noCache={no_cache()}")
     try:
         if resp.json()['result']:
-            print("Наёмник успешно нанят")
+            p_log("Наёмник успешно нанят")
             return True
         else:
-            print(f"Ошибка найма. Неверный {id_mercenary}")
+            p_log(f"Ошибка найма. Неверный {id_mercenary}")
     except ValueError:
-        print("Ошибка найма. Ошибка json()")
+        p_log("Ошибка найма. Ошибка json()", level='warning')
 
 
 def pas_group():
@@ -71,14 +72,14 @@ def pas_group():
     time.sleep(2)
     payload = {'dicePassValue': 1}
     post_request(url_group_pas, payload)
-    print("Запрос на ПАС группы выполнен")
+    p_log("Запрос на ПАС группы выполнен")
     time.sleep(2)
     return BeautifulSoup(make_request(url_group).text, 'lxml').text
 
 
 def delete_group():
     make_request(url_group_delete)
-    print("Группа удалена")
+    p_log("Группа удалена")
 
 
 def get_mercenary():
@@ -101,23 +102,23 @@ def get_mercenary():
                 file.write(soup.text)
             raise AttributeError(f"Количество id={len(matches)} должно быть равно количеству attr={len(attr_sum)}")
         if max(attr_sum) < 1500:
-            print("В группе слишком слабые наёмники. Группа будет пересоздана")
+            p_log("В группе слишком слабые наёмники. Группа будет пересоздана")
             return False
         strong_mercenary = matches[attr_sum.index(max(attr_sum))]
         print(strong_mercenary)
         return strong_mercenary
     except Exception as s:
-        print("Ошибка парсинга в группе. Группа будет удалена.", s)
+        p_log(f"Ошибка парсинга в группе. Группа будет удалена. {s}", level='warning')
         return s
 
 
 def go_group(time_wait=0):
     if create_group():
         if time_wait:
-            print(f"Ожидание игроков для группы {format_time(time_wait)} ...")
+            p_log(f"Ожидание игроков для группы {format_time(time_wait)} ...")
         time.sleep(time_wait)
         if "К сожалению, у вас недостаточно очков миссий" in pas_group():
-            print("Группа успешно завершена с игроком")
+            p_log("Группа успешно завершена с игроком")
         else:
             while True:
                 mercenary = get_mercenary()
