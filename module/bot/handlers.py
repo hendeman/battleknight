@@ -11,6 +11,9 @@ from module.bot.utils import load_allowed_users, save_allowed_users, read_last_l
 ALLOWED_USERS = load_allowed_users(ALLOWED_USERS_FILE, CHAT_ID)
 
 is_running = False
+show_info = False  # Переменная для контроля вывода INFO сообщений
+last_position = 0  # Глобальная переменная для хранения позиции
+warning_list = []
 
 
 def register_handlers(bot):
@@ -19,10 +22,13 @@ def register_handlers(bot):
         if message.chat.id in ALLOWED_USERS:
             help_text = (
                 "Доступные команды:\n"
-                "/start - Показать последние 15 записей из лог-файла.\n"
-                "/run - Показать последние 15 записей из лог-файла и продолжить отправлять новые записи.\n"
-                "/stop - Остановить отправку новых записей лог-файла.\n"
-                "/help - Показать это сообщение."
+                "/log - Показать последние 15 записей из лог-файла.\n"
+                "/run - Запуск отслеживания логов\n"
+                "/unrun - Остановка процесса отслеживания логов\n"
+                "/users - Разрешенные пользователи\n"
+                "/leave - Перестать получать сообщения\n"
+                "/ri - Включить вывод INFO\n"
+                "/ris - Выключить вывод INFO"
             )
             bot.send_message(message.chat.id, help_text)
 
@@ -62,7 +68,7 @@ def register_handlers(bot):
     # Команда /run — выводит последние 15 строк и запускает поток для отправки новых сообщений
     @bot.message_handler(commands=['run'])
     def start_sending_logs(message):
-        global is_running
+        global is_running, last_position
         if message.chat.id not in ALLOWED_USERS:
             return  # Игнорировать команды от неразрешенных пользователей
 
@@ -71,19 +77,27 @@ def register_handlers(bot):
             return
 
         is_running = True
+        last_position = 0  # Сбрасываем позицию при запуске
 
         def send_new_logs():
-            last_position = 0
+            global last_position, warning_list  # Используем global для изменения глобальной переменной
 
             while is_running:
                 try:
                     # Переоткрываем файл, если наступила полночь
                     current_time = datetime.now()
-                    if current_time.hour == 7 and current_time.minute == 0:
+                    if current_time.hour == 7 and current_time.minute <= 10:
                         last_position = 0
+                        warning_list = []
 
                     with open(LOG_FILE, 'r', encoding='utf-8') as f:
-                        f.seek(last_position)
+                        # Устанавливаем курсор в конец файла при первом запуске
+                        if last_position == 0:
+                            f.seek(0, 2)  # Устанавливаем в конец файла
+                            last_position = f.tell()  # Обновляем позицию на конец файла
+                        else:
+                            f.seek(last_position)
+
                         lines = f.readlines()
                         last_position = f.tell()  # Обновляем позицию
 
@@ -94,20 +108,20 @@ def register_handlers(bot):
                             if 'ERROR' in line:
                                 filtered_lines.append(line)
                                 capture_error = True
-                            elif 'INFO' in line:
-                                # Удаляем "INFO" из строки
+                            elif 'INFO' in line and show_info:  # Проверяем переменную show_info
                                 filtered_lines.append(line.replace('INFO', '').strip())
+                            elif 'INFO' in line:
+                                continue
+                            elif 'WARNING' in line:
+                                warning_list.append(line.replace('WARNING', '').strip())
                             elif 'DEBUG' in line:
                                 continue  # Пропускаем DEBUG строки
                             elif capture_error:
-                                # Если мы уже начали захватывать ошибку, продолжаем добавлять строки
                                 if line.strip():  # Если строка не пустая, добавляем
                                     filtered_lines.append(line)
-                                # Останавливаем захват, если следующая строка — новая запись
                                 else:
                                     capture_error = False
                             else:
-                                # Если мы не захватываем ошибку, продолжаем добавлять другие строки
                                 filtered_lines.append(line)
 
                         processed_lines = [
@@ -117,7 +131,8 @@ def register_handlers(bot):
 
                         if processed_lines:
                             try:
-                                message = '\n'.join(processed_lines)
+                                war_mess = f"\nwarning {len(warning_list) * '*'}" if warning_list else ""
+                                message = '\n'.join(processed_lines) + war_mess
                                 for user_id in ALLOWED_USERS:
                                     try:
                                         bot.send_message(user_id, message)
@@ -130,14 +145,6 @@ def register_handlers(bot):
                                     logging.error(f"HTTP ошибка: {e}.")
                                 time.sleep(20)  # Задержка перед повторной попыткой
 
-                        for _ in range(log_time):
-                            time.sleep(1)  # Задержка 1 секунда
-                            # Проверяем время каждые 1 секунду
-                            current_time = datetime.now()
-                            if current_time.hour == 7 and current_time.minute == 0:
-                                last_position = 0
-                                time.sleep(60)
-                                break  # Прерываем задержку, чтобы выполнить новую проверку логов
                     time.sleep(600)
 
                 except FileNotFoundError:
@@ -151,13 +158,13 @@ def register_handlers(bot):
         # Запускаем поток для отправки новых логов
         threading.Thread(target=send_new_logs, daemon=True).start()
 
-    # Команда /stop — останавливает поток отправки сообщений
     @bot.message_handler(commands=['unrun'])
     def stop_sending_logs(message):
-        global is_running
-        if message.chat.id == CHAT_ID:
+        global is_running, last_position
+        if message.chat.id in ALLOWED_USERS:  # Проверяем, что пользователь разрешен
             is_running = False
-            bot.send_message(CHAT_ID, "Остановка отправки логов.")
+            last_position = 0  # Сбрасываем позицию при остановке
+            bot.send_message(message.chat.id, "Остановка отправки логов.")
 
     @bot.message_handler(commands=['win'])
     def send_last_logs(message):
@@ -165,7 +172,9 @@ def register_handlers(bot):
             for user_id in ALLOWED_USERS:
                 with open('pickles_data/gamer_gold.pickle', 'rb') as game_file:
                     loaded_dict = pickle.load(game_file)
-                    dct = {v['name']: (v['win_status'], v['spoil']) for k, v in loaded_dict.items() if v['win_status']}
+                    current_time = datetime.now().date()
+                    dct = {v['name']: (v['win_status'], v['spoil']) for k, v in loaded_dict.items()
+                           if v['win_status'] and v['time'].date() == current_time}
                     if not dct:
                         bot.send_message(user_id, f"Вражеский список атак пуст")
                     else:
@@ -178,3 +187,25 @@ def register_handlers(bot):
 
                         st = "\n".join(result)
                         bot.send_message(user_id, st)
+
+    @bot.message_handler(commands=['runinfo'])
+    def enable_info_logs(message):
+        global show_info
+        show_info = True
+        bot.send_message(message.chat.id, "INFO сообщения теперь включены в вывод.")
+
+    @bot.message_handler(commands=['runinfostop'])
+    def disable_info_logs(message):
+        global show_info
+        show_info = False
+        bot.send_message(message.chat.id, "INFO сообщения теперь отключены от вывода.")
+
+    @bot.message_handler(commands=['war'])
+    def send_last_logs(message):
+        if message.chat.id == CHAT_ID:
+            for user_id in ALLOWED_USERS:
+                if warning_list:
+                    st = "\n".join(warning_list)
+                    bot.send_message(user_id, st)
+                else:
+                    bot.send_message(user_id, 'WARNING ошибок не обнаружено')
