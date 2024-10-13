@@ -124,8 +124,7 @@ def format_time(seconds):
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
-def time_sleep_main(total_seconds):
-    interval = 10 * 60  # 10 минут в секундах
+def time_sleep_main(total_seconds, interval=600):
     remaining_time = total_seconds
 
     # Убедимся, что интервал не превышает общее время
