@@ -208,7 +208,7 @@ def print_status(from_town, where_town, how):
 
 
 def event_search(event, rubies, length_mission):
-    check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='08:00')
+    check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
     place, my_town = my_place()  # Джаро, VillageFour
     p_log(f"Я нахожусь в {place}")
     response = make_request(map_url)
@@ -285,7 +285,7 @@ if __name__ == "__main__":
         timer_group = check_progressbar()
         if timer_group:
             p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
-        time_sleep(timer_group)
+            time_sleep(timer_group)
 # process_page(url)
 # check_timer()
 # post_travel(where='HarbourTwo', how='horse')
