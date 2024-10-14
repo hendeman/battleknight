@@ -22,13 +22,15 @@ def register_handlers(bot):
         if message.chat.id in ALLOWED_USERS:
             help_text = (
                 "Доступные команды:\n"
-                "/log - Показать последние 15 записей из лог-файла.\n"
-                "/run - Запуск отслеживания логов\n"
-                "/unrun - Остановка процесса отслеживания логов\n"
                 "/users - Разрешенные пользователи\n"
                 "/leave - Перестать получать сообщения\n"
+                "/log - Показать последние 15 записей из лог-файла.\n"
+                "/run - Запуск отслеживания логов\n"   
+                "/unrun - Остановка процесса отслеживания логов\n"
+                "/war - Вывести WARNING сообщения\n"
                 "/ri - Включить вывод INFO\n"
-                "/ris - Выключить вывод INFO"
+                "/ris - Выключить вывод INFO\n"
+                "/win - Вывести список атак"
             )
             bot.send_message(message.chat.id, help_text)
 
@@ -188,13 +190,13 @@ def register_handlers(bot):
                         st = "\n".join(result)
                         bot.send_message(user_id, st)
 
-    @bot.message_handler(commands=['runinfo'])
+    @bot.message_handler(commands=['ri'])
     def enable_info_logs(message):
         global show_info
         show_info = True
         bot.send_message(message.chat.id, "INFO сообщения теперь включены в вывод.")
 
-    @bot.message_handler(commands=['runinfostop'])
+    @bot.message_handler(commands=['ris'])
     def disable_info_logs(message):
         global show_info
         show_info = False
