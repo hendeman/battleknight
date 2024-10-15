@@ -4,23 +4,26 @@ import sys
 import colorlog
 from logging.handlers import TimedRotatingFileHandler
 import os
+import multiprocessing
 
+# Создание блокировки
+log_lock = multiprocessing.Lock()
 
 def p_log(*args, is_error=False, level='info'):
     message = " ".join(map(str, args))
-
-    if is_error:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        logging.error("Необработанное исключение: " + message, exc_info=(exc_type, exc_value, exc_traceback))
-    else:
-        if level == 'debug':
-            logging.debug(message)
-        elif level == 'warning':
-            logging.warning(message)
-        elif level == 'error':
-            logging.error(message)
+    with log_lock:  # Используем блокировку при записи логов
+        if is_error:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            logging.error("Необработанное исключение: " + message, exc_info=(exc_type, exc_value, exc_traceback))
         else:
-            logging.info(message)
+            if level == 'debug':
+                logging.debug(message)
+            elif level == 'warning':
+                logging.warning(message)
+            elif level == 'error':
+                logging.error(message)
+            else:
+                logging.info(message)
 
 
 def setup_logging():
