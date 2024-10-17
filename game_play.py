@@ -323,11 +323,6 @@ def get_potion_bar():
 #         count_work += 1
 
 def autoplay():
-    queue = multiprocessing.Queue()
-    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
-    logging_process.start()
-
-    setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
     count_work = 3
     while True:
@@ -400,5 +395,14 @@ def run_process_for_hours(target_function, hours, process_name):
 
 
 if __name__ == "__main__":
+    queue = multiprocessing.Queue()
+    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
+    logging_process.start()
+    setup_logging(queue)  # Настраиваем логирование с использованием очереди
+
     time_sleep(wait_until("23:10"))
     autoplay()
+
+    # Завершение дочернего процесса логирования
+    queue.put(None)  # Отправляем сигнал для завершения
+    logging_process.join()  # Ждем завершения дочернего процесса
