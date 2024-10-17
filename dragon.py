@@ -103,6 +103,8 @@ def complete_mission(soup, length_mission, cog_plata=False):
             )
             response = make_request(world_url)
             soup = BeautifulSoup(response.content, 'html.parser')
+            st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
+            a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
             if silver_count >= 800:
                 if not cog_plata:
