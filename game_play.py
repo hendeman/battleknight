@@ -5,7 +5,8 @@ from tqdm import tqdm
 
 from auctioneer import buy_ring
 from group import go_group
-from logs.logs import p_log
+from logs.logger_process import logger_process
+from logs.logs import p_log, setup_logging
 from module.all_function import get_random_value, get_config_value, time_sleep_main, wait_until, no_cache, \
     get_name_mount, format_time
 from module.data_pars import heals, get_status_horse
@@ -322,6 +323,12 @@ def get_potion_bar():
 #         count_work += 1
 
 def autoplay():
+    queue = multiprocessing.Queue()
+    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
+    logging_process.start()
+
+    setup_logging(queue)  # Настраиваем логирование с использованием очереди
+
     count_work = 3
     while True:
         time_sleep(check_progressbar())

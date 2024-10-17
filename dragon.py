@@ -8,7 +8,8 @@ from bs4 import BeautifulSoup
 
 from game_play import check_progressbar
 from group import go_group
-from logs.logs import p_log
+from logs.logger_process import logger_process
+from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main
 from module.data_pars import heals
 from module.http_requests import post_request, make_request
@@ -259,6 +260,12 @@ def wrapper_function(func1):
 
 
 if __name__ == "__main__":
+    queue = multiprocessing.Queue()
+    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
+    logging_process.start()
+
+    setup_logging(queue)  # Настраиваем логирование с использованием очереди
+
     check_timer()
     kwargs = {
         'event': 'healer',
