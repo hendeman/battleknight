@@ -2,9 +2,8 @@ import re
 
 from bs4 import BeautifulSoup
 
-from game_play import check_treasury_timers
 from logs.logs import p_log, setup_logging
-from module.game_function import post_travel, post_dragon, my_place, check_hit_point, hide_silver, check_status_mission, \
+from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
     get_all_keys, check_mission, get_group_castles
 from module.http_requests import make_request
 from module.all_function import time_sleep
@@ -101,6 +100,5 @@ def keys_search(event, rubies, length_mission):
 
 
 if __name__ == "__main__":
-    # keys_search(event='Ключи', rubies=False, length_mission='small')
     setup_logging()
-    print(check_treasury_timers() is None)
+    keys_search(event='Ключи', rubies=False, length_mission='small')

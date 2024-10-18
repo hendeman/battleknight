@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-from game_play import check_progressbar, check_treasury_timers, contribute_to_treasury
+from game_play import check_progressbar, check_treasury_timers, contribute_to_treasury, ride_pegasus
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache
 from module.data_pars import heals
@@ -27,23 +27,23 @@ def check_timer():
     soup = BeautifulSoup(response.text, 'lxml')
     response = soup.find('h1').text.strip()
     if response in status_list:
-        timer = soup.find(id="progressbarEnds").text.strip()
-        hours, minutes, seconds = map(int, timer.split(':'))
-        extra_time = 10
-        total_seconds = hours * 3600 + minutes * 60 + seconds + extra_time
-        p_log(f"lupatik статус <{response}>")
         time_sleep(check_progressbar())
 
 
+@ride_pegasus
 def post_travel(out='', where='', how='horse'):
     payload = {
         'travelwhere': f'{where}',
         'travelhow': f'{how}',
         'travelpremium': 0
     }
-    p_log(payload)
-    print_status(out, where, how)
-    post_request(travel_url, payload)
+    p_log(payload, level='debug')
+    responce_redirect = post_request(travel_url, payload)  # ответ редирект
+    timer_travel = check_progressbar(responce_redirect)
+    if not timer_travel:
+        p_log("Рыцарь не уехал в другой город!", level='warning')
+    else:
+        print_status(out, where, how)
 
     check_timer()
 
