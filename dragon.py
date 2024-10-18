@@ -1,7 +1,7 @@
 import multiprocessing
 import random
 import re
-from datetime import datetime
+
 from functools import partial
 
 from bs4 import BeautifulSoup
@@ -11,63 +11,15 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main
-from module.data_pars import heals
-from module.http_requests import post_request, make_request
-from setting import castles_all, castles_island, castles, status_list
+from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
+    post_healer
+from module.http_requests import make_request
+from setting import castles_all, castles_island, castles, world_url, map_url
 
-world_url = 'https://s32-ru.battleknight.gameforge.com/world'
-post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
-map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
-travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
-mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
     'healer': {'icon': 'ZanyHealerIcon', 'name': ''}
 }
-healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
-
-
-def post_travel(out='', where='', how='horse'):
-    payload = {
-        'travelwhere': f'{where}',
-        'travelhow': f'{how}',
-        'travelpremium': 0
-    }
-    p_log(payload)
-    print_status(out, where, how)
-    post_request(travel_url, payload)
-
-    check_timer()
-
-
-def post_healer(potion_number):
-    payload = {'potion': f'potion{str(potion_number)}'}
-    post_request(healer_url, payload)
-    p_log("Зелье мудрости куплено")
-
-
-def post_dragon(length_mission, name_mission, buy_rubies=''):
-    payload = {
-        'chooseMission': name_mission,
-        'missionArt': length_mission,
-        'missionKarma': 'Good',
-        'buyRubies': f"{buy_rubies}"
-    }
-
-    post_request(post_url, payload)
-    p_log(f"Атака выполнена успешно, потрачено {buy_rubies if buy_rubies else '0'} рубинов")
-
-    check_timer()
-
-
-def check_hit_point():
-    while True:
-        response = make_request(map_url)
-        if heals(response) < 20:
-            p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
-            time_sleep(610)
-        else:
-            break
 
 
 def find_mission(soup, length_mission):
@@ -167,47 +119,6 @@ def travel_mission(length_mission='small'):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'html.parser')
     complete_mission(soup, length_mission, cog_plata=True)
-
-
-def my_place():
-    response = make_request(mission_url)
-    soup = BeautifulSoup(response.text, 'lxml')
-    place = soup.find('h1').text.strip()
-    for key, value in castles_all.items():
-        if value == place:
-            return value, key
-    return place, None
-
-
-def check_timer():
-    response = make_request(mission_url)
-    soup = BeautifulSoup(response.text, 'lxml')
-    response = soup.find('h1').text.strip()
-    if response in status_list:
-        timer = soup.find(id="progressbarEnds").text.strip()
-        hours, minutes, seconds = map(int, timer.split(':'))
-        extra_time = 10
-        total_seconds = hours * 3600 + minutes * 60 + seconds + extra_time
-        p_log(f"lupatik статус <{response}>")
-        time_sleep(check_progressbar())
-
-
-def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str):
-    # Получаем текущее время
-    now = datetime.now().time()
-
-    # Преобразуем строки в объекты time
-    start_time = datetime.strptime(start_hour, "%H:%M").time()
-    end_time = datetime.strptime(end_hour, "%H:%M").time()
-
-    # Проверяем, находится ли текущее время в заданном диапазоне
-    if start_time <= now <= end_time:
-        p_log(f"Отдываем до {sleep_hour}...")
-        time_sleep(wait_until(sleep_hour))
-
-
-def print_status(from_town, where_town, how):
-    p_log(f"{'Едем' if how == 'horse' else 'Плывем'} из {castles_all[from_town]} в {castles_all[where_town]}")
 
 
 def event_search(event, rubies, length_mission):

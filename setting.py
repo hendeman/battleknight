@@ -32,6 +32,8 @@ NICKS_GAMER = 'pickles_data/nicks.pickle'
 url = 'https://s32-ru.battleknight.gameforge.com/clan/members'
 url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
 url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
+world_url = 'https://s32-ru.battleknight.gameforge.com/world'
+map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
 
 url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
 folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"
