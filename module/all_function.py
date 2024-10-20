@@ -107,14 +107,14 @@ def get_random_value():
 
 
 def time_sleep(seconds=0):
+    if seconds:
+        for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
+            time.sleep(1)
     if seconds == 0:
         seconds = random.randint(waiting_time + 7, waiting_time + 20)
         for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
             time.sleep(1)
         p_log("Gotov k atake")
-    else:
-        for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
-            time.sleep(1)
 
 
 def format_time(seconds):
