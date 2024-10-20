@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, filename, mount_list
+from setting import waiting_time, filename, mount_list, SAVE_CASTLE
 
 
 def remove_cyrillic(stroka: str):
@@ -147,3 +147,45 @@ def no_cache():
 
 def get_name_mount(value):
     return next((k for k, v in mount_list.items() if v == value), value)
+
+
+def get_save_castle():
+    try:
+        with open(SAVE_CASTLE, 'rb') as file_gamer:
+            p_log(f"Попытка открыть файл {SAVE_CASTLE}", level='debug')
+            dict_gamer = pickle.load(file_gamer)
+            if len(dict_gamer) > 1:
+                p_log("В save_castle более одного ключа", is_error=True)
+            return dict_gamer
+
+    except FileNotFoundError:
+        p_log("Файла не существует, будет создан новый", level='debug')
+        dict_gamer = {}
+        with open(SAVE_CASTLE, 'wb') as file_gamer:
+            pickle.dump(dict_gamer, file_gamer)
+        return dict_gamer
+
+
+def clear_save_castle():
+    with open(SAVE_CASTLE, 'wb') as file_gamer:
+        dict_gamer = {}
+        pickle.dump(dict_gamer, file_gamer)
+        p_log(f"{SAVE_CASTLE} очищен", level='debug')
+
+
+def write_save_castle(key, value):
+    with open(SAVE_CASTLE, 'wb') as file_gamer:
+        pickle.dump({key: value}, file_gamer)
+        p_log(f"{SAVE_CASTLE} сохранились данные текущей миссии {key}:{value}", level='debug')
+
+
+# ______________ Рекурсивно преобразует вложенные словари, чтобы они стали хешируемыми ______________
+def dict_to_tuple(d):
+    result = []
+    for k, v in d.items():
+        if isinstance(v, dict):
+            v = dict_to_tuple(v)  # Рекурсивное преобразование
+            result.append((k, v))
+        else:
+            result.append((k, v))
+    return tuple(result)
