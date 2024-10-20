@@ -28,6 +28,7 @@ STAT_FILE_NAME = "pickles_data/stat_dct.pickle"
 STAT_FILE_LOSS = 'pickles_data/loss.pickle'
 GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
+SAVE_CASTLE = 'pickles_data/save_castle.pickle'
 
 url = 'https://s32-ru.battleknight.gameforge.com/clan/members'
 url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
