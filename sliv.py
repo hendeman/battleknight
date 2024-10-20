@@ -245,7 +245,7 @@ def reduce_experience(name_file=NICKS_GAMER):
                     if get_config_value(key="online_track"):
                         online_tracking()  # функция нахождения и атаки на играющих игроков
             else:
-                p_log(f"{nick} не может быть атакован")
+                p_log(f"{nick} не может быть атакован", level='debug')
         # когда закончилился список из рыцаряй для слива опыта
         if get_config_value(key="online_track"):
             online_tracking_only()
