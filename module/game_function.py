@@ -1,11 +1,12 @@
 import re
+from time import sleep
 
 from bs4 import BeautifulSoup
 from datetime import datetime
 
 from game_play import check_progressbar, check_treasury_timers, contribute_to_treasury, ride_pegasus
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, no_cache
+from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple
 from module.data_pars import heals
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list
@@ -82,6 +83,13 @@ def my_place():
     return place, None
 
 
+def group_time(start_hour: str, end_hour: str):
+    now = datetime.now().time()
+    start_time = datetime.strptime(start_hour, "%H:%M").time()
+    end_time = datetime.strptime(end_hour, "%H:%M").time()
+    return start_time <= now <= end_time
+
+
 def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str):
     # Получаем текущее время
     now = datetime.now().time()
@@ -125,19 +133,25 @@ def get_all_keys():
                         item_key_list[item['item_id']] = {'item_pic': item['item_pic'],
                                                           'location': item['clue_data']['location']}
         except ValueError:
-            print("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря")
+            p_log("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря", level='warning')
+        sleep(1)
+    p_log("Словарь с ключами успешно сформирован", level='debug')
     return item_key_list
 
 
 def check_mission(name_mission, length_mission):
     check_hit_point()  # проверка количества здоровья
     dct1 = get_group_castles(get_all_keys())
+    p_log(dct1, level='debug')
     post_dragon(
         length_mission=length_mission,
         name_mission=name_mission
     )
+    make_request(mission_url)  # Запрос в миссии для обновления ключей
     dct2 = get_group_castles(get_all_keys())
-    differences = set(dct1.items()) ^ set(dct2.items())
+    p_log(dct2, level='debug')
+    differences = set(dict_to_tuple(dct1)) ^ set(dict_to_tuple(dct2))
+    p_log(differences, level='debug')
     return differences
 
 
