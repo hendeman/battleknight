@@ -27,6 +27,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
         element = name_mission.index(save_mission)
         name_mission = name_mission[element:]
     flag = False
+    p_log(f"В {current_castle} имеются следующие миссии {name_mission}")
     for mission in name_mission:
         while True:
             # ____________________________ Ночной перерыв _________________________________
@@ -70,6 +71,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         clear_save_castle()  # очистка файла с сохранением локации
                         break
                     p_log(f"Миссия {mission} открыла ключ. Миссия будет выполнена повторно")
+                    p_log(f"В данной локации осталось ещё {current_dict_key[current_castle]['count']} ключей")
                     write_save_castle(current_castle, mission)
                 else:
                     a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
