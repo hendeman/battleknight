@@ -16,14 +16,14 @@ def make_request(url):
 
         except Timeout as e:
             p_log("Connection error:", e, level='warning')
-            p_log("The waiting time has expired. Check your network connection and server availability.", level='warning')
-            p_log("Try again after 5 seconds...", level='warning')
-            time.sleep(5)
+            p_log("The waiting time has expired. Check your network connection and server availability.", level='debug')
+            p_log("Try again after 10 seconds...", level='debug')
+            time.sleep(10)
 
         except RequestException as e:
             p_log("Connection error:", e, level='warning')
-            p_log("Try again after 5 seconds...", level='warning')
-            time.sleep(5)  # Подождать некоторое время перед повторной попыткой
+            p_log("Try again after 10 seconds...", level='debug')
+            time.sleep(10)  # Подождать некоторое время перед повторной попыткой
 
 
 def post_request(make_post_url, data):
