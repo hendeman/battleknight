@@ -33,7 +33,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             # ____________________________ Ночной перерыв _________________________________
             check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
             # _______________________ Время для групповой миссии __________________________
-            check_time_sleep(start_hour='19:30', end_hour='21:29', sleep_hour='21:30')
+            check_time_sleep(start_hour='19:20', end_hour='21:29', sleep_hour='21:30')
 
             if group_time(start_hour='21:29', end_hour='21:35'):
                 go_group(3600)
