@@ -50,6 +50,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             else:
                 p_log("Есть доступные миссии")
                 if not cog_plata:
+                    p_log(f"Будет произведена попытка пройти {mission} миссию")
                     differences = check_mission(name_mission=mission, length_mission=length_mission)
                     if not differences:
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
