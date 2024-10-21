@@ -1,6 +1,6 @@
 import re
 from time import sleep
-
+import random
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -17,6 +17,8 @@ post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
 map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
 world_url = 'https://s32-ru.battleknight.gameforge.com/world'
 healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
+url_market = 'https://s32-ru.battleknight.gameforge.com/market/merchant/artefacts'
+url_loot = 'https://s32-ru.battleknight.gameforge.com/user/loot/'
 
 
 def print_status(from_town, where_town, how):
@@ -123,7 +125,8 @@ def get_all_keys():
     pattern = re.compile(r'^Clue\d+_closed$')
     item_key_list = {}  # формат записи 22273032: {'item_pic': 'Clue01_closed', 'location': 'TradingPostFour'}
     for i in range(3, 5):
-        url = f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}&inventory={i}&loc=character'
+        url = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+               f'&inventory={i}&loc=character')
         resp = make_request(url)
 
         try:
@@ -174,3 +177,113 @@ def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
     post_request(healer_url, payload)
     p_log("Зелье мудрости куплено")
+
+
+def do_matrix_inventory(data):
+    rows = 8
+    cols = 7
+    matrix = [data[i * rows:(i + 1) * rows] for i in range(cols)]
+    return matrix
+
+
+# __________________ Получаем случайное значение номера сумки и координаты свободного слота __________________
+
+def choose_random_coor(dct):
+    if dct:
+        random_key = random.choice(list(dct.keys()))
+        random_value = random.choice(dct[random_key])
+        result = {random_key: random_value}
+        return result
+    else:
+        print("Нет свободных слотов в сумке")
+
+
+# _______________________ Получаем данные заполненности инвентаря в 3 и 4 сумке _______________________________
+
+def get_inventory_slots():
+    item_key_list = {}
+    for i in range(3, 5):
+        url_inventory = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+                         f'&inventory={i}&loc=character')
+        resp = make_request(url_inventory)
+
+        try:
+            result = resp.json()
+            if resp.json()['result']:
+                item_key_list[f"{i}"] = do_matrix_inventory(result['inventory'])
+        except ValueError:
+            print("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря")
+        sleep(1)
+    return item_key_list
+
+
+# ________________________________ Преобразование  данных инвентаря в матричный вид _________________
+
+def get_free_coord(original_dict):
+    coordinates_dict = {}
+
+    # Преобразование
+    for key, matrix in original_dict.items():
+        coordinates = []  # Список для хранения координат
+        for row_index, row in enumerate(matrix):
+            for col_index, value in enumerate(row):
+                if value == '0':  # Если значение равно '0'
+                    coordinates.append((row_index, col_index))  # Добавляем кортеж (строка, столбец)
+        if coordinates:
+            coordinates_dict[key] = coordinates  # Записываем в новый словарь
+    print(coordinates_dict)
+    return coordinates_dict
+
+
+# _____________________________ Проверить, если ли общий ключ в продаже ____________________________________
+
+def get_key_market():
+    soup = BeautifulSoup(make_request(url_market).text, 'lxml')
+    items_market = soup.find(id='merchItemLayer')
+    small_key = items_market.find('div', class_='itemClue01_closed')
+    element_id = small_key['id'] if small_key and 'id' in small_key.attrs else None
+    if element_id:
+        id_key = ''.join(filter(lambda x: x.isdigit(), element_id))
+        print(f"В продаже имеется общий ключ {id_key}")
+        return [id_key]
+    print('Нет ключей в продаже')
+
+
+def get_key_loot():
+    soup = BeautifulSoup(make_request(url_loot).text, 'lxml')
+    items_loot = soup.find(id='lootContent')
+    pattern = re.compile(r'itemClue\d+_closed')
+    keys_list = []
+    for item in items_loot.find_all('div'):
+        if pattern.search(' '.join(item.get('class', []))):
+            id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
+            keys_list.append(id_key)  # Сохраняем id элемента
+    if keys_list:
+        print(f"Доступные ключи в сундуке добычи: {keys_list}")
+        return keys_list
+    print("В сундуке добычи нет ключей")
+
+
+# ____________________________ Основная функция покупки ключа на рынке ____________________________________
+
+def move_key(how='buy'):
+    id_key = get_key_loot() if how == 'loot' else get_key_market()
+    if id_key:
+        for item in id_key:
+            inventory = get_inventory_slots()
+            free_coord = get_free_coord(inventory)
+            dct_coor = choose_random_coor(free_coord)
+            if dct_coor:
+                inv, coor = next(iter(dct_coor.items()))
+                print(f"Попытка переместить ключ {item} в сумку {inv}, ячейка {coor}")
+                if how == 'buy':
+                    url_buy_item = (
+                        f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={item}'
+                        f'&inventory={inv}&width={coor[1]}&depth={coor[0]}')
+                    make_request(url_buy_item)
+                elif how == 'loot':
+                    url_loot_item = (
+                        f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id={item}'
+                        f'&inventory={inv}&width={coor[1]}&depth={coor[0]}&type=tmp')
+                    make_request(url_loot_item)
+            sleep(2)
