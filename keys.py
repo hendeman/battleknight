@@ -121,7 +121,8 @@ def keys_search(event, rubies, length_mission):
     silver_count = int(soup.find(id='silverCount').text)
     if not name_max_city:
         raise f"Нет доступных ключей"
-    p_log(f"Максимальное количество ключей находится в {castles_all[name_max_city]}")
+    p_log(f"Максимальное количество ключей находится в "
+          f"{castles_all[name_max_city]}, {group_castles[name_max_city]['count']} ключей")
 
     if (my_town in castles_island and name_max_city in castles_island) or (
             my_town in castles and name_max_city in castles):
