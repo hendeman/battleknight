@@ -3,6 +3,7 @@ import re
 
 from bs4 import BeautifulSoup
 
+from auctioneer import buy_ring
 from game_play import check_progressbar, run_process_for_hours
 from group import go_group
 from logs.logger_process import logger_process
@@ -57,7 +58,11 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
                         break
                     a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
+                    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
+                    silver_count = int(soup.find(id='silverCount').text)
                     hide_silver(silver_limit=5000)  # внести в казну
+                    if silver_count > 7000:
+                        buy_ring()
                     current_dict_key = get_group_castles(get_all_keys())
                     if current_dict_key[current_castle]['item_pic'] is None:
                         print(f"В городе {current_castle} все ключи открыты")
@@ -156,6 +161,7 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
+    time_sleep(check_progressbar())  # проверить статус
     count = 15  # Чисто для избавления от вечного цикла
     while count:
         keys_search(event='Ключи', rubies=False, length_mission='small')
