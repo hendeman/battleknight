@@ -68,7 +68,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if silver_count > 7000:
                         buy_ring()
                     current_dict_key = get_group_castles(get_all_keys())
-                    if current_dict_key[current_castle]['item_pic'] is None:
+                    if current_castle not in current_dict_key:
                         print(f"В городе {current_castle} все ключи открыты")
                         flag = True
                         clear_save_castle()  # очистка файла с сохранением локации
