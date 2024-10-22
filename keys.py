@@ -11,9 +11,10 @@ from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
     get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key
 from module.http_requests import make_request
-from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle
+from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
+    get_config_value
 from setting import castles_all, castles_island, castles, world_url, map_url
-from sliv import reduce_experience
+from sliv import reduce_experience, online_tracking_only
 
 
 # ___________________ Выполнить миссию. Флаг cog_plata=True значит миссия для переправы __________
@@ -22,7 +23,7 @@ from sliv import reduce_experience
 def complete_mission(length_mission, current_castle, save_mission=None, cog_plata=False):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    name_mission, a_tags = find_mission(soup, length_mission)
+    name_mission = find_mission(soup, length_mission)
     if save_mission:
         element = name_mission.index(save_mission)
         name_mission = name_mission[element:]
@@ -43,12 +44,17 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                 time_sleep(timer_group)
             # _____________________________________________________________________________
 
+            check_hit_point()
+            a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
+
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
                 p_log("Миссий нет. Ждем 2 часа...")
                 #  _____ Запускаем новый процесс, который 2 часа будет сливать опыт и следить за врагами _____
-                run_process_for_hours(reduce_experience, 2, 'reduce_experience')
+                if get_config_value(key="reduce_experience"):
+                    run_process_for_hours(reduce_experience, 2, 'reduce_experience')
+                else:
+                    run_process_for_hours(online_tracking_only, 2, 'online_tracking_only')
 
-                a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
             else:
                 p_log("Есть доступные миссии")
                 if not cog_plata:
@@ -56,9 +62,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     differences = check_mission(name_mission=mission, length_mission=length_mission)
                     if not differences:
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
-                        a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
                         break
-                    a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
                     soup = BeautifulSoup(make_request(world_url).text, 'lxml')
                     silver_count = int(soup.find(id='silverCount').text)
                     hide_silver(silver_limit=5000)  # внести в казну
@@ -74,7 +78,6 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     p_log(f"В данной локации осталось ещё {current_dict_key[current_castle]['count']} ключей")
                     write_save_castle(current_castle, mission)
                 else:
-                    a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
                     soup = BeautifulSoup(make_request(world_url).text, 'lxml')
                     silver_count = int(soup.find(id='silverCount').text)
                     check_hit_point()
@@ -106,7 +109,7 @@ def find_mission(soup, length_mission):
             nm = match.group(1)  # Извлекаем значение name_mission
             name_missions.append(nm)  # Добавляем в список
     # name_mission = random.choice(name_missions)
-    return name_missions, a_tags
+    return name_missions
 
 
 def keys_search(event, rubies, length_mission):
