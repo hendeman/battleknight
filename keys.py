@@ -9,7 +9,7 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key
+    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key, get_silver
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value
@@ -63,8 +63,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if not differences:
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
                         break
-                    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
-                    silver_count = int(soup.find(id='silverCount').text)
+                    silver_count = get_silver()
                     hide_silver(silver_limit=5000)  # внести в казну
                     if silver_count > 7000:
                         buy_ring()
@@ -78,9 +77,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     p_log(f"В данной локации осталось ещё {current_dict_key[current_castle]['count']} ключей")
                     write_save_castle(current_castle, mission)
                 else:
-                    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
-                    silver_count = int(soup.find(id='silverCount').text)
-                    check_hit_point()
+                    silver_count = get_silver()
                     post_dragon(
                         length_mission=length_mission,
                         name_mission=mission
@@ -90,8 +87,10 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         break
         if flag:
             p_log(f"В {current_castle} закончились все ключи")
+            silver_count = get_silver()
             try:
-                move_key(how='buy')  # купить ключ
+                if silver_count >= 140:
+                    move_key(how='buy')  # купить ключ
                 move_key(how='loot')  # переместить ключи из сундука добычи
             except:
                 p_log("Ошибка выполнения move_key", level='warning')
