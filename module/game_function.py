@@ -113,6 +113,13 @@ def hide_silver(silver_limit):
         contribute_to_treasury()
 
 
+def get_silver():
+    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
+    silver_count = int(soup.find(id='silverCount').text)
+    p_log(f"На руках {silver_count} серебра")
+    return silver_count
+
+
 def check_status_mission(name_mission, length_mission):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'html.parser')
