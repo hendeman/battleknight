@@ -161,6 +161,9 @@ def get_save_castle():
     except FileNotFoundError:
         p_log("Файла не существует, будет создан новый", level='debug')
         dict_gamer = {}
+        if get_config_value("fix_bad_keys"):
+            p_log("Начальный город будет выбран Терент, чтобы открыть забагованные ключи", level='debug')
+            dict_gamer['VillageOne'] = 'BanditLair'
         with open(SAVE_CASTLE, 'wb') as file_gamer:
             pickle.dump(dict_gamer, file_gamer)
         return dict_gamer
