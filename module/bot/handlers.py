@@ -139,7 +139,6 @@ def register_handlers(bot):
                                     while True:  # Бесконечный цикл для повторных попыток
                                         try:
                                             bot.send_message(user_id, message)
-                                            logging.info(f"Сообщение успешно отправлено пользователю {user_id}.")
                                             break  # Выход из цикла при успешной отправке
                                         except requests.exceptions.ConnectionError as e:
                                             logging.error(
