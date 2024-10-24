@@ -133,7 +133,7 @@ def keys_search(event, rubies, length_mission):
     if not name_max_city:
         raise f"Нет доступных ключей"
     p_log(f"Максимальное количество ключей находится в "
-          f"{castles_all[name_max_city]}, {group_castles[name_max_city]['count']} ключей")
+          f"{castles_all[name_max_city]}, {group_castles.get(name_max_city, {}).get('count', 0)} ключей")
 
     if (my_town in castles_island and name_max_city in castles_island) or (
             my_town in castles and name_max_city in castles):
