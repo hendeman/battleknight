@@ -85,20 +85,9 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if silver_count >= 800:
                         flag_cog = True
                         break
-        if flag_cog:
+        if flag_cog or flag:
             break
-        if flag:
-            p_log(f"В {current_castle} закончились все ключи")
-            clear_save_castle()  # очистка файла с сохранением локации
-            silver_count = get_silver()
-            try:
-                if silver_count >= 140:
-                    move_key(how='buy')  # купить ключ
-                move_key(how='loot')  # переместить ключи из сундука добычи
-            except:
-                p_log("Ошибка выполнения move_key", level='warning')
-            break
-    else:
+    if not flag_cog:
         p_log(f"В {current_castle} закончились все ключи")
         clear_save_castle()  # очистка файла с сохранением локации
         silver_count = get_silver()
