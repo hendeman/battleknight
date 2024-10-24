@@ -74,7 +74,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         flag = True
                         break
                     p_log(f"Миссия {mission} открыла ключ. Миссия будет выполнена повторно")
-                    p_log(f"В данной локации осталось ещё {current_dict_key[current_castle]['count']} ключей")
+                    p_log(f"В данной локации осталось ещё {current_dict_key.get(current_castle, {}).get('count', 0)} ключей")
                     write_save_castle(current_castle, mission)
                 else:
                     silver_count = get_silver()
