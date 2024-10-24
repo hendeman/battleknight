@@ -131,7 +131,7 @@ def check_status_mission(name_mission, length_mission):
 def get_all_keys():
     pattern = re.compile(r'^Clue\d+_closed$')
     item_key_list = {}  # формат записи 22273032: {'item_pic': 'Clue01_closed', 'location': 'TradingPostFour'}
-    for i in range(3, 5):
+    for i in range(1, 5):
         url = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                f'&inventory={i}&loc=character')
         resp = make_request(url)
@@ -186,9 +186,9 @@ def post_healer(potion_number):
     p_log("Зелье мудрости куплено")
 
 
-def do_matrix_inventory(data):
-    rows = 8
-    cols = 7
+def do_matrix_inventory(data, size):
+    rows = size['width']
+    cols = size['depth']
     matrix = [data[i * rows:(i + 1) * rows] for i in range(cols)]
     return matrix
 
@@ -209,22 +209,24 @@ def choose_random_coor(dct):
 
 def get_inventory_slots():
     item_key_list = {}
-    for i in range(3, 5):
+    for i in range(1, 5):
         url_inventory = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                          f'&inventory={i}&loc=character')
         resp = make_request(url_inventory)
 
         try:
             result = resp.json()
-            if resp.json()['result']:
-                item_key_list[f"{i}"] = do_matrix_inventory(result['inventory'])
+            if resp.json()['result'] and result['inventory']:
+                item_key_list[f"{i}"] = do_matrix_inventory(result['inventory'], result['inventorySize'])
         except ValueError:
-            print("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря")
+            p_log("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря", level='warning')
+        except KeyError as er:
+            p_log(f"Нет доступных ключей, ошибка {er}", level='warning')
         sleep(1)
     return item_key_list
 
 
-# ________________________________ Преобразование  данных инвентаря в матричный вид _________________
+# ________________________________ Преобразование данных инвентаря в матричный вид _________________
 
 def get_free_coord(original_dict):
     coordinates_dict = {}
