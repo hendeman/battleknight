@@ -28,6 +28,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
         element = name_mission.index(save_mission)
         name_mission = name_mission[element:]
     flag = False
+    flag_cog = False
     p_log(f"В {current_castle} имеются следующие миссии {name_mission}")
     for mission in name_mission:
         while True:
@@ -68,10 +69,9 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if silver_count > 7000:
                         buy_ring()
                     current_dict_key = get_group_castles(get_all_keys())
-                    if current_castle not in current_dict_key:
-                        print(f"В городе {current_castle} все ключи открыты")
+                    if current_castle != 'VillageOne' and current_castle not in current_dict_key:
+                        p_log(f"В городе {current_castle} все ключи открыты")
                         flag = True
-                        clear_save_castle()  # очистка файла с сохранением локации
                         break
                     p_log(f"Миссия {mission} открыла ключ. Миссия будет выполнена повторно")
                     p_log(f"В данной локации осталось ещё {current_dict_key[current_castle]['count']} ключей")
@@ -83,10 +83,13 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         name_mission=mission
                     )
                     if silver_count >= 800:
-                        flag = True
+                        flag_cog = True
                         break
+        if flag_cog:
+            break
         if flag:
             p_log(f"В {current_castle} закончились все ключи")
+            clear_save_castle()  # очистка файла с сохранением локации
             silver_count = get_silver()
             try:
                 if silver_count >= 140:
@@ -95,6 +98,16 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             except:
                 p_log("Ошибка выполнения move_key", level='warning')
             break
+    else:
+        p_log(f"В {current_castle} закончились все ключи")
+        clear_save_castle()  # очистка файла с сохранением локации
+        silver_count = get_silver()
+        try:
+            if silver_count >= 140:
+                move_key(how='buy')  # купить ключ
+            move_key(how='loot')  # переместить ключи из сундука добычи
+        except:
+            p_log("Ошибка выполнения move_key", level='warning')
 
 
 def find_mission(soup, length_mission):
