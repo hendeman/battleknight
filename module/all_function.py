@@ -185,7 +185,8 @@ def write_save_castle(key, value):
 # ______________ Рекурсивно преобразует вложенные словари, чтобы они стали хешируемыми ______________
 def dict_to_tuple(d):
     result = []
-    for k, v in d.items():
+    for k in sorted(d.keys()):  # Сортируем ключи
+        v = d[k]
         if isinstance(v, dict):
             v = dict_to_tuple(v)  # Рекурсивное преобразование
             result.append((k, v))
