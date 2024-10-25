@@ -8,10 +8,11 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_random_value, get_config_value, time_sleep_main, wait_until, no_cache, \
-    get_name_mount, format_time
-from module.data_pars import heals, get_status_horse
+    format_time
+from module.data_pars import heals
+from module.game_function import check_progressbar, seconds_to_hhmmss, contribute_to_treasury, ride_pegasus
 from module.http_requests import post_request, make_request
-from setting import castles_all, status_list, CURRENT_TAX, status_list_eng, mount_list, start_game
+from setting import castles_all, start_game
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
 
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
@@ -42,46 +43,6 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     p_log(f"Атака успешна, потрачено {buy_rubies if buy_rubies else '0'} рубинов")
 
     # time_sleep(check_progressbar())
-
-
-def ride_pegasus(func):
-    def wrapper(*args, **kwargs):
-        id_horse = None
-        id_pegas = mount_list['pegas']
-        response = make_request(user_url)
-        horse = get_status_horse(response)
-        if horse and horse != id_pegas:
-            id_horse = horse
-            resp = make_request(
-                f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                f"={id_horse}&inventory=5&type=normal")
-            if resp.json()['result']:
-                p_log(f"Ездовое животное {get_name_mount(id_horse)} снято")
-        if not id_horse and horse != id_pegas:
-            p_log("Никакая лошадь не надета")
-            id_horse = mount_list['bear']
-
-        time_sleep(2)
-        if horse != id_pegas:
-            resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                                f"&id={id_pegas}&type=normal&invID=5&loc=character")
-            if resp.json()['result']:
-                p_log(f"{get_name_mount(id_pegas)} надет")
-
-        func(*args, **kwargs)
-
-        resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                            f"={id_pegas}&inventory=5&type=normal")
-        if resp.json()['result']:
-            p_log(f"{get_name_mount(id_pegas)} снят")
-
-        time_sleep(2)
-        resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                            f"&id={id_horse}&type=normal&invID=5&loc=character")
-        if resp.json()['result']:
-            p_log(f"Ездовое животное {get_name_mount(id_horse)} надето")
-
-    return wrapper
 
 
 def print_status(from_town, where_town, how, tt):
@@ -162,55 +123,6 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
         time_sleep(check_progressbar())
 
 
-# _____________________ Проверка состояния check_progressbar, проверка на работу progressbar_ends
-def check_progressbar(resp=None):
-    if resp is None:
-        resp = make_request(mission_url)
-    # heals(resp)
-    soup = BeautifulSoup(resp.text, 'lxml')
-    element = soup.find('h1').text.strip()
-    p_log("Проверка состояния")
-
-    if element in status_list:
-        index = status_list.index(element)
-        element_eng = status_list_eng[index]
-        p_log(f"lupatik status <{element}>")
-        return progressbar_ends(soup)
-    p_log("lupatik свободен")
-
-
-def check_treasury_timers():
-    soup = BeautifulSoup(make_request(treasury_url).text, 'lxml')
-    element = soup.find(class_='scrollLongTall')
-
-    # Проверяем наличие класса hidden. Если есть hidden, то доступна казна
-    if element and 'hidden' not in element.get('class', []):
-        p_log(f"Казна не доступна, подождите': {element.text.strip().split()[0]}")
-        return progressbar_ends(soup)
-
-
-def progressbar_ends(soup):
-    try:
-        timer = soup.find(id="progressbarEnds").text.strip()
-        hours, minutes, seconds = map(int, timer.split(':'))
-        total_seconds = hours * 3600 + minutes * 60 + seconds + 2
-    except AttributeError:
-        if soup.find('h1').text.strip() == 'Работа':
-            get_reward()
-        total_seconds = 0
-
-    return total_seconds
-
-
-def seconds_to_hhmmss(seconds):
-    if seconds is None:
-        return None
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    remaining_seconds = seconds % 60
-    return f"{hours:02}:{minutes:02}:{remaining_seconds:02}"
-
-
 # ______________________________________________________________________________________________
 
 # ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
@@ -232,27 +144,6 @@ def get_reward():
 
     post_request(work_url, payload)
     p_log(f"Награда за работу принята")
-
-
-# ________________________________________________________________________________________________
-
-
-# ____________________________ Скинуть золото в казну ____________________________________
-def contribute_to_treasury():
-    gold_all = put_gold(status="before")
-    payload = {'silvertoDeposit': int(gold_all * CURRENT_TAX) - 100}
-    p_log(payload, level='debug')
-    post_request(deposit_url, payload)
-    put_gold(status="after")
-
-
-def put_gold(status="before"):
-    soup = BeautifulSoup(make_request(treasury_url).text, 'lxml')
-    gold_count_element = int(soup.find(id="silverCount").text.split()[0])
-    p_log(
-        f"Количество золота на руках: {gold_count_element}" if status == "before"
-        else f"Осталось золота после казны: {gold_count_element}")
-    return gold_count_element
 
 
 # ___________________________________________________________________________________________
@@ -323,7 +214,6 @@ def get_potion_bar():
 #         count_work += 1
 
 def autoplay():
-
     count_work = 3
     while True:
         time_sleep(check_progressbar())

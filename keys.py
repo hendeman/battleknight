@@ -4,12 +4,13 @@ import re
 from bs4 import BeautifulSoup
 
 from auctioneer import buy_ring
-from game_play import check_progressbar, run_process_for_hours
+from game_play import run_process_for_hours
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key, get_silver
+    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key, get_silver, \
+    check_progressbar
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value

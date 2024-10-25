@@ -6,13 +6,12 @@ from functools import partial
 
 from bs4 import BeautifulSoup
 
-from game_play import check_progressbar
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
-    post_healer
+    post_healer, check_progressbar
 from module.http_requests import make_request
 from setting import castles_all, castles_island, castles, world_url, map_url
 
