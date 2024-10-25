@@ -185,7 +185,7 @@ def check_treasury_timers():
 
     # Проверяем наличие класса hidden. Если есть hidden, то доступна казна
     if element and 'hidden' not in element.get('class', []):
-        p_log(f"Элемент с классом 'scrollLongTall' имеет класс 'hidden': {element.text.strip().split()[0]}")
+        p_log(f"Казна не доступна, подождите': {element.text.strip().split()[0]}")
         return progressbar_ends(soup)
 
 
