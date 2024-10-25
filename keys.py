@@ -52,10 +52,13 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
                 p_log("Миссий нет. Ждем 1 час 45 мин...")
                 #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
-                if get_config_value(key="reduce_experience"):
-                    run_process_for_hours(reduce_experience, 1.75, 'reduce_experience')
+                if get_config_value(key="online_tracking_only"):
+                    if get_config_value(key="reduce_experience"):
+                        run_process_for_hours(reduce_experience, 1.75, 'reduce_experience')
+                    else:
+                        run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
                 else:
-                    run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
+                    time_sleep(int(1.45 * 60 * 60))
 
             else:
                 p_log("Есть доступные миссии")
