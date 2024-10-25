@@ -202,7 +202,7 @@ def choose_random_coor(dct):
         result = {random_key: random_value}
         return result
     else:
-        print("Нет свободных слотов в сумке")
+        p_log("Нет свободных слотов в сумке")
 
 
 # _______________________ Получаем данные заполненности инвентаря в 3 и 4 сумке _______________________________
@@ -240,7 +240,7 @@ def get_free_coord(original_dict):
                     coordinates.append((row_index, col_index))  # Добавляем кортеж (строка, столбец)
         if coordinates:
             coordinates_dict[key] = coordinates  # Записываем в новый словарь
-    print(coordinates_dict)
+    p_log(coordinates_dict, level='debug')
     return coordinates_dict
 
 
@@ -253,9 +253,9 @@ def get_key_market():
     element_id = small_key['id'] if small_key and 'id' in small_key.attrs else None
     if element_id:
         id_key = ''.join(filter(lambda x: x.isdigit(), element_id))
-        print(f"В продаже имеется общий ключ {id_key}")
+        p_log(f"В продаже имеется общий ключ {id_key}")
         return [id_key]
-    print('Нет ключей в продаже')
+    p_log('Нет ключей в продаже')
 
 
 def get_key_loot():
@@ -268,9 +268,9 @@ def get_key_loot():
             id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
             keys_list.append(id_key)  # Сохраняем id элемента
     if keys_list:
-        print(f"Доступные ключи в сундуке добычи: {keys_list}")
+        p_log(f"Доступные ключи в сундуке добычи: {keys_list}")
         return keys_list
-    print("В сундуке добычи нет ключей")
+    p_log("В сундуке добычи нет ключей")
 
 
 # ____________________________ Основная функция покупки ключа на рынке ____________________________________
@@ -284,7 +284,7 @@ def move_key(how='buy'):
             dct_coor = choose_random_coor(free_coord)
             if dct_coor:
                 inv, coor = next(iter(dct_coor.items()))
-                print(f"Попытка переместить ключ {item} в сумку {inv}, ячейка {coor}")
+                p_log(f"Попытка переместить ключ {item} в сумку {inv}, ячейка {coor}")
                 if how == 'buy':
                     url_buy_item = (
                         f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={item}'
