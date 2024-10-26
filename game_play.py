@@ -1,18 +1,16 @@
 import time
 import multiprocessing
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 from auctioneer import buy_ring
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
-from module.all_function import get_random_value, get_config_value, time_sleep_main, wait_until, no_cache, \
-    format_time
+from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep
 from module.data_pars import heals
-from module.game_function import check_progressbar, seconds_to_hhmmss, contribute_to_treasury, ride_pegasus
+from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel
 from module.http_requests import post_request, make_request
-from setting import castles_all, start_game
+from setting import start_game
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
 
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
@@ -23,12 +21,6 @@ work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
 travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
 point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
-
-
-def time_sleep(seconds):
-    if seconds:
-        for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
-            time.sleep(1)
 
 
 def post_dragon(buy_rubies='', mission_name='DragonLair'):
@@ -43,30 +35,6 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     p_log(f"Атака успешна, потрачено {buy_rubies if buy_rubies else '0'} рубинов")
 
     # time_sleep(check_progressbar())
-
-
-def print_status(from_town, where_town, how, tt):
-    p_log(
-        f"{'Едем' if how == 'horse' else 'Плывем'} из {castles_all[from_town]} в {castles_all[where_town]}. Ожидание {tt}")
-
-
-@ride_pegasus
-def post_travel(out='', where='', how='horse'):
-    make_request(travel_url)
-    payload = {
-        'travelwhere': f'{where}',
-        'travelhow': f'{how}',
-        'travelpremium': 0
-    }
-    p_log(payload, level='debug')
-    responce_redirect = post_request(travel_url, payload)  # ответ редирект
-    timer_travel = check_progressbar(responce_redirect)
-    if not timer_travel:
-        p_log("Рыцарь не уехал в другой город!", level='warning')
-    else:
-        print_status(out, where, how, seconds_to_hhmmss(timer_travel))
-
-    time_sleep(check_progressbar(responce_redirect))
 
 
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
@@ -147,36 +115,6 @@ def get_reward():
 
 
 # ___________________________________________________________________________________________
-
-# __________ Использовать зелье use_potion, получить данные о зельях_________________________
-def use_potion():
-    try:
-        last_item_id, last_item_value = get_potion_bar()
-        p_log(f"Будет использовано зелье на {last_item_value} HP")
-        time.sleep(get_random_value())
-        use_url = (
-            f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/usePotion?noCache={no_cache()}&id={last_item_id}'
-            '&merchant=false&table=user')
-        make_request(use_url)
-        time.sleep(get_random_value())
-        # Получить новый список из зельев
-        get_potion_bar()
-    except:
-        p_log("Ошибка в получении банок ХП. Отдыхаем 10 минут")
-        time_sleep(600)
-
-
-def get_potion_bar():
-    payload = {
-        'noCache': f'{int(time.time() * 1000)}'
-    }
-    data = post_request(point_url, payload).json()
-    result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data.values())
-    p_log(result)
-    sorted_keys = sorted(data.keys(), key=int)
-    sorted_items = [data[key] for key in sorted_keys]
-    last_item_id, last_item_value = sorted_items[-1]['item_id'], sorted_items[-1]['item_value']
-    return last_item_id, last_item_value
 
 
 # __________________________________________________________________________________________________

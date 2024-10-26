@@ -108,7 +108,7 @@ def get_random_value():
 
 def time_sleep(seconds=0):
     if seconds:
-        for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
+        for i in tqdm(range(int(seconds)), desc="Ostalos vremeni", unit="sec"):
             time.sleep(1)
     if seconds == 0:
         seconds = random.randint(waiting_time + 7, waiting_time + 20)

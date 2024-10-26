@@ -13,7 +13,7 @@ from module.game_function import post_travel, my_place, check_hit_point, hide_si
     check_progressbar
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
-    get_config_value
+    get_config_value, time_sleep_main
 from setting import castles_all, castles_island, castles, world_url, map_url
 from sliv import reduce_experience, online_tracking_only
 
@@ -58,7 +58,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     else:
                         run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
                 else:
-                    time_sleep(int(1.45 * 60 * 60))
+                    time_sleep_main(int(1.45 * 60 * 60))
 
             else:
                 p_log("Есть доступные миссии")

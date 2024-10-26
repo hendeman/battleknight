@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from logs.logs import p_log
 from module.all_function import current_time, time_sleep, get_config_value
 from module.data_pars import heals, pars_gold_duel
+from module.game_function import use_potion
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
 
@@ -81,7 +82,6 @@ def check_status_group():
 def handle_error(resp, nick, heals_point=False):
     if heals(resp) == 1:
         if heals_point:
-            from game_play import use_potion
             use_potion()
         else:
             p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
