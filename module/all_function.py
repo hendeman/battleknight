@@ -65,6 +65,72 @@ def get_config_value(key, default=0):
         return default
 
 
+def change_config_value(section, key, new_value):
+    config = configparser.ConfigParser()
+
+    try:
+        # Проверяем, существует ли файл
+        if not os.path.exists(filename):
+            p_log(f"Error: The file '{filename}' does not exist.", level='debug')
+            return f"Файл '{filename}' не существует"
+
+        config.read(filename)
+
+        # Проверяем, существует ли ключ в секции
+        if 'DEFAULT' in config and config.has_option(section, key) and new_value.isdigit():
+            # Устанавливаем новое значение
+            config.set(section, key, str(new_value))
+
+            # Записываем изменения обратно в файл
+            with open(filename, 'w') as configfile:
+                config.write(configfile)
+
+            p_log(f"Changed: [{section}] {key} = {new_value}", level='debug')
+            return f"config.ini -> {key} установлено {new_value}"
+        elif not new_value.isdigit():
+            p_log(f"Error: value '{new_value}' not isdigit() '{section}'.", level='debug')
+            return "Значение должно содержать только цифры"
+        else:
+            p_log(f"Error: Key '{key}' not found in section '{section}'.", level='debug')
+            return "Неверное имя параметра"
+
+    except (configparser.Error, IOError) as e:
+        p_log(f"Error: Failed to write to the configuration file. {e}", is_error=True)
+        return f"Error: Failed to read the configuration file. {e}"
+
+
+def show_config():
+    config = configparser.ConfigParser()
+    output_lines = []  # Список для хранения строк конфигурации
+
+    try:
+        if not os.path.exists(filename):
+            p_log(f"Error: The file '{filename}' does not exist.", level='debug')
+            return f"Файл '{filename}' не существует"
+
+        config.read(filename)
+
+        # Добавляем содержимое каждой секции в список строк
+        for section in config.sections():
+            output_lines.append(f"[{section}]")
+            for key, value in config.items(section):
+                output_lines.append(f"{key} = {value}")
+            output_lines.append("")  # Пустая строка для разделения секций
+
+        # Если есть секция DEFAULT, выводим её содержимое
+        if 'DEFAULT' in config:
+            output_lines.append("[DEFAULT]")
+            for key, value in config.items('DEFAULT'):
+                output_lines.append(f"{key} = {value}")
+
+        # Объединяем список строк в одну строку с разделителем "\n"
+        return "\n".join(output_lines)
+
+    except (configparser.Error, IOError) as e:
+        p_log(f"Error: Failed to write to the configuration file. {e}", is_error=True)
+        return f"Error: Failed to read the configuration file. {e}"
+
+
 def save_file(data: dict, name_file: str):
     command = input().lower()
     if command == "y":
