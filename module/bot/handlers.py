@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 import requests
 import logging
+
+from module.all_function import change_config_value, show_config
 from module.bot.config import *
 from module.bot.utils import load_allowed_users, save_allowed_users, read_last_lines
 
@@ -30,7 +32,14 @@ def register_handlers(bot):
                 "/war - Вывести WARNING сообщения\n"
                 "/ri - Включить вывод INFO\n"
                 "/ris - Выключить вывод INFO\n"
-                "/win - Вывести список атак"
+                "/win - Вывести список атак\n"
+                "/conf - Выводит config.ini\n"
+                "/com -online=1 слив+атака\n"
+                "/com -online=0 ничего не делаем\n"
+                "/com -reduce=1 слив+атака\n"
+                "/com -reduce=0 атака\n"
+                "/com -only=1 слив+атака\n"
+                "/com -only=0 слив"
             )
             bot.send_message(message.chat.id, help_text)
 
@@ -215,3 +224,44 @@ def register_handlers(bot):
                     bot.send_message(user_id, st)
                 else:
                     bot.send_message(user_id, 'WARNING ошибок не обнаружено')
+
+    @bot.message_handler(commands=['com'])
+    def handle_ris(message):
+        if message.chat.id == CHAT_ID:
+            for user_id in ALLOWED_USERS:
+                # Получаем текст сообщения, убирая команду /ris
+                command_text = message.text[len('/com '):].strip()
+
+                # Разделяем текст по пробелам
+                params = command_text.split()
+
+                # Словарь для хранения параметров
+                options = {}
+
+                for param in params:
+                    if param.startswith('-'):
+                        # Разделяем параметр на ключ и значение
+                        key_value = param[1:].split('=')
+                        if len(key_value) == 2:
+                            key = key_value[0].strip()
+                            value = key_value[1].strip()
+                            options[key] = value
+
+                # Обработка параметров
+                if 'reduce' in options:
+                    mess = change_config_value('DEFAULT', 'reduce_experience', options['reduce'])
+                    bot.send_message(user_id, mess)
+                elif 'only' in options:
+                    mess = change_config_value('DEFAULT', 'online_tracking_only', options['only'])
+                    bot.send_message(user_id, mess)
+                elif 'online' in options:
+                    mess = change_config_value('DEFAULT', 'online_track', options['online'])
+                    bot.send_message(user_id, mess)
+                else:
+                    bot.send_message(user_id, "Неверный параметр")
+
+    @bot.message_handler(commands=['conf'])
+    def handle_ris(message):
+        if message.chat.id == CHAT_ID:
+            for user_id in ALLOWED_USERS:
+                bot.send_message(user_id, show_config())
