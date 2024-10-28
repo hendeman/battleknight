@@ -46,6 +46,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                 time_sleep(timer_group)
             # _____________________________________________________________________________
 
+            time_sleep(check_progressbar())
             check_hit_point()
             a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
 
