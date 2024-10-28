@@ -1,11 +1,12 @@
 import re
 from time import sleep
+import time
 import random
 from bs4 import BeautifulSoup
 from datetime import datetime
 
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount
+from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value
 from module.data_pars import heals, get_status_horse
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list
@@ -22,10 +23,12 @@ work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
 deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
 user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
+point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 
 
-def print_status(from_town, where_town, how):
-    p_log(f"{'Едем' if how == 'horse' else 'Плывем'} из {castles_all[from_town]} в {castles_all[where_town]}")
+def print_status(from_town, where_town, how, tt):
+    p_log(
+        f"{'Едем' if how == 'horse' else 'Плывем'} из {castles_all[from_town]} в {castles_all[where_town]}. Ожидание {tt}")
 
 
 def check_timer():
@@ -79,6 +82,37 @@ def get_reward():
 
     post_request(work_url, payload)
     p_log(f"Награда за работу принята")
+
+
+# __________ Использовать зелье use_potion, получить данные о зельях_________________________
+def use_potion():
+    try:
+        last_item_id, last_item_value = get_potion_bar()
+        p_log(f"Будет использовано зелье на {last_item_value} HP")
+        sleep(get_random_value())
+        use_url = (
+            f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/usePotion?noCache={no_cache()}&id={last_item_id}'
+            '&merchant=false&table=user')
+        make_request(use_url)
+        sleep(get_random_value())
+        # Получить новый список из зельев
+        get_potion_bar()
+    except:
+        p_log("Ошибка в получении банок ХП. Отдыхаем 10 минут")
+        time_sleep(600)
+
+
+def get_potion_bar():
+    payload = {
+        'noCache': f'{int(time.time() * 1000)}'
+    }
+    data = post_request(point_url, payload).json()
+    result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data.values())
+    p_log(result)
+    sorted_keys = sorted(data.keys(), key=int)
+    sorted_items = [data[key] for key in sorted_keys]
+    last_item_id, last_item_value = sorted_items[-1]['item_id'], sorted_items[-1]['item_value']
+    return last_item_id, last_item_value
 
 
 # ________________________ Проверить казну _____________________________________________
@@ -164,7 +198,7 @@ def post_travel(out='', where='', how='horse'):
     if not timer_travel:
         p_log("Рыцарь не уехал в другой город!", level='warning')
     else:
-        print_status(out, where, how)
+        print_status(out, where, how, seconds_to_hhmmss(timer_travel))
 
     check_timer()
 
