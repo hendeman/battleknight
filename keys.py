@@ -70,7 +70,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
                         break
                     silver_count = get_silver()
-                    hide_silver(silver_limit=5000)  # внести в казну
+                    hide_silver(silver_limit=6000)  # внести в казну
                     if silver_count > 7000:
                         buy_ring()
                     current_dict_key = get_group_castles(get_all_keys())
@@ -90,6 +90,10 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if silver_count >= 800:
                         flag_cog = True
                         break
+        silver_count = get_silver()
+        hide_silver(silver_limit=6000)  # внести в казну
+        if silver_count > 7000:
+            buy_ring()
         if flag_cog or flag:
             break
     if not flag_cog:
