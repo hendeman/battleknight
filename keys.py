@@ -51,6 +51,10 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
 
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
+                silver_count = get_silver()
+                hide_silver(silver_limit=6000)  # внести в казну
+                if silver_count > 7000:
+                    buy_ring()
                 p_log("Миссий нет. Ждем 1 час 45 мин...")
                 #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
                 if get_config_value(key="online_tracking_only"):
@@ -69,10 +73,6 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if not differences:
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
                         break
-                    silver_count = get_silver()
-                    hide_silver(silver_limit=6000)  # внести в казну
-                    if silver_count > 7000:
-                        buy_ring()
                     current_dict_key = get_group_castles(get_all_keys())
                     if current_castle != 'VillageOne' and current_castle not in current_dict_key:
                         p_log(f"В городе {current_castle} все ключи открыты")
