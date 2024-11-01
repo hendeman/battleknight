@@ -61,6 +61,9 @@ castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'Coast
            'TradingPostOne': "Гранд", 'TradingPostTwo': "Талмет", 'TradingPostThree': "Брент",
            'VillageOne': "Терент", 'VillageTwo': "Хатвиг", 'VillageThree': "Рамстилл"}
 castles_all = {**castles, **castles_island}
+auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPostTwo',
+                   'HarbourOne', 'TradingPostThree', 'VillageThree', 'CityOne',
+                   'HarbourTwo', 'TradingPostFour')
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
