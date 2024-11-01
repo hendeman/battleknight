@@ -10,11 +10,11 @@ from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
     get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key, get_silver, \
-    check_progressbar
+    check_progressbar, go_auction
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
-from setting import castles_all, castles_island, castles, world_url, map_url
+from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles
 from sliv import reduce_experience, online_tracking_only
 
 
@@ -51,10 +51,14 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
 
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
-                silver_count = get_silver()
-                hide_silver(silver_limit=6000)  # внести в казну
+                silver_count = hide_silver(silver_limit=7000)  # внести в казну
+
                 if silver_count > 7000:
-                    buy_ring()
+                    if current_castle not in auction_castles:
+                        go_auction(out=current_castle)
+                    else:
+                        buy_ring()
+
                 p_log("Миссий нет. Ждем 1 час 45 мин...")
                 #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
                 if get_config_value(key="online_tracking_only"):
@@ -90,8 +94,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if silver_count >= 800:
                         flag_cog = True
                         break
-        silver_count = get_silver()
-        hide_silver(silver_limit=6000)  # внести в казну
+        silver_count = hide_silver(silver_limit=7000)  # внести в казну
         if silver_count > 7000:
             buy_ring()
         if flag_cog or flag:
