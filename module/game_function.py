@@ -9,12 +9,13 @@ from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value
 from module.data_pars import heals, get_status_horse
 from module.http_requests import post_request, make_request
-from setting import castles_all, status_list, CURRENT_TAX, mount_list
+from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles
 
 travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
 mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
 post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
 map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
+url_world = 'https://s32-ru.battleknight.gameforge.com/world/travel'
 world_url = 'https://s32-ru.battleknight.gameforge.com/world'
 healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
 url_market = 'https://s32-ru.battleknight.gameforge.com/market/merchant/artefacts'
@@ -24,6 +25,8 @@ treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
 deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
 user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
 point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
+url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
+url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
 
 
 def print_status(from_town, where_town, how, tt):
@@ -46,6 +49,66 @@ def seconds_to_hhmmss(seconds):
     minutes = (seconds % 3600) // 60
     remaining_seconds = seconds % 60
     return f"{hours:02}:{minutes:02}:{remaining_seconds:02}"
+
+
+def convert_to_minutes(time_str):
+    """ Value time_str 01h 20m convert in int(minutes)"""
+    time_pattern = re.compile(r'(\d{1,2})h\s*(\d{1,2})m')
+    match = time_pattern.match(time_str)
+
+    if match:
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        total_minutes = hours * 60 + minutes
+        return total_minutes
+    else:
+        raise ValueError("Invalid time format")
+
+
+# _________________________________ Найти ближайший замок с аукционами ________________________________
+
+def get_castle_min_time():
+    soup = BeautifulSoup(make_request(url_world).text, 'html.parser')
+
+    # Словарь для хранения результатов
+    travel_times = {}
+    st_pattern = re.compile(r"startTravel\('([a-zA-Z]+)', 'horse', new Element\(this\), false\);")
+
+    # Поиск всех <tr> тегов
+    for tr in soup.find_all('tr'):
+        # Поиск <a> тега с onclick атрибутом
+        a_tag = tr.find('a', class_='button boxed tooltip')
+        if a_tag and 'onclick' in a_tag.attrs:
+            onclick_value = a_tag['onclick']
+
+            # Применение регулярного выражения
+            travel_match = st_pattern.search(onclick_value)
+            if travel_match:
+                travel_name = travel_match.group(1)  # Извлекаем значение 'GhostTown'
+
+                # Поиск времени в <td class="travelTable03 toolTip">
+                time_td = tr.find('td', class_='travelTable03 toolTip')
+                if time_td:
+                    travel_time = time_td.get_text(strip=True)  # Убираем лишние пробелы
+                    travel_time_minutes = convert_to_minutes(travel_time)
+                    travel_times[travel_name] = travel_time_minutes
+    p_log(travel_times, level='debug')
+    filtered_dct = {key: value for key, value in travel_times.items() if key in auction_castles}
+    castle_min_range = min(filtered_dct, key=filtered_dct.get)
+    # Вывод результата
+    p_log(filtered_dct, level='debug')
+    p_log(f'Ближайший замок с аукционами в {castles_all.get(castle_min_range)}')
+    return castle_min_range
+
+
+def go_auction(out):
+    try:
+        castle_auction = get_castle_min_time()
+        post_travel(out=out, where=castle_auction)
+        buy_ring()
+        post_travel(out=castle_auction, where=out)
+    except:
+        p_log(f'Ошибка выполнения функции go_auction', level='warning')
 
 
 # _____________________ Проверка состояния check_progressbar, проверка на работу progressbar_ends
@@ -133,7 +196,7 @@ def contribute_to_treasury():
     payload = {'silvertoDeposit': int(gold_all * CURRENT_TAX) - 100}
     p_log(payload, level='debug')
     post_request(deposit_url, payload)
-    put_gold(status="after")
+    return put_gold(status="after")
 
 
 def put_gold(status="before"):
@@ -262,7 +325,8 @@ def hide_silver(silver_limit):
     soup = BeautifulSoup(make_request(world_url).text, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     if silver_count > silver_limit and check_treasury_timers() is None:
-        contribute_to_treasury()
+        return contribute_to_treasury()
+    return silver_count
 
 
 def get_silver():
@@ -448,3 +512,69 @@ def move_key(how='buy'):
                         f'&inventory={inv}&width={coor[1]}&depth={coor[0]}&type=tmp')
                     make_request(url_loot_item)
             sleep(2)
+
+# _______________________ Покупка кольца на аукционе за все серебро _____________________________
+
+def place_bet(id_item, bet):
+    payload = {'noCache': no_cache()}
+    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}', payload)
+    try:
+        if resp.json()['result']:
+            p_log("Ставка выполнена успешно")
+        else:
+            p_log(f"Ошибка ставки, неверное количество серебра")
+    except ValueError:
+        p_log("Ошибка ставки. Ошибка json(). Неверный id_item", level='warning')
+
+
+def payout(soup, silver_out: int):
+    to_silver = get_silver()
+    payload = {'silverToPayout': silver_out}
+    resp = post_request(url_payout, payload)
+    after_silver = get_silver()
+    if after_silver - to_silver == silver_out:
+        p_log(f"Из казны взято {silver_out} серебра")
+        return after_silver
+    else:
+        p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
+
+
+def buy_ring():
+    response = make_request(url_auctioneer)
+    soup = BeautifulSoup(response.text, 'lxml')
+    auction_item_box = soup.find_all('div', class_='auctionItemBox')
+    # проверить "auctionItemBox" когда аукционер ничего не представил
+    # print(len(auction_item_box))
+    dct = {}
+    for item in auction_item_box:
+        # Находим нужный div с классом itemRing
+        item_ring_div = item.find('div', class_=lambda x: x and x.startswith('itemRing'))
+        if item_ring_div:
+            # Извлекаем id
+            id_item = item_ring_div['id'][8:]  # Обрезаем 'auctItem' для получения цифр
+
+            # Находим input с нужным id
+            bid_text_input = soup.find('input', id=f'bidText{id_item}')
+
+            # Извлекаем значение value
+            if bid_text_input:
+                bid_value = bid_text_input['value']
+                dct[id_item] = bid_value
+    target_number = get_silver()
+    p_log(f"На руках {target_number} серебра")
+    p_log(dct, level='debug')
+
+    if not dct:
+        p_log("Нет колец на аукционе")
+    else:
+        min_key = min(dct, key=lambda k: int(dct[k]))
+        min_value = int(dct[min_key])
+        if min_value > target_number:
+            need_silver = min_value - target_number
+            p_log(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
+            if need_silver < 500:
+                after_silver = payout(soup, need_silver)
+                place_bet(min_key, after_silver)
+        else:
+            p_log(f"Будет куплено кольцо с id={min_key}")
+            place_bet(min_key, target_number)
