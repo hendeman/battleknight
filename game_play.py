@@ -2,13 +2,12 @@ import time
 import multiprocessing
 from bs4 import BeautifulSoup
 
-from auctioneer import buy_ring
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep
 from module.data_pars import heals
-from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel
+from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring
 from module.http_requests import post_request, make_request
 from setting import start_game
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
