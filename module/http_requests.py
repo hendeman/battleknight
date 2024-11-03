@@ -7,10 +7,10 @@ from logs.logs import p_log
 from setting import cookies, headers
 
 
-def make_request(url):
+def make_request(url, timeout=10):
     while True:
         try:
-            response = requests.get(url, cookies=cookies, headers=headers, allow_redirects=True, timeout=10)
+            response = requests.get(url, cookies=cookies, headers=headers, allow_redirects=True, timeout=timeout)
             p_log("GET otvet", response.status_code, level='debug')
             return response
 
@@ -18,23 +18,23 @@ def make_request(url):
             p_log("Connection error:", e, level='warning')
             p_log("The waiting time has expired. Check your network connection and server availability.", level='debug')
             p_log("Try again after 10 seconds...", level='debug')
-            time.sleep(10)
+            time.sleep(timeout)
 
         except RequestException as e:
             p_log("Connection error:", e, level='warning')
             p_log("Try again after 10 seconds...", level='debug')
-            time.sleep(10)  # Подождать некоторое время перед повторной попыткой
+            time.sleep(timeout)  # Подождать некоторое время перед повторной попыткой
 
 
-def post_request(make_post_url, data):
+def post_request(make_post_url, data, timeout=10):
     while True:
         try:
             response = requests.post(make_post_url, cookies=cookies, headers=headers, data=data,
-                                     allow_redirects=True, timeout=10)
+                                     allow_redirects=True, timeout=timeout)
             p_log("POST otvet", response.status_code, level='debug')
             return response
 
         except RequestException as e:
             p_log("Connection error:", e, level='warning')
             p_log("Try again after 5 seconds...", level='warning')
-            time.sleep(5)  # Подождать некоторое время перед повторной попыткой
+            time.sleep(timeout - 1)  # Подождать некоторое время перед повторной попыткой
