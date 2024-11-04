@@ -95,7 +95,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         break
         silver_count = hide_silver(silver_limit=7000)  # внести в казну
         if silver_count > 7000:
-            buy_ring()
+            buy_ring(tariff_travel=1000)  # оставить 1000 серебра на переправу
         if flag_cog or flag:
             break
     if not flag_cog:

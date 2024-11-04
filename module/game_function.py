@@ -539,7 +539,7 @@ def payout(soup, silver_out: int):
         p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
 
 
-def buy_ring():
+def buy_ring(tariff_travel=0):
     response = make_request(url_auctioneer)
     soup = BeautifulSoup(response.text, 'lxml')
     auction_item_box = soup.find_all('div', class_='auctionItemBox')
@@ -560,8 +560,8 @@ def buy_ring():
             if bid_text_input:
                 bid_value = bid_text_input['value']
                 dct[id_item] = bid_value
-    target_number = get_silver()
-    p_log(f"На руках {target_number} серебра")
+    target_number = get_silver() - tariff_travel
+    p_log(f"Доступно {target_number} серебра")
     p_log(dct, level='debug')
 
     if not dct:
