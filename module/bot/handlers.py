@@ -28,18 +28,19 @@ def register_handlers(bot):
                 "/leave - Перестать получать сообщения\n"
                 "/log - Показать последние 15 записей из лог-файла.\n"
                 "/run - Запуск отслеживания логов\n"   
+                "/wm - Запуск отслеживания логов войны\n" 
                 "/unrun - Остановка процесса отслеживания логов\n"
                 "/war - Вывести WARNING сообщения\n"
                 "/ri - Включить вывод INFO\n"
                 "/ris - Выключить вывод INFO\n"
                 "/win - Вывести список атак\n"
                 "/conf - Выводит config.ini\n"
-                "/com -online=1 слив+атака\n"
-                "/com -online=0 ничего не делаем\n"
+                "/com -only=1 слив+атака\n"
+                "/com -only=0 ничего не делаем\n"
                 "/com -reduce=1 слив+атака\n"
                 "/com -reduce=0 атака\n"
-                "/com -only=1 слив+атака\n"
-                "/com -only=0 слив"
+                "/com -online=1 слив+атака\n"
+                "/com -online=0 слив"
             )
             bot.send_message(message.chat.id, help_text)
 
@@ -72,11 +73,10 @@ def register_handlers(bot):
     @bot.message_handler(commands=['log'])
     def send_last_logs(message):
         if message.chat.id == CHAT_ID:
-            last_logs = read_last_lines(LOG_FILE)
+            last_logs = read_last_lines(LOG_FILE_1)
             for user_id in ALLOWED_USERS:
                 bot.send_message(user_id, f"Последние 15 записей лога:\n{last_logs}")
 
-    # Команда /run — выводит последние 15 строк и запускает поток для отправки новых сообщений
     @bot.message_handler(commands=['run'])
     def start_sending_logs(message):
         global is_running, last_position
@@ -90,88 +90,104 @@ def register_handlers(bot):
         is_running = True
         last_position = 0  # Сбрасываем позицию при запуске
 
-        def send_new_logs():
-            global last_position, warning_list  # Используем global для изменения глобальной переменной
+        # Запускаем поток для отправки новых логов из первого файла
+        threading.Thread(target=process_logs, args=(LOG_FILE_1, message), daemon=True).start()
 
-            while is_running:
-                try:
-                    # Переоткрываем файл, если наступила полночь
-                    current_time = datetime.now()
-                    if current_time.hour == 7 and current_time.minute <= 10:
-                        last_position = 0
-                        warning_list = []
+    @bot.message_handler(commands=['wm'])
+    def start_sending_wm_logs(message):
+        global is_running, last_position
+        if message.chat.id not in ALLOWED_USERS:
+            return  # Игнорировать команды от неразрешенных пользователей
 
-                    with open(LOG_FILE, 'r', encoding='utf-8') as f:
-                        # Устанавливаем курсор в конец файла при первом запуске
-                        if last_position == 0:
-                            f.seek(0, 2)  # Устанавливаем в конец файла
-                            last_position = f.tell()  # Обновляем позицию на конец файла
-                        else:
-                            f.seek(last_position)
+        if is_running:
+            bot.send_message(message.chat.id, "Логи уже отправляются в реальном времени!")
+            return
 
-                        lines = f.readlines()
-                        last_position = f.tell()  # Обновляем позицию
+        is_running = True
+        last_position = 0  # Сбрасываем позицию при запуске
 
-                        filtered_lines = []
-                        capture_error = False
+        # Запускаем поток для отправки новых логов из второго файла
+        threading.Thread(target=process_logs, args=(LOG_FILE_2, message), daemon=True).start()
 
-                        for line in lines:
-                            if 'ERROR' in line:
+    def process_logs(log_file, message):
+        global last_position, warning_list
+
+        while is_running:
+            try:
+                # Переоткрываем файл, если наступила полночь
+                current_time = datetime.now()
+                if current_time.hour == 7 and current_time.minute <= 10:
+                    last_position = 0
+                    warning_list = []
+
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    # Устанавливаем курсор в конец файла при первом запуске
+                    if last_position == 0:
+                        f.seek(0, 2)  # Устанавливаем в конец файла
+                        last_position = f.tell()  # Обновляем позицию на конец файла
+                    else:
+                        f.seek(last_position)
+
+                    lines = f.readlines()
+                    last_position = f.tell()  # Обновляем позицию
+
+                    filtered_lines = []
+                    capture_error = False
+
+                    for line in lines:
+                        if 'ERROR' in line:
+                            filtered_lines.append(line)
+                            capture_error = True
+                        elif 'INFO' in line and show_info:
+                            filtered_lines.append(line.replace('INFO', '').strip())
+                        elif 'INFO' in line:
+                            continue
+                        elif 'WARNING' in line:
+                            warning_list.append(line.replace('WARNING', '').strip())
+                        elif 'DEBUG' in line:
+                            continue
+                        elif capture_error:
+                            if line.strip():  # Если строка не пустая, добавляем
                                 filtered_lines.append(line)
-                                capture_error = True
-                            elif 'INFO' in line and show_info:  # Проверяем переменную show_info
-                                filtered_lines.append(line.replace('INFO', '').strip())
-                            elif 'INFO' in line:
-                                continue
-                            elif 'WARNING' in line:
-                                warning_list.append(line.replace('WARNING', '').strip())
-                            elif 'DEBUG' in line:
-                                continue  # Пропускаем DEBUG строки
-                            elif capture_error:
-                                if line.strip():  # Если строка не пустая, добавляем
-                                    filtered_lines.append(line)
-                                else:
-                                    capture_error = False
                             else:
-                                filtered_lines.append(line)
+                                capture_error = False
+                        else:
+                            filtered_lines.append(line)
 
-                        processed_lines = [
-                            re.sub(r'^\d{2}:\d{2}:\d{2}\s+\d*\s*', '', line).strip()
-                            for line in filtered_lines
-                        ]
+                    processed_lines = [
+                        re.sub(r'^\d{2}:\d{2}:\d{2}\s+\d*\s*', '', line).strip()
+                        for line in filtered_lines
+                    ]
 
-                        if processed_lines:
-                            try:
-                                war_mess = f"\nwarning {len(warning_list) * '*'}" if warning_list else ""
-                                message = '\n'.join(processed_lines) + war_mess
-                                for user_id in ALLOWED_USERS:
-                                    while True:  # Бесконечный цикл для повторных попыток
-                                        try:
-                                            bot.send_message(user_id, message)
-                                            break  # Выход из цикла при успешной отправке
-                                        except requests.exceptions.ConnectionError as e:
-                                            logging.error(
-                                                f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
-                                            time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
-                            except requests.exceptions.HTTPError as e:
-                                if e.response.status_code == 502:
-                                    logging.error("Ошибка 502: Bad Gateway при отправке логов.")
-                                else:
-                                    logging.error(f"HTTP ошибка: {e}.")
-                                time.sleep(20)  # Задержка перед повторной попыткой
+                    if processed_lines:
+                        try:
+                            war_mess = f"\nwarning {len(warning_list) * '*'}" if warning_list else ""
+                            log_message = '\n'.join(processed_lines) + war_mess
+                            for user_id in ALLOWED_USERS:
+                                while True:  # Бесконечный цикл для повторных попыток
+                                    try:
+                                        bot.send_message(user_id, log_message)
+                                        break  # Выход из цикла при успешной отправке
+                                    except requests.exceptions.ConnectionError as e:
+                                        logging.error(
+                                            f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
+                                        time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
+                        except requests.exceptions.HTTPError as e:
+                            if e.response.status_code == 502:
+                                logging.error("Ошибка 502: Bad Gateway при отправке логов.")
+                            else:
+                                logging.error(f"HTTP ошибка: {e}.")
+                            time.sleep(20)  # Задержка перед повторной попыткой
 
-                    time.sleep(600)
+                time.sleep(600)
 
-                except FileNotFoundError:
-                    logging.error(f"Файл {LOG_FILE} не найден.")
-                    time.sleep(60)  # Подождем перед повторной проверкой
+            except FileNotFoundError:
+                logging.error(f"Файл {log_file} не найден.")
+                time.sleep(60)  # Подождем перед повторной проверкой
 
-                except Exception as e:
-                    logging.error(f"Неизвестная ошибка при отправке логов: {e}.")
-                    time.sleep(5)  # Небольшая задержка перед повторной попыткой
-
-        # Запускаем поток для отправки новых логов
-        threading.Thread(target=send_new_logs, daemon=True).start()
+            except Exception as e:
+                logging.error(f"Неизвестная ошибка при отправке логов: {e}.")
+                time.sleep(5)  # Небольшая задержка перед повторной попыткой
 
     @bot.message_handler(commands=['unrun'])
     def stop_sending_logs(message):
