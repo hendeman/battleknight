@@ -12,10 +12,15 @@ from module.bot.utils import load_allowed_users, save_allowed_users, read_last_l
 
 ALLOWED_USERS = load_allowed_users(ALLOWED_USERS_FILE, CHAT_ID)
 
-is_running = False
+is_running_run = False
+is_running_wm = False
 show_info = False  # Переменная для контроля вывода INFO сообщений
-last_position = 0  # Глобальная переменная для хранения позиции
 warning_list = []
+# Словарь для хранения позиции для каждой команды
+last_positions = {
+    'run': 0,
+    'wm': 0
+}
 
 
 def register_handlers(bot):
@@ -30,6 +35,7 @@ def register_handlers(bot):
                 "/run - Запуск отслеживания логов\n"   
                 "/wm - Запуск отслеживания логов войны\n" 
                 "/unrun - Остановка процесса отслеживания логов\n"
+                "/unwm - Остановка процесса отслеживания war_логов\n"
                 "/war - Вывести WARNING сообщения\n"
                 "/ri - Включить вывод INFO\n"
                 "/ris - Выключить вывод INFO\n"
@@ -79,57 +85,61 @@ def register_handlers(bot):
 
     @bot.message_handler(commands=['run'])
     def start_sending_logs(message):
-        global is_running, last_position
+        global is_running_run
         if message.chat.id not in ALLOWED_USERS:
             return  # Игнорировать команды от неразрешенных пользователей
 
-        if is_running:
-            bot.send_message(message.chat.id, "Логи уже отправляются в реальном времени!")
+        if is_running_run:
+            bot.send_message(message.chat.id, "Логи для команды 'run' уже отправляются в реальном времени!")
             return
 
-        is_running = True
-        last_position = 0  # Сбрасываем позицию при запуске
+        is_running_run = True  # Устанавливаем флаг, что команда 'run' активна
+        last_positions['run'] = 0  # Сбрасываем позицию для команды 'run'
 
         # Запускаем поток для отправки новых логов из первого файла
-        threading.Thread(target=process_logs, args=(LOG_FILE_1, message), daemon=True).start()
+        threading.Thread(target=process_logs, args=(LOG_FILE_1, message, 'run', is_running_run), daemon=True).start()
 
     @bot.message_handler(commands=['wm'])
     def start_sending_wm_logs(message):
-        global is_running, last_position
+        global is_running_wm
         if message.chat.id not in ALLOWED_USERS:
             return  # Игнорировать команды от неразрешенных пользователей
 
-        if is_running:
-            bot.send_message(message.chat.id, "Логи уже отправляются в реальном времени!")
+        if is_running_wm:
+            bot.send_message(message.chat.id, "Логи для команды 'wm' уже отправляются в реальном времени!")
             return
 
-        is_running = True
-        last_position = 0  # Сбрасываем позицию при запуске
+        is_running_wm = True  # Устанавливаем флаг, что команда 'wm' активна
+        last_positions['wm'] = 0  # Сбрасываем позицию для команды 'wm'
 
         # Запускаем поток для отправки новых логов из второго файла
-        threading.Thread(target=process_logs, args=(LOG_FILE_2, message), daemon=True).start()
+        threading.Thread(target=process_logs, args=(LOG_FILE_2, message, 'wm', is_running_wm), daemon=True).start()
 
-    def process_logs(log_file, message):
-        global last_position, warning_list
+    def process_logs(log_file, message, command, is_running):
+        global warning_list
 
         while is_running:
             try:
                 # Переоткрываем файл, если наступила полночь
                 current_time = datetime.now()
+
+                # Если наступило время для сброса last_position (например, в 7 утра)
                 if current_time.hour == 7 and current_time.minute <= 10:
-                    last_position = 0
+                    # Сбрасываем last_position только в случае команды "run"
+                    if command == 'run':
+                        last_positions[command] = 0
                     warning_list = []
 
                 with open(log_file, 'r', encoding='utf-8') as f:
-                    # Устанавливаем курсор в конец файла при первом запуске
-                    if last_position == 0:
+                    # Если нужно сбросить позицию, устанавливаем курсор в конец
+                    if last_positions[command] == 0:
                         f.seek(0, 2)  # Устанавливаем в конец файла
-                        last_position = f.tell()  # Обновляем позицию на конец файла
+                        last_positions[command] = f.tell()  # Обновляем позицию на конец файла
                     else:
-                        f.seek(last_position)
+                        f.seek(last_positions[command])  # Продолжаем с текущей позиции
 
                     lines = f.readlines()
-                    last_position = f.tell()  # Обновляем позицию
+                    last_positions[command] = f.tell()  # Обновляем позицию
 
                     filtered_lines = []
                     capture_error = False
@@ -191,11 +201,19 @@ def register_handlers(bot):
 
     @bot.message_handler(commands=['unrun'])
     def stop_sending_logs(message):
-        global is_running, last_position
+        global is_running_run
         if message.chat.id in ALLOWED_USERS:  # Проверяем, что пользователь разрешен
-            is_running = False
-            last_position = 0  # Сбрасываем позицию при остановке
-            bot.send_message(message.chat.id, "Остановка отправки логов.")
+            is_running_run = False  # Останавливаем отправку логов для 'run'
+            last_positions['run'] = 0  # Сбрасываем позицию для команды 'run'
+            bot.send_message(message.chat.id, "Остановка отправки логов для команды 'run'.")
+
+    @bot.message_handler(commands=['unwm'])
+    def stop_sending_wm_logs(message):
+        global is_running_wm
+        if message.chat.id in ALLOWED_USERS:  # Проверяем, что пользователь разрешен
+            is_running_wm = False  # Останавливаем отправку логов для 'wm'
+            last_positions['wm'] = 0  # Сбрасываем позицию для команды 'wm'
+            bot.send_message(message.chat.id, "Остановка отправки логов для команды 'wm'.")
 
     @bot.message_handler(commands=['win'])
     def send_last_logs(message):
