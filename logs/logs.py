@@ -1,6 +1,5 @@
 import logging
 import sys
-
 import colorlog
 from logging.handlers import TimedRotatingFileHandler, QueueHandler
 import os
@@ -23,7 +22,7 @@ def p_log(*args, is_error=False, level='info'):
             logging.info(message)
 
 
-def setup_logging(queue=None):
+def setup_logging(queue=None, enable_rotation=True, log_file_path="logs/app.log"):
     logger = logging.getLogger()
 
     # Удаление всех существующих обработчиков
@@ -49,10 +48,13 @@ def setup_logging(queue=None):
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
 
-    log_file_path = "logs/app.log"
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-    file_handler = TimedRotatingFileHandler(log_file_path, when="midnight", interval=1, backupCount=10)
+    if enable_rotation:
+        file_handler = TimedRotatingFileHandler(log_file_path, when="midnight", interval=1, backupCount=10)
+    else:
+        file_handler = logging.FileHandler(log_file_path)
+
     file_handler.setFormatter(file_formatter)
 
     logger.setLevel(logging.DEBUG)
@@ -80,4 +82,4 @@ def setup_logging(queue=None):
 
 
 if __name__ == "__main__":
-    setup_logging()  # Настраиваем логирование
+    setup_logging(enable_rotation=True)  # Настраиваем логирование с ротацией
