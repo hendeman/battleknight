@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 today = date.today()
-GOLD_DAY = 2000
+GOLD_DAY = 25090
 CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "07:00"
