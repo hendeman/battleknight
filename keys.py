@@ -179,12 +179,10 @@ if __name__ == "__main__":
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
     time_sleep(check_progressbar())  # проверить статус
-    count = 15  # Чисто для избавления от вечного цикла
-    while count:
+    while True:
         keys_search(event='Ключи', rubies=False, length_mission='small')
-        count -= 1
-    p_log("Количесвто выполнений keys_search превысило допустимое")
 
-    # Завершение дочернего процесса логирования
-    queue.put(None)  # Отправляем сигнал для завершения
-    logging_process.join()  # Ждем завершения дочернего процесса
+
+    # # Завершение дочернего процесса логирования
+    # queue.put(None)  # Отправляем сигнал для завершения
+    # logging_process.join()  # Ждем завершения дочернего процесса
