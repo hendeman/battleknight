@@ -139,6 +139,19 @@ def progressbar_ends(soup):
     return total_seconds
 
 
+# ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
+def work():
+    payload = {
+        'hours': '6',
+        'side': 'good'
+    }
+    make_request(work_url)
+    time.sleep(1)
+    post_request(work_url, payload)
+    p_log("Работаем 6 часов...")
+    time_sleep(21700)
+
+
 def get_reward():
     make_request(work_url)
     payload = {'paycheck': 'encash'}
@@ -512,6 +525,7 @@ def move_key(how='buy'):
                         f'&inventory={inv}&width={coor[1]}&depth={coor[0]}&type=tmp')
                     make_request(url_loot_item)
             sleep(2)
+
 
 # _______________________ Покупка кольца на аукционе за все серебро _____________________________
 
