@@ -183,11 +183,9 @@ def get_potion_bar():
         'noCache': f'{int(time.time() * 1000)}'
     }
     data = post_request(point_url, payload).json()
-    result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data.values())
+    result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
     p_log(result)
-    sorted_keys = sorted(data.keys(), key=int)
-    sorted_items = [data[key] for key in sorted_keys]
-    last_item_id, last_item_value = sorted_items[-1]['item_id'], sorted_items[-1]['item_value']
+    last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
     return last_item_id, last_item_value
 
 
