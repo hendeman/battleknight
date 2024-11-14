@@ -9,7 +9,7 @@ today = date.today()
 GOLD_DAY = 25090
 CURRENT_TAX = 0.6
 waiting_time = 600
-start_game = "07:00"
+start_game = "09:00"
 
 # Выбор программы:
 # 1 - это программа клановой статистики
