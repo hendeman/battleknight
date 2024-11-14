@@ -177,7 +177,7 @@ def time_sleep(seconds=0):
         for i in tqdm(range(int(seconds)), desc="Ostalos vremeni", unit="sec"):
             time.sleep(1)
     if seconds == 0:
-        seconds = random.randint(waiting_time + 7, waiting_time + 20)
+        seconds = random.randint(waiting_time + 60, waiting_time + 120)
         for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
             time.sleep(1)
         p_log("Gotov k atake")
