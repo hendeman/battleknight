@@ -178,7 +178,7 @@ def online_tracking():
             gold_diff = gold - filtered_data[gamer]['gold']
             gold_diff_proc = int(gold_diff / filtered_data[gamer]['gold_diff'] * 100)
             p_log(f"{gamer} {filtered_data[gamer]['name']} накопил {gold_diff} [{gold_diff_proc}%] серебра")
-
+            time.sleep(2)
             if gold - filtered_data[gamer]["gold"] > filtered_data[gamer]['gold_diff']:
                 flag, resp = make_attack(gamer, heals_point=True)
                 if flag:
