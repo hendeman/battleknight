@@ -142,14 +142,14 @@ def progressbar_ends(soup):
 # ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
 def work():
     payload = {
-        'hours': '6',
+        'hours': '8',
         'side': 'good'
     }
     make_request(work_url)
     time.sleep(1)
     post_request(work_url, payload)
-    p_log("Работаем 6 часов...")
-    time_sleep(21700)
+    p_log("Работаем 8 часов...")
+    time_sleep(28900)
 
 
 def get_reward():
