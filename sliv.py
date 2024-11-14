@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from logs.logs import p_log
 from module.all_function import current_time, time_sleep, get_config_value
 from module.data_pars import heals, pars_gold_duel
-from module.game_function import use_potion
+from module.game_function import use_potion, buy_ring
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
 
@@ -231,6 +231,9 @@ def reduce_experience(name_file=NICKS_GAMER):
                 flag, resp = make_attack(nick)
                 if flag:
                     received_gold = pars_gold_duel(resp, gold_info=True)
+                    # попытаться купить амулет на аукционе если на руках больше 8000
+                    if int(resp.find(id='silverCount').text) > 8000:
+                        buy_ring()
                     if not number_of_attacks:
                         break
                     number_of_attacks -= 1
