@@ -6,10 +6,11 @@ import time
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
+from group import go_group
 from logs.logs import p_log
-from module.all_function import current_time, time_sleep, get_config_value
+from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import heals, pars_gold_duel
-from module.game_function import use_potion, buy_ring
+from module.game_function import use_potion, buy_ring, group_time, check_progressbar, check_time_sleep
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
 
@@ -386,6 +387,18 @@ def orden_message(message):
 
 
 def click(url="https://s32-ru.battleknight.gameforge.com/world"):
+
+    # ________________________ Для прохождения группы ____________________________
+    check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
+
+    if group_time(start_hour='21:29', end_hour='21:35'):
+        go_group(60 * 30)
+        timer_group = check_progressbar()
+        if timer_group:
+            p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
+        time_sleep(timer_group)
+    # _____________________________________________________________________________
+
     break_outer = False
     response = make_request(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -418,8 +431,8 @@ def click(url="https://s32-ru.battleknight.gameforge.com/world"):
 
 
 if __name__ == "__main__":
-    set_initial_gold()
-    online_tracking_only()
+    # set_initial_gold()
+    # online_tracking_only()
     # time_sleep()
     # while True:
     #     online_tracking()
@@ -427,8 +440,8 @@ if __name__ == "__main__":
     # reduce_experience()
     # online_tracking_only()
     # korovk_reduce_experience(name_file="/pickles_data/korov.pickle")
-    # while True:
-    #     click()
+    while True:
+        click()
     # create_pickle_file()
     # change_pickle_file(name_file=GOLD_GAMER)
     # read_pickle_file(name_file=GOLD_GAMER)
