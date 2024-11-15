@@ -232,7 +232,9 @@ def reduce_experience(name_file=NICKS_GAMER):
                 if flag:
                     received_gold = pars_gold_duel(resp, gold_info=True)
                     # попытаться купить амулет на аукционе если на руках больше 8000
-                    if int(resp.find(id='silverCount').text) > 8000:
+                    soup = BeautifulSoup(resp.text, 'lxml')
+                    silver = int(soup.find(id='silverCount').text)
+                    if silver > 8000:
                         buy_ring()
                     if not number_of_attacks:
                         break
