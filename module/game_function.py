@@ -422,12 +422,23 @@ def do_matrix_inventory(data, size):
 
 # __________________ Получаем случайное значение номера сумки и координаты свободного слота __________________
 
-def choose_random_coor(dct):
+def choose_random_coor(dct, rand):
     if dct:
-        random_key = random.choice(list(dct.keys()))
-        random_value = random.choice(dct[random_key])
-        result = {random_key: random_value}
-        return result
+        if rand:
+            random_key = random.choice(list(dct.keys()))
+            random_value = random.choice(dct[random_key])
+            result = {random_key: random_value}
+            return result
+        else:
+            # Находим максимальный ключ
+            max_key = max(dct.keys(), key=int)
+
+            # Находим максимальный кортеж для этого ключа
+            max_tuple = min(dct[max_key], default=None)
+
+            # Формируем итоговый словарь
+            result = {max_key: max_tuple}
+            return result
     else:
         p_log("Нет свободных слотов в сумке")
 
@@ -473,7 +484,7 @@ def get_free_coord(original_dict):
 
 # _____________________________ Проверить, если ли общий ключ в продаже ____________________________________
 
-def get_key_market():
+def get_item_market():
     soup = BeautifulSoup(make_request(url_market).text, 'lxml')
     items_market = soup.find(id='merchItemLayer')
     small_key = items_market.find('div', class_='itemClue01_closed')
@@ -485,33 +496,34 @@ def get_key_market():
     p_log('Нет ключей в продаже')
 
 
-def get_key_loot():
+def get_item_loot(item_name):
+    dct_loot = {"ring": r'itemRing\d+', "key": r'itemClue\d+_closed'}
     soup = BeautifulSoup(make_request(url_loot).text, 'lxml')
     items_loot = soup.find(id='lootContent')
-    pattern = re.compile(r'itemClue\d+_closed')
-    keys_list = []
+    pattern = re.compile(dct_loot[item_name])
+    item_list = []
     for item in items_loot.find_all('div'):
         if pattern.search(' '.join(item.get('class', []))):
             id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
-            keys_list.append(id_key)  # Сохраняем id элемента
-    if keys_list:
-        p_log(f"Доступные ключи в сундуке добычи: {keys_list}")
-        return keys_list
-    p_log("В сундуке добычи нет ключей")
+            item_list.append(id_key)  # Сохраняем id элемента
+    if item_list:
+        print(f"Доступные {item_name} в сундуке добычи: {item_list}")
+        return item_list
+    print(f"В сундуке добычи нет {item_name}")
 
 
 # ____________________________ Основная функция покупки ключа на рынке ____________________________________
 
-def move_key(how='buy'):
-    id_key = get_key_loot() if how == 'loot' else get_key_market()
+def move_item(how='buy', name='key', rand=True):
+    id_key = get_item_loot(name) if how == 'loot' else get_item_market()
     if id_key:
         for item in id_key:
             inventory = get_inventory_slots()
             free_coord = get_free_coord(inventory)
-            dct_coor = choose_random_coor(free_coord)
+            dct_coor = choose_random_coor(free_coord, rand)
             if dct_coor:
                 inv, coor = next(iter(dct_coor.items()))
-                p_log(f"Попытка переместить ключ {item} в сумку {inv}, ячейка {coor}")
+                p_log(f"Попытка переместить {name} {item} в сумку {inv}, ячейка {coor}")
                 if how == 'buy':
                     url_buy_item = (
                         f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={item}'
