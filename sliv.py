@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 from group import go_group
-from logs.logs import p_log
+from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import heals, pars_gold_duel
 from module.game_function import use_potion, buy_ring, group_time, check_progressbar, check_time_sleep
@@ -440,6 +440,7 @@ if __name__ == "__main__":
     # reduce_experience()
     # online_tracking_only()
     # korovk_reduce_experience(name_file="/pickles_data/korov.pickle")
+    setup_logging()
     while True:
         click()
     # create_pickle_file()

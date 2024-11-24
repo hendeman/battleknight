@@ -8,7 +8,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep
 from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work
+    get_reward, work, move_item
 from module.http_requests import post_request, make_request
 from setting import start_game
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -134,6 +134,12 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
 def autoplay():
     count_work = 3
     while True:
+
+        try:
+            move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
+        except:
+            p_log("Ошибка выполнения move_item", level='warning')
+
         time_sleep(check_progressbar())
         attack_mission()
         post_travel(out='GhostTown', where='CityOne', how='horse')
