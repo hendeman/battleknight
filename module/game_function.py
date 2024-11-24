@@ -507,9 +507,9 @@ def get_item_loot(item_name):
             id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
             item_list.append(id_key)  # Сохраняем id элемента
     if item_list:
-        print(f"Доступные {item_name} в сундуке добычи: {item_list}")
+        p_log(f"Доступные {item_name} в сундуке добычи: {item_list}")
         return item_list
-    print(f"В сундуке добычи нет {item_name}")
+    p_log(f"В сундуке добычи нет {item_name}")
 
 
 # ____________________________ Основная функция покупки ключа на рынке ____________________________________
