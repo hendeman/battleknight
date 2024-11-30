@@ -33,7 +33,8 @@ filename = 'config.ini'
 url_nicks = "nicksflower.txt"
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/91.0.4472.124 Safari/537.36',
     'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
     'Accept-Encoding': 'gzip, deflate, br'
 }
@@ -57,8 +58,7 @@ status_list = ['Ожидание после дуэли', 'Ожидание по�
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
 
-
-#_____________________________________ Игровые ссылки _____________________________________________
+# _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
 url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
 url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
