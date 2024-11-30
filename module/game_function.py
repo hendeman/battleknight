@@ -27,6 +27,7 @@ user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
 point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
 url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
+duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
 
 
 def print_status(from_town, where_town, how, tt):
@@ -161,6 +162,23 @@ def get_reward():
 
 
 # __________ Использовать зелье use_potion, получить данные о зельях_________________________
+
+def check_health(heals_point=False):
+    resp = make_request(duel_url)
+    life_count = heals(resp)
+    if heals_point == 1:
+        if heals_point:
+            use_potion()
+            resp = make_request(duel_url)
+            return heals(resp)
+        else:
+            p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
+            time_sleep()
+            resp = make_request(duel_url)
+            return heals(resp)
+    return life_count
+
+
 def use_potion():
     try:
         last_item_id, last_item_value = get_potion_bar()
