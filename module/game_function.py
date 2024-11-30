@@ -9,25 +9,9 @@ from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value
 from module.data_pars import heals, get_status_horse
 from module.http_requests import post_request, make_request
-from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles
-
-travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
-mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
-post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
-map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
-url_world = 'https://s32-ru.battleknight.gameforge.com/world/travel'
-world_url = 'https://s32-ru.battleknight.gameforge.com/world'
-healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
-url_market = 'https://s32-ru.battleknight.gameforge.com/market/merchant/artefacts'
-url_loot = 'https://s32-ru.battleknight.gameforge.com/user/loot/'
-work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
-treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
-deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
-user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
-point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
-url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
-url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
-duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
+from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
+    post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
+    user_url, point_url, url_auctioneer, url_payout, duel_url
 
 
 def print_status(from_town, where_town, how, tt):

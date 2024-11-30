@@ -6,29 +6,22 @@ import time
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
-from group import go_group
+from group import go_group, url_group
 from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health
 from module.http_requests import make_request, post_request
-from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
+from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
+    url_ordermail, url_error, url_nicks, url_members
 
 date = datetime(2024, 9, 17, 19)
-
-url_compare = 'https://s32-ru.battleknight.gameforge.com/duel/compare/?enemyID='
-url = "https://s32-ru.battleknight.gameforge.com/duel/duel/?enemyID="
-url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group/'
-url_orden_message = "https://s32-ru.battleknight.gameforge.com/ajax/board/sendmessage"
-url_ordermail = "https://s32-ru.battleknight.gameforge.com/mail/ordermail"
-url_error = "https://s32-ru.battleknight.gameforge.com:443/common/error"
-url_nicks = "nicksflower.txt"
 
 
 def make_attack(nick, heals_point=False):
     if check_health(heals_point=heals_point) == 1:
         return False, False
-    url_fight = url + str(nick)
+    url_fight = url_duel_name + str(nick)
     p_log(f"Попытка атаки на {nick}")
     resp = make_request(url_fight)
     status_duel = get_status(resp)
@@ -371,7 +364,6 @@ def orden_message(message):
 
 
 def click(url="https://s32-ru.battleknight.gameforge.com/world"):
-
     # ________________________ Для прохождения группы ____________________________
     check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
 
@@ -384,7 +376,7 @@ def click(url="https://s32-ru.battleknight.gameforge.com/world"):
     # _____________________________________________________________________________
 
     break_outer = False
-    response = make_request(url)
+    response = make_request(url_members)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     a_tags = soup.find_all('a', onclick=lambda

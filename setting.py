@@ -29,19 +29,8 @@ STAT_FILE_LOSS = 'pickles_data/loss.pickle'
 GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
-
-url = 'https://s32-ru.battleknight.gameforge.com/clan/members'
-url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
-url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
-world_url = 'https://s32-ru.battleknight.gameforge.com/world'
-map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
-
-url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
-folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"
-folder_name_loss = f"bk\\statistic_loss\\statistic_loss_{today.day:02d}_{today.month:02d}"
-excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}.xlsx"
-txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}.txt"
 filename = 'config.ini'
+url_nicks = "nicksflower.txt"
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -67,3 +56,38 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
+
+
+#_____________________________________ Игровые ссылки _____________________________________________
+url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
+url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
+url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
+world_url = 'https://s32-ru.battleknight.gameforge.com/world'
+map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
+url_compare = 'https://s32-ru.battleknight.gameforge.com/duel/compare/?enemyID='
+url_duel_name = "https://s32-ru.battleknight.gameforge.com/duel/duel/?enemyID="
+url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group/'
+url_orden_message = "https://s32-ru.battleknight.gameforge.com/ajax/board/sendmessage"
+url_ordermail = "https://s32-ru.battleknight.gameforge.com/mail/ordermail"
+url_error = "https://s32-ru.battleknight.gameforge.com:443/common/error"
+travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
+mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
+post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
+url_world = 'https://s32-ru.battleknight.gameforge.com/world/travel'
+healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
+url_market = 'https://s32-ru.battleknight.gameforge.com/market/merchant/artefacts'
+url_loot = 'https://s32-ru.battleknight.gameforge.com/user/loot/'
+work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
+treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
+deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
+user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
+point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
+url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
+url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
+duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
+
+url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
+folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"
+folder_name_loss = f"bk\\statistic_loss\\statistic_loss_{today.day:02d}_{today.month:02d}"
+excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}.xlsx"
+txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}.txt"
