@@ -8,7 +8,7 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_key, get_silver, \
+    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_item, get_silver, \
     check_progressbar, go_auction, buy_ring
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
@@ -104,10 +104,10 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
         silver_count = get_silver()
         try:
             if silver_count >= 140:
-                move_key(how='buy')  # купить ключ
-            move_key(how='loot')  # переместить ключи из сундука добычи
+                move_item(how='buy')  # купить ключ
+            move_item(how='loot')  # переместить ключи из сундука добычи
         except:
-            p_log("Ошибка выполнения move_key", level='warning')
+            p_log("Ошибка выполнения move_item", level='warning')
 
 
 def find_mission(soup, length_mission):
