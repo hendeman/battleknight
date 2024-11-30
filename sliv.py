@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 from group import go_group
 from logs.logs import p_log
 from module.all_function import current_time, time_sleep, get_config_value, format_time
-from module.data_pars import heals, pars_gold_duel
-from module.game_function import use_potion, buy_ring, group_time, check_progressbar, check_time_sleep
+from module.data_pars import pars_gold_duel
+from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER
 
@@ -21,28 +21,29 @@ url = "https://s32-ru.battleknight.gameforge.com/duel/duel/?enemyID="
 url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group/'
 url_orden_message = "https://s32-ru.battleknight.gameforge.com/ajax/board/sendmessage"
 url_ordermail = "https://s32-ru.battleknight.gameforge.com/mail/ordermail"
+url_error = "https://s32-ru.battleknight.gameforge.com:443/common/error"
 url_nicks = "nicksflower.txt"
 
 
 def make_attack(nick, heals_point=False):
+    if check_health(heals_point=heals_point) == 1:
+        return False, False
     url_fight = url + str(nick)
     p_log(f"Попытка атаки на {nick}")
     resp = make_request(url_fight)
     status_duel = get_status(resp)
-    # result = 0
 
     if status_duel == 'Дуэль':
         p_log(f"Атака {nick} произведена успешно")
         return True, resp
 
     while status_duel in status_list:
-        index = status_list.index(status_duel)
         p_log(f"lupatik status: {status_duel}")
         time_sleep()
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
-        if resp.url == "https://s32-ru.battleknight.gameforge.com:443/common/error":
-            handle_error(resp, nick)
+        if resp.url == url_error:
+            handle_error(nick)
             return False, resp
         status_duel = get_status(resp)
 
@@ -50,8 +51,7 @@ def make_attack(nick, heals_point=False):
             p_log(f"Атака на {nick} произведена успешно")
             return True, resp
 
-    handle_error(resp, nick, heals_point=heals_point)
-    heals(resp)
+    handle_error(nick)
     return False, resp
 
 
@@ -80,14 +80,8 @@ def check_status_group():
     return False
 
 
-def handle_error(resp, nick, heals_point=False):
-    if heals(resp) == 1:
-        if heals_point:
-            use_potion()
-        else:
-            p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
-            time_sleep()
-    elif check_status_group():
+def handle_error(nick):
+    if check_status_group():
         p_log("Мы находимся в группе, отдыхаем 10 минут")
         time_sleep()
     else:
@@ -130,16 +124,6 @@ def update_players_gold(dict_gamer, list_of_players):
         list_of_players[gamer]["gold"] = get_gold_for_player(gamer)
 
     return list_of_players
-
-    # for gamer in list_of_players:
-    #     gold = get_gold_for_player(gamer)
-    #     if gamer not in dict_gamer:
-    #         dict_gamer[gamer] = {"gold": gold, "time": date,
-    #                              "name": list_of_players[gamer]['name'], "gold_diff": list_of_players[gamer]['gold_diff']}
-    #     else:
-    #         dict_gamer[gamer]["gold"] = gold
-    #         dict_gamer[gamer]["gold_diff"] = list_of_players[gamer]['gold_diff']
-    # return dict_gamer
 
 
 def set_initial_gold():
