@@ -95,7 +95,7 @@ txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}.txt"
 
 
 def update_paths():
-    weekday = today.strftime('%A')
+    weekday = today.strftime('%a').lower()
     global excel_file_path, txt_report
     excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}_{weekday}.xlsx"
     txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}_{weekday}.txt"
