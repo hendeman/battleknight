@@ -150,7 +150,7 @@ def get_reward():
 def check_health(heals_point=False):
     resp = make_request(duel_url)
     life_count = heals(resp)
-    if heals_point == 1:
+    if life_count < 10:
         if heals_point:
             use_potion()
             resp = make_request(duel_url)

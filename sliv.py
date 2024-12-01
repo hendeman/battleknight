@@ -19,7 +19,7 @@ date = datetime(2024, 9, 17, 19)
 
 
 def make_attack(nick, heals_point=False):
-    if check_health(heals_point=heals_point) == 1:
+    if check_health(heals_point=heals_point) < 10:
         return False, False
     url_fight = url_duel_name + str(nick)
     p_log(f"Попытка атаки на {nick}")
