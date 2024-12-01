@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from module.all_function import remove_cyrillic, day, syntax_day
-from setting import GOLD_DAY, exclusion_list, url, cookies, headers, url_name, FILE_NAME, deco_func, txt_report, \
+from setting import GOLD_DAY, exclusion_list, url_members, cookies, headers, url_name, FILE_NAME, deco_func, txt_report, \
     url_gold
 
 
@@ -140,7 +140,7 @@ KZ - соотношение между внесенным в казну золо
 
 
 def get_statistic_clan():
-    resp = requests.get(url, cookies=cookies, headers=headers)
+    resp = requests.get(url_members, cookies=cookies, headers=headers)
     with open(url_name, 'w', encoding='utf-8') as file:
         file.write(resp.text)
 

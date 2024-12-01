@@ -4,17 +4,15 @@ from datetime import datetime
 
 import pandas as pd
 from openpyxl.utils import get_column_letter
-# from tqdm import tqdm
 import pickle
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 
-import requests
 from bs4 import BeautifulSoup
 
-from module.all_function import remove_cyrillic, day, syntax_day, save_file, create_folder
+from module.all_function import remove_cyrillic, day, syntax_day, create_folder
 from module.http_requests import make_request, post_request
-from setting import url_stat, cookies, headers, STAT_FILE_NAME, folder_name, excel_file_path, STAT_FILE_LOSS, \
+from setting import url_stat, STAT_FILE_NAME, folder_name, excel_file_path, STAT_FILE_LOSS, \
     folder_name_loss
 
 DATA_CHANGE_FILE = datetime.now()
