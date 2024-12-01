@@ -11,7 +11,7 @@ def make_request(url, timeout=10):
     while True:
         try:
             response = requests.get(url, cookies=cookies, headers=headers, allow_redirects=True, timeout=timeout)
-            p_log("GET otvet", response.status_code, level='debug')
+            p_log("GET ответ:", response.status_code, "URL:", url, level='debug')
             return response
 
         except Timeout as e:
@@ -31,7 +31,7 @@ def post_request(make_post_url, data, timeout=10):
         try:
             response = requests.post(make_post_url, cookies=cookies, headers=headers, data=data,
                                      allow_redirects=True, timeout=timeout)
-            p_log("POST otvet", response.status_code, level='debug')
+            p_log("POST ответ:", response.status_code, "URL:", make_post_url, level='debug')
             return response
 
         except RequestException as e:
