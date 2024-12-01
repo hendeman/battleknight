@@ -132,7 +132,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
 #         count_work += 1
 
 def autoplay():
-    count_work = 3
+    count_work = 2
     while True:
 
         try:
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-    time_sleep(wait_until("23:10"))
+    time_sleep(wait_until("15:25"))
     autoplay()
 
     # Завершение дочернего процесса логирования
