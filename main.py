@@ -3,7 +3,7 @@ import argparse
 from module.all_function import save_file
 from module.operation import get_statistic_clan
 from module.toplist import get_statistic, dict_values_difference, write_2dlist_to_excel
-from setting import FILE_NAME, STAT_FILE_NAME, STAT_FILE_LOSS
+from setting import FILE_NAME, STAT_FILE_NAME, STAT_FILE_LOSS, update_paths
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Выбор программы и запись данных.')
@@ -22,6 +22,9 @@ if __name__ == "__main__":
 
     program_selection = args.program_selection
     write_flag = args.write_flag
+
+    if write_flag:
+        update_paths()
 
     if not program_selection:
         all_dct = get_statistic_clan()
