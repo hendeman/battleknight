@@ -1,3 +1,4 @@
+import os
 import pickle
 import re
 
@@ -5,8 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from module.all_function import remove_cyrillic, day, syntax_day
-from setting import GOLD_DAY, exclusion_list, url_members, cookies, headers, url_name, FILE_NAME, deco_func, txt_report, \
-    url_gold
+from setting import exclusion_list, url_members, cookies, headers, url_name, FILE_NAME, deco_func, txt_report
+
+GOLD_DAY = 100
 
 
 def digi(bad_string: str) -> int:
@@ -69,7 +71,8 @@ def exclude_keys_decorator(func=None, exclusion_list=None):
     return wrapper
 
 
-@exclude_keys_decorator(exclusion_list=exclusion_list) if deco_func else lambda x: x  # Список исключения exclusion_list = ["Ksusha"]
+# Декоратор exclude_keys_decorator добавляет список исключения exclusion_list = ["Ksusha"]
+@exclude_keys_decorator(exclusion_list=exclusion_list) if deco_func else lambda x: x
 def replenish_treasury(a: dict, b: dict) -> dict:
     # Функция для обновления ордена
     def update_order(a, b, add_message=None, remove_message=None):
@@ -101,14 +104,14 @@ def replenish_treasury(a: dict, b: dict) -> dict:
 
 
 def get_gold_day():
-    try:
-        resp = requests.get(url_gold, cookies=cookies, headers=headers)
-        soup = BeautifulSoup(resp.text, 'lxml')
-        gold_day = int(soup.find(id='dev_payments').text)
-        return gold_day
-    except AttributeError:
-        print("Не удалось извлечь значение ежедневных затрат на казну")
-        return GOLD_DAY
+    global GOLD_DAY
+    url_clan = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
+    resp = requests.get(url_clan, cookies=cookies, headers=headers)
+    pattern = r'"payments":(\d+)'
+    match = re.search(pattern, resp.text)
+    if match:
+        payments_value = int(match.group(1))  # Получаем полное соответствие
+        GOLD_DAY = payments_value
 
 
 def gold_factor(a: dict, pas_day: int) -> dict:
@@ -124,6 +127,7 @@ def gold_factor(a: dict, pas_day: int) -> dict:
 
 def print_data(ss, debet, credit, days_have_passed):
     try:
+        os.makedirs(os.path.dirname(txt_report), exist_ok=True)
         with open(txt_report, 'w', encoding='utf-8') as file:
             file.write(f"""Статистика пополнения казны за {days_have_passed} {syntax_day(days_have_passed)}.
 Всего сдано {debet} золота. Потрачено куклой {credit} золота.
@@ -141,6 +145,7 @@ KZ - соотношение между внесенным в казну золо
 
 def get_statistic_clan():
     resp = requests.get(url_members, cookies=cookies, headers=headers)
+    os.makedirs(os.path.dirname(url_name), exist_ok=True)
     with open(url_name, 'w', encoding='utf-8') as file:
         file.write(resp.text)
 
@@ -166,3 +171,6 @@ def get_statistic_clan():
             print_data(ss, debet, credit, days_have_passed)  # вывести данные в консоль, создание отчета report.txt
 
         return all_dct
+
+
+get_gold_day()
