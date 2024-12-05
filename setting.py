@@ -85,6 +85,8 @@ point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
 url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
 duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
+url_joust_sign = 'https://s32-ru.battleknight.gameforge.com/joust/signUp'
+url_joust = 'https://s32-ru.battleknight.gameforge.com/joust'
 
 url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
 folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"

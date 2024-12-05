@@ -11,7 +11,7 @@ from module.data_pars import heals, get_status_horse
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
-    user_url, point_url, url_auctioneer, url_payout, duel_url
+    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign
 
 
 def print_status(from_town, where_town, how, tt):
@@ -330,7 +330,7 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str):
 
     # Проверяем, находится ли текущее время в заданном диапазоне
     if start_time <= now <= end_time:
-        p_log(f"Отдываем до {sleep_hour}...")
+        p_log(f"Отдыхаем до {sleep_hour}...")
         time_sleep(wait_until(sleep_hour))
 
 
@@ -553,10 +553,10 @@ def place_bet(id_item, bet):
         p_log("Ошибка ставки. Ошибка json(). Неверный id_item", level='warning')
 
 
-def payout(soup, silver_out: int):
+def payout(silver_out: int):
     to_silver = get_silver()
     payload = {'silverToPayout': silver_out}
-    resp = post_request(url_payout, payload)
+    post_request(url_payout, payload)
     after_silver = get_silver()
     if after_silver - to_silver == silver_out:
         p_log(f"Из казны взято {silver_out} серебра")
@@ -599,8 +599,32 @@ def buy_ring(tariff_travel=0):
             need_silver = min_value - target_number
             p_log(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
             if need_silver < 500:
-                after_silver = payout(soup, need_silver)
+                after_silver = payout(need_silver)
                 place_bet(min_key, after_silver)
         else:
             p_log(f"Будет куплено кольцо с id={min_key}")
             place_bet(min_key, target_number)
+
+
+# ________________________ Регистрация на турнире _____________________________________
+
+def register_joust():
+    now = datetime.now()
+    month_number = now.day
+    if month_number % 5 == 0:
+        try:
+            resp = make_request(url_joust)
+            soup = BeautifulSoup(resp.content, 'lxml')
+            joust = soup.find(id="btnApply").text
+            silver = int(soup.find(id="silverCount").text)
+            if joust == "Регистрация":
+                contribution = int(soup.find('div', class_='formField').text)
+                if silver < contribution:
+                    payout(contribution - silver)
+                resp = make_request(url_joust_sign).json()
+                p_log(resp, level='debug')
+                p_log("Вы зарегистрированы на турнир")
+            else:
+                p_log("Вы уже участвуете в турнире")
+        except:
+            print("Ошибка регистрации на турнир")

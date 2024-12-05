@@ -8,7 +8,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep
 from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work, move_item
+    get_reward, work, move_item, register_joust
 from module.http_requests import post_request, make_request
 from setting import start_game
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -135,10 +135,9 @@ def autoplay():
     count_work = 2
     while True:
 
-        try:
-            move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
-        except:
-            p_log("Ошибка выполнения move_item", level='warning')
+        move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
+        if get_config_value("register_joust"):
+            register_joust()  # регистрация на турнир
 
         time_sleep(check_progressbar())
         attack_mission()
@@ -161,7 +160,8 @@ def autoplay():
                 timer_group = check_progressbar()
                 if timer_group:
                     p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
-                buy_ring()  # покупка кольца на аукционе
+                if get_config_value("buy_ring"):
+                    buy_ring()  # покупка кольца на аукционе
                 time_sleep(timer_group)
 
         count_work += 1
