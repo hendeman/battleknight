@@ -56,7 +56,8 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if current_castle not in auction_castles:
                         go_auction(out=current_castle)
                     else:
-                        buy_ring()
+                        if get_config_value("buy_ring"):
+                            buy_ring()
 
                 p_log("Миссий нет. Ждем 1 час 45 мин...")
                 #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
@@ -94,7 +95,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         flag_cog = True
                         break
         silver_count = hide_silver(silver_limit=7000)  # внести в казну
-        if silver_count > 7000:
+        if silver_count > 7000 and get_config_value("buy_ring"):
             buy_ring(tariff_travel=1000)  # оставить 1000 серебра на переправу
         if flag_cog or flag:
             break

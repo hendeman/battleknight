@@ -212,8 +212,8 @@ def reduce_experience(name_file=NICKS_GAMER):
                     # попытаться купить амулет на аукционе если на руках больше 8000
                     soup = BeautifulSoup(resp.text, 'lxml')
                     silver = int(soup.find(id='silverCount').text)
-                    if silver > 8000:
-                        buy_ring()
+                    if silver > 8000 and get_config_value("buy_ring"):
+                        buy_ring()  # покупка кольца на аукционе
                     if not number_of_attacks:
                         break
                     number_of_attacks -= 1
