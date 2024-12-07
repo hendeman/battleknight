@@ -146,13 +146,16 @@ def autoplay():
         if count_work % 3 == 0:
             work()
             get_reward()
+        elif (count_work + 2) % 3 == 0:
+            if get_config_value("reduce_experience"):
+                common_actions(reduce_experience, "reduce_experience")
+            else:
+                common_actions(online_tracking_only, "online_tracking_only")
         else:
-            # вставить вызов аукционера
-            process_function = reduce_experience if (count_work + 2) % 3 == 0 and get_config_value(
-                "reduce_experience") else online_tracking_only
-            process_name = "reduce_experience" if (count_work + 2) % 3 == 0 and get_config_value(
-                "reduce_experience") else "online_tracking_only"
-            common_actions(process_function, process_name)
+            if get_config_value("double_reduce_experience"):
+                common_actions(reduce_experience, "reduce_experience")
+            else:
+                common_actions(online_tracking_only, "online_tracking_only")
 
             # создание Групповой миссии
             if (count_work + 2) % 3 == 1:
