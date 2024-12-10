@@ -615,7 +615,10 @@ def register_joust():
         try:
             resp = make_request(url_joust)
             soup = BeautifulSoup(resp.content, 'lxml')
-            joust = soup.find(id="btnApply").text
+            try:
+                joust = soup.find(id="btnApply").text
+            except AttributeError:
+                joust = "Не найден"
             silver = int(soup.find(id="silverCount").text)
             if joust == "Регистрация":
                 contribution = int(soup.find('div', class_='formField').text)
@@ -627,4 +630,4 @@ def register_joust():
             else:
                 p_log("Вы уже участвуете в турнире")
         except:
-            print("Ошибка регистрации на турнир")
+            p_log("Ошибка регистрации на турнир")
