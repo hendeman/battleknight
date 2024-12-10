@@ -168,8 +168,8 @@ def current_time():
     return datetime.now().strftime("%H:%M:%S"), datetime.now()
 
 
-def get_random_value():
-    return random.uniform(0.1, 0.5)
+def get_random_value(a=0.1, b=0.5):
+    return random.uniform(a, b)
 
 
 def time_sleep(seconds=0):
