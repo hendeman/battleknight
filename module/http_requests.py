@@ -4,14 +4,17 @@ import requests
 from requests import Timeout, RequestException
 
 from logs.logs import p_log
+from module.all_function import get_random_value
 from setting import cookies, headers
 
 
-def make_request(url, timeout=10):
+def make_request(url, timeout=10, game_sleep=True):
     while True:
         try:
             response = requests.get(url, cookies=cookies, headers=headers, allow_redirects=True, timeout=timeout)
             p_log("GET ответ:", response.status_code, "URL:", url, level='debug')
+            if game_sleep:
+                time.sleep(get_random_value(1, 2.5))
             return response
 
         except Timeout as e:
