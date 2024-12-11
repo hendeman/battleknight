@@ -132,7 +132,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
 #         count_work += 1
 
 def autoplay():
-    count_work = 2
+    count_work = 3
     while True:
 
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-    time_sleep(wait_until("15:25"))
+    time_sleep(wait_until("22:50"))
     autoplay()
 
     # Завершение дочернего процесса логирования
