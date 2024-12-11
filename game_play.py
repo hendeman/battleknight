@@ -166,7 +166,7 @@ def autoplay():
                 if get_config_value("buy_ring"):
                     buy_ring()  # покупка кольца на аукционе
                 time_sleep(timer_group)
-
+        time_sleep(check_progressbar())
         count_work += 1
         post_travel(out='CityOne', where='GhostTown', how='horse')
 
