@@ -160,6 +160,10 @@ def online_tracking():
             if gold - filtered_data[gamer]["gold"] > filtered_data[gamer]['gold_diff']:
                 flag, resp = make_attack(gamer, heals_point=True)
                 if flag:
+                    soup = BeautifulSoup(resp.text, 'lxml')
+                    silver = int(soup.find(id='silverCount').text)
+                    if silver > GOLD_LIMIT and get_config_value("buy_ring"):
+                        buy_ring()  # покупка кольца на аукционе
                     received_gold, win_status = pars_gold_duel(resp, gold_info=True, win_status=True)
                     dict_gamer[gamer]["time"] = current_date
                     dict_gamer[gamer]["win_status"] = win_status
