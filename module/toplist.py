@@ -91,7 +91,7 @@ def dict_values_difference(pars_dct: dict) -> list:
                     loaded_dict[key1]['victory'] > 10:
                 print("*", end="")
                 url = f'https://s32-ru.battleknight.gameforge.com/common/profile/{key1}/Scores/Player'
-                resp = make_request(url)
+                resp = make_request(url, game_sleep=False)
                 with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w', encoding='utf-8') as file2:
                     file2.write(resp.text)
 
