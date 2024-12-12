@@ -259,3 +259,27 @@ def dict_to_tuple(d):
         else:
             result.append((k, v))
     return tuple(result)
+
+
+def get_next_time_and_index(start_times):
+    # Получаем текущее время
+    now = datetime.now()
+
+    # Переменная для хранения ближайшего времени и его индекса
+    next_time = None
+    next_index = -1
+
+    for index, time_str in enumerate(start_times):
+        # Преобразуем строку времени в объект datetime
+        time_obj = datetime.strptime(time_str, '%H:%M').replace(year=now.year, month=now.month, day=now.day)
+
+        # Если время уже прошло, добавляем один день
+        if time_obj < now:
+            time_obj += timedelta(days=1)
+
+        # Находим ближайшее время
+        if next_time is None or time_obj < next_time:
+            next_time = time_obj
+            next_index = index
+
+    return next_index + 1, next_time.strftime('%H:%M')
