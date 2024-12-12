@@ -499,15 +499,28 @@ def get_item_market():
 
 
 def get_item_loot(item_name):
-    dct_loot = {"ring": r'itemRing\d+', "key": r'itemClue\d+_closed'}
+    dct_loot = {"ring": r'itemRing\d+',
+                "key": r'itemClue\d+_closed',
+                "christmas": ['itemFastingPeriodSalt', 'itemFastingPeriodBread', 'itemFastingPeriodNuts']}
     soup = BeautifulSoup(make_request(url_loot).text, 'lxml')
     items_loot = soup.find(id='lootContent')
-    pattern = re.compile(dct_loot[item_name])
     item_list = []
-    for item in items_loot.find_all('div'):
-        if pattern.search(' '.join(item.get('class', []))):
-            id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
-            item_list.append(id_key)  # Сохраняем id элемента
+    if item_name in dct_loot:
+        # Если значение — это строка (регулярное выражение)
+        if isinstance(dct_loot[item_name], str):
+            pattern = re.compile(dct_loot[item_name])
+            for item in items_loot.find_all('div'):
+                if pattern.search(' '.join(item.get('class', []))):
+                    id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
+                    item_list.append(id_key)
+        # Если значение — это список
+        elif isinstance(dct_loot[item_name], list):
+            for sub_item in dct_loot[item_name]:
+                pattern = re.compile(sub_item)
+                for item in items_loot.find_all('div'):
+                    if pattern.search(' '.join(item.get('class', []))):
+                        id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
+                        item_list.append(id_key)
     if item_list:
         p_log(f"Доступные {item_name} в сундуке добычи: {item_list}")
         return item_list
