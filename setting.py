@@ -6,7 +6,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 today = date.today()
+
+CHRISTMAS_MODE = True
+
 GOLD_DAY = 25090
+GOLD_LIMIT = 7000
 CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "09:00"
@@ -57,6 +61,8 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
+start_time = ['09:00', '15:25', '22:50']
+event = ['Nuts', 'Scraps']
 
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
