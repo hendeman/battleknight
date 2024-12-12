@@ -13,7 +13,7 @@ from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, url_members
+    url_ordermail, url_error, url_nicks, url_members, GOLD_LIMIT
 
 date = datetime(2024, 9, 17, 19)
 
@@ -182,12 +182,12 @@ def online_tracking():
         return True
 
 
-def online_tracking_only():
+def online_tracking_only(reduce_flag=False):
     while True:
         status_sleep = online_tracking()
         if status_sleep == "sleep":
             continue
-        if status_sleep:
+        if status_sleep and not reduce_flag:
             time_sleep()
         else:
             break
@@ -201,18 +201,23 @@ def reduce_experience(name_file=NICKS_GAMER):
 
         # number_of_attacks задается из config.ini - количесвто проводимых атак
         number_of_attacks = get_config_value(key="number_of_attacks")
+        attack_flag = False
 
         for nick in sorted_dict:
+            # online_track = 1 tracking active from config.ini
+            if attack_flag and get_config_value(key="online_track"):
+                online_tracking_only(reduce_flag=True)  # функция нахождения и атаки на играющих игроков
+
             time_str, current_date = current_time()
             difference_data = current_date - loaded_dict[nick]["data"]
             if int(difference_data.total_seconds() / 3600) >= 12:
                 flag, resp = make_attack(nick)
                 if flag:
                     received_gold = pars_gold_duel(resp, gold_info=True)
-                    # попытаться купить амулет на аукционе если на руках больше 8000
+                    # попытаться купить амулет на аукционе если на руках больше GOLD_LIMIT
                     soup = BeautifulSoup(resp.text, 'lxml')
                     silver = int(soup.find(id='silverCount').text)
-                    if silver > 8000 and get_config_value("buy_ring"):
+                    if silver > GOLD_LIMIT and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
                     if not number_of_attacks:
                         break
@@ -224,11 +229,10 @@ def reduce_experience(name_file=NICKS_GAMER):
                         pickle.dump(loaded_dict, f)
                     p_log("Ожидание 10 мин перед следующей атакой...")
                     time_sleep()
-                    # online_track = 1 tracking active from config.ini
-                    if get_config_value(key="online_track"):
-                        online_tracking()  # функция нахождения и атаки на играющих игроков
+                    attack_flag = True
             else:
                 p_log(f"{nick} не может быть атакован", level='debug')
+                attack_flag = False
         # когда закончилился список из рыцаряй для слива опыта
         if get_config_value(key="online_track"):
             online_tracking_only()
