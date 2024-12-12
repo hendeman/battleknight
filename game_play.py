@@ -5,12 +5,14 @@ from bs4 import BeautifulSoup
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
-from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep
+from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
+    get_next_time_and_index
 from module.data_pars import heals
+from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work, move_item, register_joust
+    get_reward, work, move_item, register_joust, my_place
 from module.http_requests import post_request, make_request
-from setting import start_game
+from setting import start_game, start_time
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
 
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
@@ -37,6 +39,7 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     # time_sleep(check_progressbar())
 
 
+@apply_christmas_bonus
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     response = make_request(url)
     time.sleep(1)
@@ -131,8 +134,8 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
 #             common_actions(process_function, process_name)
 #         count_work += 1
 
-def autoplay():
-    count_work = 3
+def autoplay(num_period):
+    count_work = num_period
     while True:
 
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
@@ -217,8 +220,16 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-    time_sleep(wait_until("22:50"))
-    autoplay()
+# __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
+    time_sleep(check_progressbar())
+    place, my_town = my_place()
+    p_log(f"Я нахожусь в {place}")
+    if my_town != 'GhostTown':
+        post_travel(out=my_town, where='GhostTown')
+
+    next_index, next_time = get_next_time_and_index(start_time)
+    time_sleep(wait_until(next_time))
+    autoplay(next_index)
 
     # Завершение дочернего процесса логирования
     queue.put(None)  # Отправляем сигнал для завершения
