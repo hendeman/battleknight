@@ -13,7 +13,7 @@ from module.game_function import post_travel, my_place, check_hit_point, hide_si
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
-from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles
+from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles, GOLD_LIMIT
 from sliv import reduce_experience, online_tracking_only
 
 
@@ -50,9 +50,9 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
 
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
-                silver_count = hide_silver(silver_limit=7000)  # внести в казну
+                silver_count = hide_silver(silver_limit=GOLD_LIMIT)  # внести в казну
 
-                if silver_count > 7000:
+                if silver_count > GOLD_LIMIT:
                     if current_castle not in auction_castles:
                         go_auction(out=current_castle)
                     else:
@@ -95,7 +95,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                         flag_cog = True
                         break
         silver_count = hide_silver(silver_limit=7000)  # внести в казну
-        if silver_count > 7000 and get_config_value("buy_ring"):
+        if silver_count > GOLD_LIMIT and get_config_value("buy_ring"):
             buy_ring(tariff_travel=1000)  # оставить 1000 серебра на переправу
         if flag_cog or flag:
             break
