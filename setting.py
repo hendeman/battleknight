@@ -62,7 +62,6 @@ status_list = ['Ожидание после дуэли', 'Ожидание по�
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
 start_time = ['09:00', '15:25', '22:50']
-event = ['Nuts', 'Scraps']
 
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
