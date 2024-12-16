@@ -62,9 +62,7 @@ status_list = ['Ожидание после дуэли', 'Ожидание по�
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
 start_time = ['09:00', '15:25', '22:50']
-potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
-               'itemPotionYellowFull', 'itemPotionKarmaSwitch']
-potion_name_buy = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200']
+event = ['Nuts', 'Scraps']
 
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
@@ -95,7 +93,6 @@ url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
 duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
 url_joust_sign = 'https://s32-ru.battleknight.gameforge.com/joust/signUp'
 url_joust = 'https://s32-ru.battleknight.gameforge.com/joust'
-url_alchemist = 'https://s32-ru.battleknight.gameforge.com/market/merchant/alchemist'
 
 url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
 folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"

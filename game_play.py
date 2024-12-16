@@ -25,6 +25,7 @@ point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
 
 
+@apply_christmas_bonus
 def post_dragon(buy_rubies='', mission_name='DragonLair'):
     payload = {
         'chooseMission': mission_name,
@@ -39,7 +40,6 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     # time_sleep(check_progressbar())
 
 
-@apply_christmas_bonus
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     response = make_request(url)
     time.sleep(1)
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-# __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
+    # __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
     time_sleep(check_progressbar())
     place, my_town = my_place()
     p_log(f"Я нахожусь в {place}")
