@@ -8,7 +8,7 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_keys, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_item, get_silver, \
+    get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_item, get_silver, \
     check_progressbar, go_auction, buy_ring
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
@@ -77,7 +77,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     if not differences:
                         p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
                         break
-                    current_dict_key = get_group_castles(get_all_keys())
+                    current_dict_key = get_group_castles(get_all_items("key"))
                     if current_castle != 'VillageOne' and current_castle not in current_dict_key:
                         p_log(f"В городе {current_castle} все ключи открыты")
                         flag = True
@@ -129,7 +129,7 @@ def keys_search(event, rubies, length_mission):
     # check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
     place, my_town = my_place()  # Джаро, VillageFour
     p_log(f"Я нахожусь в {place}")
-    all_keys = get_all_keys()
+    all_keys = get_all_items("key")
     group_castles = get_group_castles(all_keys)
 
     save_castle = get_save_castle()  # проверяем, если замок в файле
