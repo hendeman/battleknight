@@ -1,4 +1,5 @@
 import re
+from typing import Union, Tuple
 from time import sleep
 import time
 import random
@@ -11,7 +12,7 @@ from module.data_pars import heals, get_status_horse
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
-    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign
+    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, potion_name_buy
 
 
 def print_status(from_town, where_town, how, tt):
@@ -357,37 +358,58 @@ def check_status_mission(name_mission, length_mission):
     return a_tags
 
 
-def get_all_keys():
-    pattern = re.compile(r'^Clue\d+_closed$')
-    item_key_list = {}  # формат записи 22273032: {'item_pic': 'Clue01_closed', 'location': 'TradingPostFour'}
-    for i in range(1, 5):
+def get_all_items(item, num_inv: Union[int, Tuple[int, int]] = None):
+    dct_inventory = {
+        "key": r'^Clue\d+_closed$',
+        "points": r'PotionRed\d+'
+    }
+
+    pattern = re.compile(dct_inventory[item])
+    item_key_list = {}
+
+    # Определяем диапазон инвентарей
+    if isinstance(num_inv, tuple) and len(num_inv) == 2:
+        inventories = range(num_inv[0], num_inv[1] + 1)
+    elif isinstance(num_inv, int):
+        inventories = [num_inv]
+    else:
+        inventories = range(1, 5)  # По умолчанию, если num_inv не задан
+
+    for i in inventories:
         url = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                f'&inventory={i}&loc=character')
         resp = make_request(url)
 
         try:
             if resp.json()['result']:
-                for item in resp.json()['items']:
-                    if pattern.match(item['item_pic']):
-                        item_key_list[item['item_id']] = {'item_pic': item['item_pic'],
-                                                          'location': item['clue_data']['location']}
+                for item_data in resp.json()['items']:
+                    if pattern.match(item_data['item_pic']):
+                        if item == "key":
+                            item_key_list[item_data['item_id']] = {
+                                'item_pic': item_data['item_pic'],
+                                'location': item_data['clue_data']['location']
+                            }
+                        else:
+                            item_key_list[item_data['item_id']] = item_data['item_pic']
         except ValueError:
             p_log("Ошибка ставки. Ошибка json(). Неверный запрос получения инвентаря", level='warning')
-        sleep(1)
-    p_log("Словарь с ключами успешно сформирован", level='debug')
+
+        sleep(1)  # Задержка между запросами
+
+    p_log(f"Словарь с {item} успешно сформирован", level='debug')
     return item_key_list
 
 
 def check_mission(name_mission, length_mission):
     check_hit_point()  # проверка количества здоровья
-    dct1 = get_group_castles(get_all_keys())
+    dct1 = get_group_castles(get_all_items("key"))
     p_log(dct1, level='debug')
     post_dragon(
         length_mission=length_mission,
         name_mission=name_mission
     )
     make_request(mission_url)  # Запрос в миссии для обновления ключей
-    dct2 = get_group_castles(get_all_keys())
+    dct2 = get_group_castles(get_all_items("key"))
     p_log(dct2, level='debug')
     differences = set(dict_to_tuple(dct1)) ^ set(dict_to_tuple(dct2))
     p_log(differences, level='debug')
@@ -447,9 +469,16 @@ def choose_random_coor(dct, rand):
 
 # _______________________ Получаем данные заполненности инвентаря в 3 и 4 сумке _______________________________
 
-def get_inventory_slots():
+def get_inventory_slots(num_inv: Union[int, Tuple[int, int]] = None):
+    # Определяем диапазон инвентарей
+    if isinstance(num_inv, tuple) and len(num_inv) == 2:
+        inventories = range(num_inv[0], num_inv[1] + 1)
+    elif isinstance(num_inv, int):
+        inventories = [num_inv]
+    else:
+        inventories = range(1, 5)  # По умолчанию, если num_inv не задан
     item_key_list = {}
-    for i in range(1, 5):
+    for i in inventories:
         url_inventory = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                          f'&inventory={i}&loc=character')
         resp = make_request(url_inventory)
@@ -644,3 +673,71 @@ def register_joust():
                 p_log("Вы уже участвуете в турнире")
         except:
             p_log("Ошибка регистрации на турнир")
+
+
+# __________________________________ Покупка баночек HP до нужного количества _______________________________
+
+def main_buy_potion(count_points):
+    all_points = len(get_all_items("points", 1))  # получение количества баночек в сумке 1
+    if all_points < count_points:
+        buy_potion(count_points - all_points)  # покупка необходимого количесва баночек HP
+    else:
+        p_log("В сумке достаточное количество баночек здоровья")
+
+
+def buy_potion(need_point):
+    while need_point:
+        resp = make_request(url_alchemist)
+        soup = BeautifulSoup(resp.text, 'lxml')
+        silver = int(soup.find(id='silverCount').text)
+        items_loot = soup.find(id='merchItemLayer').find_all('div')
+        potion_dct = {}
+        for item in items_loot:
+            merch_item = item.get('id', None)
+            item_potion = set(potion_name_buy).intersection(set(item.get('class', None)))
+            if merch_item and item_potion:
+                merch_id = ''.join(re.findall(r'\d+', merch_item))
+                potion_dct[merch_id] = list(item_potion)[0]
+        if potion_dct:
+            p_log(f"В продаже есть {potion_dct}")
+            min_key = min(potion_dct, key=lambda k: conv_name_potion(potion_dct[k]))
+            min_value = conv_name_potion(potion_dct[min_key])
+            p_log(min_key)
+            if silver > min_value * 2:
+                # Получение свободных ячеек в 1 инвентаре
+                inventory = get_inventory_slots(1)
+                free_coord = get_free_coord(inventory)
+                free_coord_one = choose_coor(free_coord)
+                inv, coor = next(iter(free_coord_one.items()))
+                p_log(f"Попытка купить баночку на {min_value}ХП в сумку {inv}, ячейка {coor}")
+                url_potion_buy = (
+                    f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={min_key}'
+                    f'&inventory={inv}&width={coor[1]}&depth={coor[0]}')
+                make_request(url_potion_buy)
+                need_point -= 1
+            else:
+                p_log("Недостаточно серебра для покупки баночек HP")
+                break
+        else:
+            p_log("В продаже нет доступных баночек HP")
+            break
+
+
+def choose_coor(dct):
+    if dct:
+        # Находим минимальную свободную сумку
+        max_key = min(dct.keys(), key=int)
+
+        # Находим максимальное значение координат
+        max_tuple = max(dct[max_key], default=None)
+
+        # Формируем итоговый словарь
+        result = {max_key: max_tuple}
+        return result
+    else:
+        p_log("Нет свободных слотов в сумке")
+
+
+def conv_name_potion(potion):
+    potion_value = int(''.join(re.findall(r'\d+', potion)))
+    return potion_value
