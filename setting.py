@@ -60,7 +60,14 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
                    'HarbourTwo', 'TradingPostFour')
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
-mount_list = {'pegas': '16888797', 'bear': '16896645', 'boar': '17561824', 'unicorn': '16459963'}
+mount_list = {'pegas': {'id_helper': '16888797', 'type_helper': 'horse', 'name': '<Пегас>'},
+              'bear': {'id_helper': '16896645', 'type_helper': 'horse', 'name': '<Боевой медведь>'},
+              'boar': {'id_helper': '17561824', 'type_helper': 'horse', 'name': '<Дикий кабан>'},
+              'unicorn': {'id_helper': '16459963', 'type_helper': 'horse', 'name': '<Белый единорог>'},
+              'squire': {'id_helper': '15959290', 'type_helper': 'companion', 'name': '<Сквайр>'},
+              'rabbit': {'id_helper': '15517097', 'type_helper': 'companion', 'name': '<Кролик>'},
+              'dog': {'id_helper': '16459964', 'type_helper': 'companion', 'name': '<Ищейка>'},
+              'fairy': {'id_helper': '18884016', 'type_helper': 'companion', 'name': '<Фея Света>'}}
 start_time = ['09:00', '15:25', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
