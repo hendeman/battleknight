@@ -10,7 +10,7 @@ from group import go_group, url_group
 from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import pars_gold_duel
-from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health
+from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health, get_silver
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
     url_ordermail, url_error, url_nicks, url_members, GOLD_LIMIT
@@ -36,7 +36,9 @@ def make_attack(nick, heals_point=False):
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
         if resp.url == url_error:
-            handle_error(nick)
+            duel_stat = handle_error(nick)
+            if duel_stat:
+                return True, duel_stat
             return False, resp
         status_duel = get_status(resp)
 
@@ -44,7 +46,9 @@ def make_attack(nick, heals_point=False):
             p_log(f"Атака на {nick} произведена успешно")
             return True, resp
 
-    handle_error(nick)
+    duel_stat = handle_error(nick)
+    if duel_stat:
+        return True, duel_stat
     return False, resp
 
 
@@ -89,12 +93,13 @@ def handle_error(nick):
             if match:
                 extracted_text = match.group(1)
                 p_log(extracted_text)
+                return extracted_text
             else:
                 p_log("Нет совпадений. Проверке парсинг состония дуэли")
         except Exception:
             p_log("Рыцарь недоступен, либо был атакован в течение 12 часов", level='warning')
 
-    return
+    return False
 
 
 def get_gold_for_player(gamer) -> int:
@@ -160,11 +165,13 @@ def online_tracking():
             if gold - filtered_data[gamer]["gold"] > filtered_data[gamer]['gold_diff']:
                 flag, resp = make_attack(gamer, heals_point=True)
                 if flag:
-                    soup = BeautifulSoup(resp.text, 'lxml')
-                    silver = int(soup.find(id='silverCount').text)
+                    silver = get_silver()
                     if silver > GOLD_LIMIT and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
-                    received_gold, win_status = pars_gold_duel(resp, gold_info=True, win_status=True)
+                    received_gold, win_status = (pars_gold_duel(resp, gold_info=True, win_status=True)
+                                                 if isinstance(resp, BeautifulSoup)
+                                                 else (0, resp)
+                                                 )
                     dict_gamer[gamer]["time"] = current_date
                     dict_gamer[gamer]["win_status"] = win_status
                     dict_gamer[gamer]["spoil"] = received_gold
@@ -217,15 +224,11 @@ def reduce_experience(name_file=NICKS_GAMER):
             if int(difference_data.total_seconds() / 3600) >= 12:
                 flag, resp = make_attack(nick)
                 if flag:
-                    received_gold = pars_gold_duel(resp, gold_info=True)
+                    received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, BeautifulSoup) else 0
                     # попытаться купить амулет на аукционе если на руках больше GOLD_LIMIT
-                    soup = BeautifulSoup(resp.text, 'lxml')
-                    silver = int(soup.find(id='silverCount').text)
+                    silver = get_silver()
                     if silver > GOLD_LIMIT and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
-                    if not number_of_attacks:
-                        break
-                    number_of_attacks -= 1
 
                     loaded_dict[nick]["data"] = current_date
                     loaded_dict[nick]["gold"] = received_gold
@@ -234,6 +237,10 @@ def reduce_experience(name_file=NICKS_GAMER):
                     p_log("Ожидание 10 мин перед следующей атакой...")
                     time_sleep()
                     attack_flag = True
+
+                    number_of_attacks -= 1
+                    if not number_of_attacks:
+                        break
             else:
                 p_log(f"{nick} не может быть атакован", level='debug')
                 attack_flag = False
