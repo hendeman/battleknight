@@ -27,17 +27,19 @@ def pars_gold_duel(response, gold_info=False, all_info=False, win_status=False):
         return (result_gold, winner) if win_status else result_gold
 
 
-def get_status_horse(response):
+def get_status_helper(response, type_helper):
     soup = BeautifulSoup(response.text, 'lxml')
 
-    # Находим все div с id="itemHorse"
-    item_horse = soup.find_all('div', id="itemHorse")
+    if type_helper == 'horse':
+        item_helper = soup.find_all('div', id="itemHorse")
+    else:
+        item_helper = soup.find_all('div', id="itemCompanion")
 
     # Переменная для хранения результата
     result = None
 
     # Проверяем каждый найденный div
-    for div in item_horse:
+    for div in item_helper:
         inner_div = div.find('div')  # Ищем вложенный div
         if inner_div:
             # Извлекаем id и оставляем только цифры с помощью регулярного выражения
