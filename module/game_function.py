@@ -8,7 +8,7 @@ from datetime import datetime
 
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value
-from module.data_pars import heals, get_status_horse
+from module.data_pars import heals, get_status_helper
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
@@ -126,16 +126,15 @@ def progressbar_ends(soup):
 
 
 # ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
-def work():
+def work(working_hours):
     payload = {
-        'hours': '8',
+        'hours': working_hours,
         'side': 'good'
     }
     make_request(work_url)
     time.sleep(1)
     post_request(work_url, payload)
     p_log("Работаем 8 часов...")
-    time_sleep(28900)
 
 
 def get_reward():
@@ -222,47 +221,51 @@ def put_gold(status="before"):
     return gold_count_element
 
 
-def ride_pegasus(func):
-    def wrapper(*args, **kwargs):
-        id_horse = None
-        id_pegas = mount_list['pegas']
-        response = make_request(user_url)
-        horse = get_status_horse(response)
-        if horse and horse != id_pegas:
-            id_horse = horse
-            resp = make_request(
-                f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                f"={id_horse}&inventory=5&type=normal")
-            if resp.json()['result']:
-                p_log(f"Ездовое животное {get_name_mount(id_horse)} снято")
-        if not id_horse and horse != id_pegas:
-            p_log("Никакая лошадь не надета")
-            id_horse = mount_list['bear']
+def use_helper(name_companion):
+    def use_companion_deco(func):
+        def wrapper(*args, **kwargs):
+            id_helper_start = None
+            id_helper = mount_list[name_companion]['id_helper']
+            type_helper = mount_list[name_companion]['type_helper']
+            num_inventory = "5" if type_helper == 'horse' else "6"
+            response = make_request(user_url)
+            helper = get_status_helper(response, type_helper)
+            if helper and helper != id_helper:
+                id_helper_start = helper
+                resp = make_request(
+                    f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                    f"={id_helper_start}&inventory={num_inventory}&type=normal")
+                if resp.json()['result']:
+                    p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
+            if not id_helper_start and helper != id_helper:
+                p_log("Никакой помощник не надет")
+                id_helper_start = mount_list['bear']['id_helper']
 
-        time_sleep(2)
-        if horse != id_pegas:
+            time_sleep(2)
+            if helper != id_helper:
+                resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                                    f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
+                if resp.json()['result']:
+                    p_log(f"{get_name_mount(id_helper)} надет")
+
+            func(*args, **kwargs)
+
+            resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                                f"={id_helper}&inventory={num_inventory}&type=normal")
+            if resp.json()['result']:
+                p_log(f"{get_name_mount(id_helper)} снят")
+
+            time_sleep(2)
             resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                                f"&id={id_pegas}&type=normal&invID=5&loc=character")
+                                f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
             if resp.json()['result']:
-                p_log(f"{get_name_mount(id_pegas)} надет")
+                p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
 
-        func(*args, **kwargs)
-
-        resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                            f"={id_pegas}&inventory=5&type=normal")
-        if resp.json()['result']:
-            p_log(f"{get_name_mount(id_pegas)} снят")
-
-        time_sleep(2)
-        resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                            f"&id={id_horse}&type=normal&invID=5&loc=character")
-        if resp.json()['result']:
-            p_log(f"Ездовое животное {get_name_mount(id_horse)} надето")
-
-    return wrapper
+        return wrapper
+    return use_companion_deco
 
 
-@ride_pegasus
+@use_helper('pegas')
 def post_travel(out='', where='', how='horse'):
     payload = {
         'travelwhere': f'{where}',
