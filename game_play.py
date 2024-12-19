@@ -6,7 +6,7 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
-    get_next_time_and_index
+    get_next_time_and_index, get_random_value
 from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
@@ -147,8 +147,9 @@ def autoplay(num_period):
         post_travel(out='GhostTown', where='CityOne', how='horse')
         p_log("Сидим в Алкране несколько часов...")
         if count_work % 3 == 0:
-            work()
-            get_reward()
+            work(working_hours=8)  # отправить работать
+            time_sleep(8 * 60 * 60 + int(get_random_value(60, 100)))
+            get_reward()  # забрать награду за работу спустя время
 
             # Закупка необходимым количеством баночек HP
             try:
