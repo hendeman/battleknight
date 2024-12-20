@@ -125,26 +125,6 @@ def progressbar_ends(soup):
     return total_seconds
 
 
-# ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
-def work(working_hours):
-    payload = {
-        'hours': working_hours,
-        'side': 'good'
-    }
-    make_request(work_url)
-    time.sleep(1)
-    post_request(work_url, payload)
-    p_log("Работаем 8 часов...")
-
-
-def get_reward():
-    make_request(work_url)
-    payload = {'paycheck': 'encash'}
-
-    post_request(work_url, payload)
-    p_log(f"Награда за работу принята")
-
-
 # __________ Использовать зелье use_potion, получить данные о зельях_________________________
 
 def check_health(heals_point=False):
@@ -224,48 +204,60 @@ def put_gold(status="before"):
 def use_helper(name_companion):
     def use_companion_deco(func):
         def wrapper(*args, **kwargs):
-            id_helper_start = None
-            id_helper = mount_list[name_companion]['id_helper']
-            type_helper = mount_list[name_companion]['type_helper']
-            num_inventory = "5" if type_helper == 'horse' else "6"
-            response = make_request(user_url)
-            helper = get_status_helper(response, type_helper)
-            if helper and helper != id_helper:
-                id_helper_start = helper
+            validate_helper = mount_list.get(name_companion, None)
+            if validate_helper:
+                id_helper_start = None
+                id_helper = mount_list[name_companion]['id_helper']
+                type_helper = mount_list[name_companion]['type_helper']
+                num_inventory = "5" if type_helper == 'horse' else "6"
+                url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+                              f'&inventory={num_inventory}&loc=character')
+                response = make_request(user_url)
+                response_helper = make_request(url_helper)
+                helper = get_status_helper(response, type_helper)
+                if helper and helper != id_helper:
+                    id_helper_start = helper
+                    resp = make_request(
+                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                        f"={id_helper_start}&inventory={num_inventory}&type=normal")
+                    if resp.json()['result']:
+                        p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
+                if not id_helper_start and helper != id_helper:
+                    p_log("Никакой помощник не надет")
+                    id_helper_start = mount_list['bear']['id_helper']
+
+                time_sleep(2)
+                if helper != id_helper:
+                    resp = make_request(
+                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                        f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
+                    if resp.json()['result']:
+                        p_log(f"{get_name_mount(id_helper)} надет")
+
+                func(*args, **kwargs)
+
                 resp = make_request(
                     f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                    f"={id_helper_start}&inventory={num_inventory}&type=normal")
+                    f"={id_helper}&inventory={num_inventory}&type=normal")
                 if resp.json()['result']:
-                    p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
-            if not id_helper_start and helper != id_helper:
-                p_log("Никакой помощник не надет")
-                id_helper_start = mount_list['bear']['id_helper']
+                    p_log(f"{get_name_mount(id_helper)} снят")
 
-            time_sleep(2)
-            if helper != id_helper:
-                resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                                    f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
+                time_sleep(2)
+                resp = make_request(
+                    f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                    f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
                 if resp.json()['result']:
-                    p_log(f"{get_name_mount(id_helper)} надет")
-
-            func(*args, **kwargs)
-
-            resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                                f"={id_helper}&inventory={num_inventory}&type=normal")
-            if resp.json()['result']:
-                p_log(f"{get_name_mount(id_helper)} снят")
-
-            time_sleep(2)
-            resp = make_request(f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                                f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
-            if resp.json()['result']:
-                p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
+                    p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
+            else:
+                p_log(f"{name_companion} не найден в списке mount_list", level='debug')
+                func(*args, **kwargs)
 
         return wrapper
+
     return use_companion_deco
 
 
-@use_helper('pegas')
+@use_helper('pegasus')
 def post_travel(out='', where='', how='horse'):
     payload = {
         'travelwhere': f'{where}',
@@ -744,3 +736,24 @@ def choose_coor(dct):
 def conv_name_potion(potion):
     potion_value = int(''.join(re.findall(r'\d+', potion)))
     return potion_value
+
+
+# ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
+@use_helper('rabbit')
+def work(working_hours):
+    payload = {
+        'hours': working_hours,
+        'side': 'good'
+    }
+    make_request(work_url)
+    time.sleep(1)
+    post_request(work_url, payload)
+    p_log(f"Работаем {working_hours} часов...")
+
+
+def get_reward():
+    make_request(work_url)
+    payload = {'paycheck': 'encash'}
+
+    post_request(work_url, payload)
+    p_log(f"Награда за работу принята")
