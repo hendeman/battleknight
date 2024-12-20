@@ -5,6 +5,7 @@ import time
 
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+from requests import Response
 
 from group import go_group, url_group
 from logs.logs import p_log, setup_logging
@@ -169,7 +170,7 @@ def online_tracking():
                     if silver > GOLD_LIMIT and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
                     received_gold, win_status = (pars_gold_duel(resp, gold_info=True, win_status=True)
-                                                 if isinstance(resp, BeautifulSoup)
+                                                 if isinstance(resp, Response)
                                                  else (0, resp)
                                                  )
                     dict_gamer[gamer]["time"] = current_date
@@ -224,7 +225,7 @@ def reduce_experience(name_file=NICKS_GAMER):
             if int(difference_data.total_seconds() / 3600) >= 12:
                 flag, resp = make_attack(nick)
                 if flag:
-                    received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, BeautifulSoup) else 0
+                    received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, Response) else 0
                     # попытаться купить амулет на аукционе если на руках больше GOLD_LIMIT
                     silver = get_silver()
                     if silver > GOLD_LIMIT and get_config_value("buy_ring"):
