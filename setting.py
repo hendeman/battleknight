@@ -60,7 +60,7 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
                    'HarbourTwo', 'TradingPostFour')
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
-mount_list = {'pegas': {'id_helper': '16888797', 'type_helper': 'horse', 'name': '<Пегас>'},
+mount_list = {'pegasus': {'id_helper': '16888797', 'type_helper': 'horse', 'name': '<Пегас>'},
               'bear': {'id_helper': '16896645', 'type_helper': 'horse', 'name': '<Боевой медведь>'},
               'boar': {'id_helper': '17561824', 'type_helper': 'horse', 'name': '<Дикий кабан>'},
               'unicorn': {'id_helper': '16459963', 'type_helper': 'horse', 'name': '<Белый единорог>'},
