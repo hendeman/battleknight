@@ -10,7 +10,7 @@ from module.all_function import get_config_value, time_sleep_main, wait_until, f
 from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work, move_item, register_joust, my_place, main_buy_potion
+    get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper
 from module.http_requests import post_request, make_request
 from setting import start_game, start_time
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -40,6 +40,8 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     # time_sleep(check_progressbar())
 
 
+@use_helper('dog')
+@use_helper('boar')
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     response = make_request(url)
     time.sleep(1)
