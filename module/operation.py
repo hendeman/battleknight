@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from module.all_function import remove_cyrillic, day, syntax_day
-from setting import exclusion_list, url_members, cookies, headers, url_name, FILE_NAME, deco_func, txt_report
+from setting import exclusion_list, url_members, cookies, headers, url_name, FILE_NAME, deco_func, today
 
 GOLD_DAY = 100
 
@@ -125,7 +125,9 @@ def gold_factor(a: dict, pas_day: int) -> dict:
             key, value in a.items()}
 
 
-def print_data(ss, debet, credit, days_have_passed):
+def print_data(ss, debet, credit, days_have_passed, write_flag):
+    pref = "_all" if write_flag else ""
+    txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}{pref}.txt"
     try:
         os.makedirs(os.path.dirname(txt_report), exist_ok=True)
         with open(txt_report, 'w', encoding='utf-8') as file:
@@ -143,7 +145,7 @@ KZ - соотношение между внесенным в казну золо
         print(f"Ошибка записи {txt_report}")
 
 
-def get_statistic_clan():
+def get_statistic_clan(write_flag):
     resp = requests.get(url_members, cookies=cookies, headers=headers)
     os.makedirs(os.path.dirname(url_name), exist_ok=True)
     with open(url_name, 'w', encoding='utf-8') as file:
@@ -168,7 +170,7 @@ def get_statistic_clan():
             ss = dict(sorted(dc.items(), key=lambda item: item[1]["balance"], reverse=True))
             debet, credit = sum(map(lambda x: x['gold'], ss.values())), days_have_passed * GOLD_DAY
 
-            print_data(ss, debet, credit, days_have_passed)  # вывести данные в консоль, создание отчета report.txt
+            print_data(ss, debet, credit, days_have_passed, write_flag)  # вывести данные в консоль, создание отчета report.txt
 
         return all_dct
 

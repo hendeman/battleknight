@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 
 from module.all_function import remove_cyrillic, day, syntax_day, create_folder
 from module.http_requests import make_request, post_request
-from setting import url_stat, STAT_FILE_NAME, folder_name, excel_file_path, STAT_FILE_LOSS, \
-    folder_name_loss
+from setting import url_stat, STAT_FILE_NAME, folder_name, STAT_FILE_LOSS, \
+    folder_name_loss, today
 
 DATA_CHANGE_FILE = datetime.now()
 
@@ -119,35 +119,9 @@ def dict_values_difference(pars_dct: dict) -> list:
         return [nested_list, dc]
 
 
-# def write_2dlist_to_excel(diff_list: list):
-#     workbook = Workbook()
-#     sheet = workbook.active
-#     sheet.title = "knight"
-#     days_have_passed = day(STAT_FILE_NAME)
-#     data_stat = [f'Статистика за {days_have_passed} {syntax_day(days_have_passed)}:',
-#                  f'c {DATA_CHANGE_FILE.strftime("%d.%m.%Y %H:%M")}',
-#                  f'по {datetime.now().strftime("%d.%m.%Y %H:%M")}']
-#     sheet.append(data_stat)
-#     header = ['Имя', 'Орден', 'Уровень', 'Добыча', 'Потери', 'пот/доб (%)', 'Бои', 'Победы', 'Поражения']
-#     sheet.append(header)
-#
-#     for cell in sheet[2]:
-#         cell.font = Font(bold=True)
-#         cell.alignment = Alignment(horizontal='right')
-#
-#     for row in diff_list:
-#         sheet.append(row)
-#
-#     # Устанавливаем ширину колонок
-#     column_widths = [len(str(cell_value)) for row in sheet.iter_rows() for cell_value in row]
-#     for i, column_width in enumerate(column_widths, start=1):
-#         sheet.column_dimensions[
-#             get_column_letter(i)].width = column_width + 2  # Добавляем дополнительные пиксели для промежутка
-#
-#     workbook.save(excel_file_path)
-#
-#     print(f"Список успешно сохранен в файл '{excel_file_path}'.")
-def write_2dlist_to_excel(diff_list):
+def write_2dlist_to_excel(diff_list, write_flag):
+    pref = "_all" if write_flag else ""
+    excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}{pref}.xlsx"
 
     def set_column_widths(sheet):
         """Устанавливает ширину колонок на основе длины данных."""
