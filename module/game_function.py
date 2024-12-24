@@ -226,7 +226,6 @@ def use_helper(name_companion):
                     p_log("Никакой помощник не надет")
                     id_helper_start = mount_list['bear']['id_helper']
 
-                time_sleep(2)
                 if helper != id_helper:
                     resp = make_request(
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
@@ -265,14 +264,14 @@ def post_travel(out='', where='', how='horse'):
         'travelpremium': 0
     }
     p_log(payload, level='debug')
-    responce_redirect = post_request(travel_url, payload)  # ответ редирект
-    timer_travel = check_progressbar(responce_redirect)
+    make_request(url_world)
+    resp = post_request(travel_url, payload)
+    timer_travel = check_progressbar(resp)
     if not timer_travel:
         p_log("Рыцарь не уехал в другой город!", level='warning')
     else:
         print_status(out, where, how, seconds_to_hhmmss(timer_travel))
-
-    check_timer()
+        time_sleep(timer_travel)
 
 
 def post_dragon(length_mission, name_mission, buy_rubies=''):
