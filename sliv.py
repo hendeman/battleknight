@@ -209,7 +209,10 @@ def reduce_experience(name_file=NICKS_GAMER):
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
         sorted_dict = {k: v for k, v in sorted(loaded_dict.items(),
-                                               key=lambda item: (-item[1]['gold'], item[1]['data']))}
+                                               key=lambda item: (
+                                                   -item[1]['gold'] if item[1]['gold'] > 50 else float('inf'),
+                                                   item[1]['data']
+                                               ))}
 
         # number_of_attacks задается из config.ini - количесвто проводимых атак
         number_of_attacks = get_config_value(key="number_of_attacks")
