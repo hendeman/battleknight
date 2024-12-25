@@ -7,7 +7,7 @@ load_dotenv()
 
 today = date.today()
 
-CHRISTMAS_MODE = True
+CHRISTMAS_MODE = False
 
 GOLD_DAY = 25090
 GOLD_LIMIT = 7000
