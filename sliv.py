@@ -189,7 +189,7 @@ def online_tracking():
 
                     with open(GOLD_GAMER, 'wb') as file_gamer:
                         pickle.dump(dict_gamer, file_gamer)
-                    if not isinstance(resp, Response):
+                    if isinstance(resp, Response):
                         time_sleep()
                     return "sleep"
         return True
@@ -239,7 +239,7 @@ def reduce_experience(name_file=NICKS_GAMER):
                     loaded_dict[nick]["gold"] = received_gold
                     with open(name_file, 'wb') as f:
                         pickle.dump(loaded_dict, f)
-                    if not isinstance(resp, Response):
+                    if isinstance(resp, Response):
                         p_log("Ожидание 10 мин перед следующей атакой...")
                         time_sleep()
                     attack_flag = True
