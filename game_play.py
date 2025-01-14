@@ -96,12 +96,6 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
         time_sleep(check_progressbar())
 
 
-# ______________________________________________________________________________________________
-
-
-# ___________________________________________________________________________________________
-
-
 # __________________________________________________________________________________________________
 
 # def fehan():
@@ -145,7 +139,7 @@ def autoplay(num_period):
             register_joust()  # регистрация на турнир
 
         time_sleep(check_progressbar())
-        attack_mission()
+        attack_mission(game_mode=get_config_value("game_mode"))
         post_travel(out='GhostTown', where='CityOne', how='horse')
         p_log("Сидим в Алкране несколько часов...")
         if count_work % 3 == 0:
