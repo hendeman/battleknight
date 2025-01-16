@@ -154,15 +154,23 @@ def autoplay(num_period):
                 p_log(f"Ошибка покупки HP: {er}")
 
         elif (count_work + 2) % 3 == 0:
+            p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")
+                p_log(f"Закончили reduce_experience", level="debug")
             else:
                 common_actions(online_tracking_only, "online_tracking_only")
+                p_log(f"Закончили online_tracking_only", level="debug")
         else:
+            p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("double_reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")
+                p_log(f"Закончили reduce_experience", level="debug")
             else:
                 common_actions(online_tracking_only, "online_tracking_only")
+                p_log(f"Закончили online_tracking_only", level="debug")
+
+            p_log(f"Значение count_work={count_work}", level="debug")
 
             # создание Групповой миссии
             if (count_work + 2) % 3 == 1:
@@ -200,9 +208,9 @@ def wrapper_function(func1, func2, process_name):
 
 def common_actions(process_function, process_name):
     if get_config_value("attack"):
-        run_process_for_hours(process_function, 4.7, process_name)
+        run_process_for_hours(process_function, 4.5, process_name)
     else:
-        time_sleep(4.7 * 60 * 60 + 900 + get_config_value("correct_time"))
+        time_sleep(4.7 * 60 * 60 + 650 + get_config_value("correct_time"))
 
 
 def run_process_for_hours(target_function, hours, process_name):
@@ -215,7 +223,7 @@ def run_process_for_hours(target_function, hours, process_name):
     process.terminate()
     process.join()
     p_log("Дополнительное ожидание")
-    time_sleep(900 + get_config_value("correct_time"))
+    time_sleep(650 + get_config_value("correct_time"))
 
 
 if __name__ == "__main__":
