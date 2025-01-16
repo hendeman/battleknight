@@ -27,7 +27,7 @@ def visit(soup) -> dict:
         raise "Ошибка парсинга <script> данных"
 
     del new[2::3]
-    new_lst = dict([(digi(x), digi(y)) for x, y in zip(new[::2], new[1::2])])
+    new_lst = dict([(str(digi(x)), digi(y)) for x, y in zip(new[::2], new[1::2])])
     # return dict(filter(lambda item: item[1] <= 3, new_lst.items()))
     return new_lst
 
@@ -41,7 +41,7 @@ def party(soup) -> dict:
                 continue
             list_td.append(i.text.replace('\n', '').strip())
 
-        key = int(row.attrs['id'].replace("recordMember", ""))
+        key = row.attrs['id'].replace("recordMember", "")
         value = {"name": remove_cyrillic(list_td[1]), "level": int(list_td[2]),
                  "gold": int(list_td[3].replace(".", ""))}
         list_tr.setdefault(key, value)
