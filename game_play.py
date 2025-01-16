@@ -157,20 +157,13 @@ def autoplay(num_period):
             p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")
-                p_log(f"Закончили reduce_experience", level="debug")
             else:
                 common_actions(online_tracking_only, "online_tracking_only")
-                p_log(f"Закончили online_tracking_only", level="debug")
         else:
-            p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("double_reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")
-                p_log(f"Закончили reduce_experience", level="debug")
             else:
                 common_actions(online_tracking_only, "online_tracking_only")
-                p_log(f"Закончили online_tracking_only", level="debug")
-
-            p_log(f"Значение count_work={count_work}", level="debug")
 
             # создание Групповой миссии
             if (count_work + 2) % 3 == 1:
