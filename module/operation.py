@@ -57,22 +57,22 @@ def all_party(a: dict, b: dict) -> dict:
     return all_dct_new
 
 
-def exclude_keys_decorator(func=None, exclusion_list=None):
-    if func is None:
-        return lambda f: exclude_keys_decorator(f, exclusion_list)
+def exclude_keys_decorator(exclusion_list=None, deco_func=False):
+    def decorator(func):
+        def wrapper(dict1, dict2):
+            dict3 = func(dict1, dict2)
+            if exclusion_list:
+                for key in exclusion_list:
+                    dict3.pop(key, None)
+            return dict3
 
-    def wrapper(dict1, dict2):
-        dict3 = func(dict1, dict2)
-        if exclusion_list:
-            for key in exclusion_list:
-                dict3.pop(key, None)
-        return dict3
+        return wrapper if deco_func else func  # Возвращаем обертку или саму функцию
 
-    return wrapper
+    return decorator
 
 
 # Декоратор exclude_keys_decorator добавляет список исключения exclusion_list = ["Ksusha"]
-@exclude_keys_decorator(exclusion_list=exclusion_list) if deco_func else lambda x: x
+@exclude_keys_decorator(exclusion_list=exclusion_list, deco_func=deco_func)
 def replenish_treasury(a: dict, b: dict) -> dict:
     # Функция для обновления ордена
     def update_order(a, b, add_message=None, remove_message=None):
