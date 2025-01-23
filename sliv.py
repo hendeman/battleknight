@@ -14,7 +14,7 @@ from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health, get_silver
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, url_members, GOLD_LIMIT
+    url_ordermail, url_error, url_nicks, url_members, GOLD_LIMIT, world_url
 
 date = datetime(2024, 9, 17, 19)
 
@@ -384,7 +384,7 @@ def orden_message(message):
     post_request(url_orden_message, payload)
 
 
-def click(url="https://s32-ru.battleknight.gameforge.com/world"):
+def click():
     # ________________________ Для прохождения группы ____________________________
     check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
 
@@ -397,7 +397,7 @@ def click(url="https://s32-ru.battleknight.gameforge.com/world"):
     # _____________________________________________________________________________
 
     break_outer = False
-    response = make_request(url_members)
+    response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     a_tags = soup.find_all('a', onclick=lambda
