@@ -40,7 +40,7 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     # time_sleep(check_progressbar())
 
 
-@use_helper('dog')
+@use_helper('fairy')
 @use_helper('boar')
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     response = make_request(url)
