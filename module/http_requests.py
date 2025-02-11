@@ -5,7 +5,7 @@ from requests import Timeout, RequestException
 
 from logs.logs import p_log
 from module.all_function import get_random_value
-from setting import cookies, headers
+from setting import cookies, headers, csrf_token
 
 
 def make_request(url, timeout=10, game_sleep=True):
@@ -30,6 +30,7 @@ def make_request(url, timeout=10, game_sleep=True):
 
 
 def post_request(make_post_url, data, timeout=10):
+    data['csrf_token'] = csrf_token
     while True:
         try:
             response = requests.post(make_post_url, cookies=cookies, headers=headers, data=data,

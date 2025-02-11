@@ -427,7 +427,11 @@ def get_group_castles(dct: dict):
 # __________________ Купить зелье мудрости за 800 серебра ________________
 def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
-    post_request(healer_url, payload)
+    resp = post_request(healer_url, payload)
+    try:
+        p_log(resp.json(), level='debug')
+    except Exception as er:
+        p_log(f'Ошибка json покупки зелья мудрости: {er}', level='debug')
     p_log("Зелье мудрости куплено")
 
 
