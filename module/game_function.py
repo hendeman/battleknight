@@ -10,11 +10,12 @@ from datetime import datetime
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
     get_config_value
-from module.data_pars import heals, get_status_helper
+from module.data_pars import heals, get_status_helper, pars_healer_result
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
-    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, potion_name_buy
+    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, \
+    potion_name_buy, event_healer_potions
 
 
 def print_status(from_town, where_town, how, tt):
@@ -429,12 +430,16 @@ def get_group_castles(dct: dict):
 # __________________ Купить зелье мудрости за 800 серебра ________________
 def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
+    name_potion = event_healer_potions.get(potion_number, '')
+    p_log(f"Запрос на покупку <{name_potion}>")
     resp = post_request(healer_url, payload)
     try:
-        p_log(resp.json(), level='debug')
+        dct = resp.json()
+        p_log(dct, level='debug')
+        description_html = dct.get('description', '')
+        pars_healer_result(description_html)
     except Exception as er:
-        p_log(f'Ошибка json покупки зелья мудрости: {er}', level='debug')
-    p_log("Зелье мудрости куплено")
+        p_log(f'Ошибка json покупки <{name_potion}>: {er}', level='debug')
 
 
 def do_matrix_inventory(data, size):
