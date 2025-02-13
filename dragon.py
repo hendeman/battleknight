@@ -13,7 +13,7 @@ from module.all_function import time_sleep, wait_until, format_time, time_sleep_
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar
 from module.http_requests import make_request
-from setting import castles_all, castles_island, castles, world_url, map_url
+from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer
 
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
@@ -59,6 +59,7 @@ def complete_mission(soup, length_mission, cog_plata=False):
             silver_count = int(soup.find(id='silverCount').text)
             if silver_count >= 800:
                 if not cog_plata:
+                    make_request(url_zany_healer)
                     post_healer(5)
                 break
 
@@ -76,6 +77,7 @@ def process_page(event, rubies, length_mission, name_mission):
     if event == 'healer':
         silver_count = int(soup.find(id='silverCount').text)
         if silver_count >= 800:
+            make_request(url_zany_healer)
             post_healer(5)
         else:
             name_mission, a_tags = find_mission(soup, length_mission)
