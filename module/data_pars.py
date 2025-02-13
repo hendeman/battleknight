@@ -47,3 +47,23 @@ def get_status_helper(response, type_helper):
             break
 
     return result
+
+
+# Парсинг ключа 'description' - результат покупки зелья в событии "Лекарь"
+def pars_healer_result(description_html):
+    soup = BeautifulSoup(description_html, 'html.parser')
+
+    # Находим первый тег <td>
+    td_tag = soup.find('td')
+
+    if td_tag:
+        # Находим первый тег <div> внутри <td>
+        clean_text = td_tag.get_text(strip=True).replace("•", '')
+        div_tag = td_tag.find('div')
+
+        if div_tag and 'class' in div_tag.attrs:
+            # Получаем список классов и берем первый элемент
+            first_class = div_tag['class'][0]
+            p_log(f"Вы получили {first_class}: {clean_text} штук")
+        else:
+            p_log(f"{clean_text}")
