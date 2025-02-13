@@ -72,6 +72,8 @@ start_time = ['09:00', '15:25', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
 potion_name_buy = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200']
+event_healer_potions = {1: "Зелье дружбы", 2: "Зелье перспективы", 3: "Зелье восприятия",
+                        4: "Зелье процветания", 5: "Зелье мудрости", 7: "Зелье природы", 8: "Зелье власти"}
 
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
@@ -103,6 +105,7 @@ duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
 url_joust_sign = 'https://s32-ru.battleknight.gameforge.com/joust/signUp'
 url_joust = 'https://s32-ru.battleknight.gameforge.com/joust'
 url_alchemist = 'https://s32-ru.battleknight.gameforge.com/market/merchant/alchemist'
+url_zany_healer = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/'
 
 url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
 folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"
