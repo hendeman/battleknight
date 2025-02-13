@@ -1,3 +1,4 @@
+import ast
 import re
 from typing import Union, Tuple
 from time import sleep
@@ -7,7 +8,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value
+from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
+    get_config_value
 from module.data_pars import heals, get_status_helper
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
@@ -268,7 +270,7 @@ def post_travel(out='', where='', how='horse'):
     resp = post_request(travel_url, payload)
     timer_travel = check_progressbar(resp)
     if not timer_travel:
-        p_log("Рыцарь не уехал в другой город!", level='warning')
+        p_log("Рыцарь не уехал в другой город!", level='warning', is_error=True)
     else:
         print_status(out, where, how, seconds_to_hhmmss(timer_travel))
         time_sleep(timer_travel)
@@ -467,14 +469,16 @@ def choose_random_coor(dct, rand):
 
 # _______________________ Получаем данные заполненности инвентаря в 3 и 4 сумке _______________________________
 
-def get_inventory_slots(num_inv: Union[int, Tuple[int, int]] = None):
+def get_inventory_slots(num_inv):
     # Определяем диапазон инвентарей
-    if isinstance(num_inv, tuple) and len(num_inv) == 2:
-        inventories = range(num_inv[0], num_inv[1] + 1)
-    elif isinstance(num_inv, int):
-        inventories = [num_inv]
-    else:
-        inventories = range(1, 5)  # По умолчанию, если num_inv не задан
+    try:
+        inventories = ast.literal_eval(num_inv)
+    except ValueError:
+        if isinstance(num_inv, int):
+            inventories = [num_inv]
+        else:
+            inventories = range(1, 5)
+
     item_key_list = {}
     for i in inventories:
         url_inventory = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
@@ -560,7 +564,7 @@ def move_item(how='buy', name='key', rand=True):
     id_key = get_item_loot(name) if how == 'loot' else get_item_market()
     if id_key:
         for item in id_key:
-            inventory = get_inventory_slots()
+            inventory = get_inventory_slots(get_config_value(key='searching_slots_bag'))
             free_coord = get_free_coord(inventory)
             dct_coor = choose_random_coor(free_coord, rand)
             if dct_coor:
@@ -576,6 +580,8 @@ def move_item(how='buy', name='key', rand=True):
                         f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id={item}'
                         f'&inventory={inv}&width={coor[1]}&depth={coor[0]}&type=tmp')
                     make_request(url_loot_item)
+            else:
+                break
             sleep(2)
 
 
