@@ -238,18 +238,19 @@ def use_helper(name_companion):
 
                 func(*args, **kwargs)
 
-                resp = make_request(
-                    f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                    f"={id_helper}&inventory={num_inventory}&type=normal")
-                if resp.json()['result']:
-                    p_log(f"{get_name_mount(id_helper)} снят")
+                if get_config_value("ignor_mount"):
+                    resp = make_request(
+                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                        f"={id_helper}&inventory={num_inventory}&type=normal")
+                    if resp.json()['result']:
+                        p_log(f"{get_name_mount(id_helper)} снят")
 
-                time_sleep(2)
-                resp = make_request(
-                    f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
-                    f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
-                if resp.json()['result']:
-                    p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
+                    time_sleep(2)
+                    resp = make_request(
+                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                        f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
+                    if resp.json()['result']:
+                        p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
                 func(*args, **kwargs)
