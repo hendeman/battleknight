@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
-from module.all_function import time_sleep, wait_until, format_time, time_sleep_main
+from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar
 from module.http_requests import make_request
@@ -58,9 +58,9 @@ def complete_mission(soup, length_mission, cog_plata=False):
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
             if silver_count >= 800:
-                if not cog_plata:
-                    make_request(url_zany_healer)
-                    post_healer(5)
+                # if not cog_plata:
+                #     make_request(url_zany_healer)
+                #     post_healer(5)
                 break
 
 
@@ -78,7 +78,7 @@ def process_page(event, rubies, length_mission, name_mission):
         silver_count = int(soup.find(id='silverCount').text)
         if silver_count >= 800:
             make_request(url_zany_healer)
-            post_healer(5)
+            post_healer(get_config_value(key='event_healer_potion'))
         else:
             name_mission, a_tags = find_mission(soup, length_mission)
 
