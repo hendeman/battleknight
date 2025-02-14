@@ -72,8 +72,13 @@ start_time = ['09:00', '15:25', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
 potion_name_buy = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200']
-event_healer_potions = {1: "Зелье дружбы", 2: "Зелье перспективы", 3: "Зелье восприятия",
-                        4: "Зелье процветания", 5: "Зелье мудрости", 7: "Зелье природы", 8: "Зелье власти"}
+event_healer_potions = {1: {'name': "Зелье дружбы", 'price': 5000},
+                        2: {'name': "Зелье перспективы", 'price': 2000},
+                        3: {'name': "Зелье восприятия", 'price': 1500},
+                        4: {'name': "Зелье процветания", 'price': 7000},
+                        5: {'name': "Зелье мудрости", 'price': 800},
+                        6: {'name': "Зелье природы", 'price': 5000},
+                        7: {'name': "Зелье власти", 'price': 5000}}
 
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'

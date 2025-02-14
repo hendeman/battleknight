@@ -13,7 +13,7 @@ from module.all_function import time_sleep, wait_until, format_time, time_sleep_
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar
 from module.http_requests import make_request
-from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer
+from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer, event_healer_potions
 
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
@@ -57,11 +57,16 @@ def complete_mission(soup, length_mission, cog_plata=False):
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
-            if silver_count >= 800:
-                # if not cog_plata:
-                #     make_request(url_zany_healer)
-                #     post_healer(5)
-                break
+
+            if not cog_plata:
+                num_point = get_config_value(key='event_healer_potion')
+                if silver_count >= event_healer_potions[num_point]['price']:
+                    make_request(url_zany_healer)
+                    post_healer(num_point)
+                    break
+            else:
+                if silver_count >= 800:
+                    break
 
 
 def process_page(event, rubies, length_mission, name_mission):
@@ -76,9 +81,10 @@ def process_page(event, rubies, length_mission, name_mission):
 
     if event == 'healer':
         silver_count = int(soup.find(id='silverCount').text)
-        if silver_count >= 800:
+        num_point = get_config_value(key='event_healer_potion')
+        if silver_count >= event_healer_potions[num_point]['price']:
             make_request(url_zany_healer)
-            post_healer(get_config_value(key='event_healer_potion'))
+            post_healer(num_point)
         else:
             name_mission, a_tags = find_mission(soup, length_mission)
 

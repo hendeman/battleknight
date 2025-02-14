@@ -431,7 +431,7 @@ def get_group_castles(dct: dict):
 # __________________ Купить зелье мудрости за 800 серебра ________________
 def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
-    name_potion = event_healer_potions.get(potion_number, '')
+    name_potion = event_healer_potions[potion_number]['name']
     p_log(f"Запрос на покупку <{name_potion}>")
     resp = post_request(healer_url, payload)
     try:
