@@ -60,13 +60,16 @@ def complete_mission(soup, length_mission, cog_plata=False):
 
             if not cog_plata:
                 num_point = get_config_value(key='event_healer_potion')
-                if silver_count >= event_healer_potions[num_point]['price']:
+                price_potion = event_healer_potions[num_point]['price']
+                if silver_count >= price_potion:
                     make_request(url_zany_healer)
                     post_healer(num_point)
                     break
+                p_log(f"Необходимо {price_potion} серебра. На руках {silver_count}")
             else:
                 if silver_count >= 800:
                     break
+                p_log(f"Необходимо 800 серебра. На руках {silver_count}")
 
 
 def process_page(event, rubies, length_mission, name_mission):
@@ -82,10 +85,12 @@ def process_page(event, rubies, length_mission, name_mission):
     if event == 'healer':
         silver_count = int(soup.find(id='silverCount').text)
         num_point = get_config_value(key='event_healer_potion')
+        price_potion = event_healer_potions[num_point]['price']
         if silver_count >= event_healer_potions[num_point]['price']:
             make_request(url_zany_healer)
             post_healer(num_point)
         else:
+            p_log(f"Необходимо {price_potion} серебра. На руках {silver_count}")
             name_mission, a_tags = find_mission(soup, length_mission)
 
     if a_tags:

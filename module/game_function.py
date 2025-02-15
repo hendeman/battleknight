@@ -10,7 +10,7 @@ from datetime import datetime
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
     get_config_value
-from module.data_pars import heals, get_status_helper, pars_healer_result
+from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
@@ -286,9 +286,11 @@ def post_dragon(length_mission, name_mission, buy_rubies=''):
         'buyRubies': f"{buy_rubies}"
     }
 
-    post_request(post_url, payload)
-    p_log(f"Атака выполнена успешно, потрачено {buy_rubies if buy_rubies else '0'} рубинов")
-
+    resp = post_request(post_url, payload)
+    p_log(f"С миссии <{name_mission}> получено {pars_gold_duel(resp, gold_info=True)} серебра")
+    if buy_rubies:
+        p_log(f"Потрачен {buy_rubies} рубин")
+    p_log(f"Всего {get_all_silver(resp)} серебра")
     check_timer()
 
 

@@ -67,3 +67,9 @@ def pars_healer_result(description_html):
             p_log(f"Вы получили {first_class}: {clean_text} штук")
         else:
             p_log(f"{clean_text}")
+
+
+def get_all_silver(resp):
+    soup = BeautifulSoup(resp.content, 'html.parser')
+    silver_count = int(soup.find(id='silverCount').text)
+    return silver_count
