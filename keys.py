@@ -13,7 +13,7 @@ from module.game_function import post_travel, my_place, check_hit_point, hide_si
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
-from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles, GOLD_LIMIT
+from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles
 from sliv import reduce_experience, online_tracking_only
 
 
@@ -29,9 +29,38 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
         name_mission = name_mission[element:]
     flag = False
     flag_cog = False
+
+
+    def process_mission_with_keys(mission, length_mission, buy_rubies=''):
+        """
+        Общая функция для обработки миссий с проверкой ключей.
+
+        :param mission: Название миссии.
+        :param length_mission: Длина миссии.
+        :param buy_rubies: Параметр для функции check_mission (может быть None или '1').
+        :return: Кортеж (остановить_цикл, флаг_ключа).
+        """
+        p_log(f"Будет произведена попытка пройти {mission} миссию")
+        differences = check_mission(name_mission=mission, length_mission=length_mission, buy_rubies=buy_rubies)
+        if not differences:
+            p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
+            return True, False  # Прерываем цикл, так как миссия не открыла ключ
+
+        current_dict_key = get_group_castles(get_all_items("key"))
+        if current_castle != 'VillageOne' and current_castle not in current_dict_key:
+            p_log(f"В городе {current_castle} все ключи открыты")
+            return True, True  # Прерываем цикл, так как все ключи уже открыты
+
+        p_log(f"Миссия {mission} открыла ключ. Миссия будет выполнена повторно")
+        p_log(f"В данной локации осталось ещё {current_dict_key.get(current_castle, {}).get('count', 0)} ключей")
+        write_save_castle(current_castle, mission)
+        return False, False  # Не прерываем цикл, продолжаем выполнение миссий
+
     p_log(f"В {current_castle} имеются следующие миссии {name_mission}")
     for mission in name_mission:
         while True:
+            gold_limit = get_config_value(key='gold_limit')
+
             # ____________________________ Ночной перерыв _________________________________
             check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
             # _______________________ Время для групповой миссии __________________________
@@ -50,52 +79,52 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
 
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
-                silver_count = hide_silver(silver_limit=GOLD_LIMIT)  # внести в казну
-
-                if silver_count > GOLD_LIMIT:
-                    if current_castle not in auction_castles:
-                        go_auction(out=current_castle)
-                    else:
-                        if get_config_value("buy_ring"):
-                            buy_ring()
-
-                p_log("Миссий нет. Ждем 1 час 45 мин...")
-                #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
-                if get_config_value(key="online_tracking_only"):
-                    if get_config_value(key="reduce_experience"):
-                        run_process_for_hours(reduce_experience, 1.75, 'reduce_experience')
-                    else:
-                        run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
+                p_log("Закончились бесплатные миссии")
+                if get_config_value(key='mission_for_rubies'):
+                    stop_cycle, flag = process_mission_with_keys(mission, length_mission, "1")
+                    p_log(f"stop_cycle={stop_cycle}, flag={flag}", level="debug")
+                    if stop_cycle:
+                        break
                 else:
-                    time_sleep_main(int(1.45 * 60 * 60))
+                    silver_count = hide_silver(silver_limit=gold_limit)  # внести в казну
+
+                    if silver_count > gold_limit:
+                        not_auction_timer = any([check_time_sleep(start_hour='10:45', end_hour='12:45', sleep_hour=None),
+                                                check_time_sleep(start_hour='22:45', end_hour='23:59', sleep_hour=None)])
+                        if current_castle not in auction_castles and not not_auction_timer:
+                            go_auction(out=current_castle)
+                        else:
+                            if get_config_value("buy_ring"):
+                                buy_ring()
+
+                    p_log("Миссий нет. Ждем 1 час 45 мин...")
+                    #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
+                    if get_config_value(key="online_tracking_only"):
+                        if get_config_value(key="reduce_experience"):
+                            run_process_for_hours(reduce_experience, 1.75, 'reduce_experience')
+                        else:
+                            run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
+                    else:
+                        time_sleep_main(int(1.45 * 60 * 60))
 
             else:
                 p_log("Есть доступные миссии")
                 if not cog_plata:
-                    p_log(f"Будет произведена попытка пройти {mission} миссию")
-                    differences = check_mission(name_mission=mission, length_mission=length_mission)
-                    if not differences:
-                        p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
+                    stop_cycle, flag = process_mission_with_keys(mission, length_mission)
+                    p_log(f"stop_cycle={stop_cycle}, flag={flag}", level="debug")
+                    if stop_cycle:
                         break
-                    current_dict_key = get_group_castles(get_all_items("key"))
-                    if current_castle != 'VillageOne' and current_castle not in current_dict_key:
-                        p_log(f"В городе {current_castle} все ключи открыты")
-                        flag = True
-                        break
-                    p_log(f"Миссия {mission} открыла ключ. Миссия будет выполнена повторно")
-                    p_log(f"В данной локации осталось ещё {current_dict_key.get(current_castle, {}).get('count', 0)} ключей")
-                    write_save_castle(current_castle, mission)
                 else:
-                    silver_count = get_silver()
                     post_dragon(
                         length_mission=length_mission,
                         name_mission=mission
                     )
+                    silver_count = get_silver()
                     if silver_count >= 800:
                         flag_cog = True
                         break
-        silver_count = hide_silver(silver_limit=7000)  # внести в казну
-        if silver_count > GOLD_LIMIT and get_config_value("buy_ring"):
+        silver_count = hide_silver(silver_limit=gold_limit)  # внести в казну
+        if silver_count > gold_limit and get_config_value("buy_ring"):
             buy_ring(tariff_travel=1000)  # оставить 1000 серебра на переправу
         if flag_cog or flag:
             break
