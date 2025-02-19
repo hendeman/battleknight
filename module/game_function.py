@@ -321,7 +321,7 @@ def group_time(start_hour: str, end_hour: str):
     return start_time <= now <= end_time
 
 
-def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str):
+def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
     # Получаем текущее время
     now = datetime.now().time()
 
@@ -330,9 +330,11 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str):
     end_time = datetime.strptime(end_hour, "%H:%M").time()
 
     # Проверяем, находится ли текущее время в заданном диапазоне
-    if start_time <= now <= end_time:
+    if start_time <= now <= end_time and sleep_hour:
         p_log(f"Отдыхаем до {sleep_hour}...")
         time_sleep(wait_until(sleep_hour))
+    if start_time <= now <= end_time and sleep_hour is None:
+        return True
 
 
 def hide_silver(silver_limit):
@@ -400,13 +402,14 @@ def get_all_items(item, num_inv: Union[int, Tuple[int, int]] = None):
     return item_key_list
 
 
-def check_mission(name_mission, length_mission):
+def check_mission(name_mission, length_mission, buy_rubies=''):
     check_hit_point()  # проверка количества здоровья
     dct1 = get_group_castles(get_all_items("key"))
     p_log(dct1, level='debug')
     post_dragon(
         length_mission=length_mission,
-        name_mission=name_mission
+        name_mission=name_mission,
+        buy_rubies=buy_rubies
     )
     make_request(mission_url)  # Запрос в миссии для обновления ключей
     dct2 = get_group_castles(get_all_items("key"))
