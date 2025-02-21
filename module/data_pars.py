@@ -73,3 +73,18 @@ def get_all_silver(resp):
     soup = BeautifulSoup(resp.content, 'html.parser')
     silver_count = int(soup.find(id='silverCount').text)
     return silver_count
+
+
+def get_csrf_token(resp):
+    content_type = resp.headers.get('Content-Type', '')
+    if 'text/html' in content_type:
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        # Находим тег meta с нужным атрибутом
+        meta_tag = soup.find('meta', attrs={'name': 'csrf-token'})
+
+        # Достаем значение атрибута content
+        if meta_tag:
+            csrf_token = meta_tag.get('content')
+            return csrf_token
+        else:
+            p_log("Тег meta с именем 'csrf-token' не найден.", level='debug')
