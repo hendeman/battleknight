@@ -14,7 +14,7 @@ from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health, get_silver
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, url_members, GOLD_LIMIT, world_url
+    url_ordermail, url_error, url_nicks, world_url
 
 date = datetime(2024, 9, 17, 19)
 
@@ -147,6 +147,7 @@ def set_initial_gold():
 
 
 def online_tracking():
+    GOLD_LIMIT = get_config_value(key='gold_limit')
     with open(GOLD_GAMER, 'rb') as file_gamer:
         p_log("online_tracking", level='debug')
         dict_gamer = pickle.load(file_gamer)
@@ -207,6 +208,7 @@ def online_tracking_only(reduce_flag=False):
 
 
 def reduce_experience(name_file=NICKS_GAMER):
+    GOLD_LIMIT = get_config_value(key='gold_limit')
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
         sorted_dict = {k: v for k, v in sorted(loaded_dict.items(),
