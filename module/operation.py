@@ -127,7 +127,7 @@ def gold_factor(a: dict, pas_day: int) -> dict:
 
 def print_data(ss, debet, credit, days_have_passed, write_flag):
     pref = "_all" if write_flag else ""
-    txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}{pref}.txt"
+    txt_report = f"bk\\report_clan\\report_{today.day:02d}_{today.month:02d}_{today.year}{pref}.txt"
     try:
         os.makedirs(os.path.dirname(txt_report), exist_ok=True)
         with open(txt_report, 'w', encoding='utf-8') as file:
@@ -141,7 +141,7 @@ def print_data(ss, debet, credit, days_have_passed, write_flag):
             file.write("""Всего пополнил в казну | +избыток, -недосдача → имя (KZ %)
 KZ - соотношение между внесенным в казну золотом и необходимым (в процентах)""")
             print(f"Отчет {txt_report} успешно создан")
-    except:
+    except Exception:
         print(f"Ошибка записи {txt_report}")
 
 

@@ -51,6 +51,7 @@ def pars_player(soup) -> dict:
 def get_statistic() -> dict:
     stat_dct = {}
     create_folder(folder_name)  # создание папки
+    make_request(url_stat)
 
     print("*" * 20, " Прогресс: *обработка, всего 20")
 
@@ -121,7 +122,7 @@ def dict_values_difference(pars_dct: dict) -> list:
 
 def write_2dlist_to_excel(diff_list, write_flag):
     pref = "_all" if write_flag else ""
-    excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}{pref}.xlsx"
+    excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}_{today.year}{pref}.xlsx"
 
     def set_column_widths(sheet):
         """Устанавливает ширину колонок на основе длины данных."""

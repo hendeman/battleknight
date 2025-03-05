@@ -112,7 +112,17 @@ url_joust = 'https://s32-ru.battleknight.gameforge.com/joust'
 url_alchemist = 'https://s32-ru.battleknight.gameforge.com/market/merchant/alchemist'
 url_zany_healer = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/'
 
-url_name = f"bk\\clan\\BattleKnight_{today.day:02d}_{today.month:02d}.html"
-folder_name = f"bk\\statistic\\statistic_{today.day:02d}_{today.month:02d}"
-folder_name_loss = f"bk\\statistic_loss\\statistic_loss_{today.day:02d}_{today.month:02d}"
+months = {
+    1: "январь", 2: "февраль", 3: "март",
+    4: "апрель", 5: "май", 6: "июнь",
+    7: "июль", 8: "август", 9: "сентябрь",
+    10: "октябрь", 11: "ноябрь", 12: "декабрь"
+}
+
+url_name = (f"bk\\clan\\{today.year}\\{months.get(today.month)}"
+            f"\\BattleKnight_{today.day:02d}_{today.month:02d}.html")
+folder_name = (f"bk\\statistic\\{today.year}\\{months.get(today.month)}"
+               f"\\statistic_{today.day:02d}_{today.month:02d}")
+folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)}"
+                    f"\\statistic_loss_{today.day:02d}_{today.month:02d}")
 
