@@ -155,6 +155,7 @@ def find_mission(soup, length_mission):
 
 
 def keys_search(event, rubies, length_mission):
+    time_sleep(check_progressbar())  # проверить статус
     # check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
     place, my_town = my_place()  # Джаро, VillageFour
     p_log(f"Я нахожусь в {place}")
@@ -208,7 +209,6 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-    time_sleep(check_progressbar())  # проверить статус
     while True:
         keys_search(event='Ключи', rubies=False, length_mission='small')
 
