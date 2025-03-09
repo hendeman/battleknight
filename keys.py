@@ -166,8 +166,12 @@ def keys_search(event, rubies, length_mission):
     if save_castle:
         name_max_city, save_mission = next(iter(save_castle.items()))
     else:
-        name_max_city = max(group_castles, key=lambda k: group_castles[k]['count'])
-        save_mission = None
+        try:
+            name_max_city = max(group_castles, key=lambda k: group_castles[k]['count'])
+            save_mission = None
+        except ValueError:
+            p_log(group_castles, level="debug")
+            raise ValueError("Все ключи открыты")
 
     response = make_request(map_url)
     soup = BeautifulSoup(response.text, 'lxml')
@@ -210,7 +214,11 @@ if __name__ == "__main__":
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
     while True:
-        keys_search(event='Ключи', rubies=False, length_mission='small')
+        try:
+            keys_search(event='Ключи', rubies=False, length_mission='small')
+        except ValueError as e:
+            p_log(f"Ошибка: {e}")
+            break
 
 
     # # Завершение дочернего процесса логирования
