@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 
 from logs.logs import p_log
-from module.all_function import no_cache, format_time
+from module.all_function import no_cache, format_time, get_config_value
 from module.http_requests import make_request, post_request
 
 # Регулярное выражение для поиска
@@ -39,7 +39,7 @@ def create_group():
         'maxMember': 2,
         'plandata': 'hard',
         'onlyApply': 0,
-        'onlyOrder': 1
+        'onlyOrder': get_config_value("only_order")
     }
     make_request(url_group)
     time.sleep(1)
