@@ -43,26 +43,43 @@ def wait_until(target_time_str):
 
 
 def get_config_value(key, default=0):
+    """
+    :param key: название параметра из config.ini, либо несколько в виде key=("",)
+    :param default:
+    :return: когда параметр один, то возращает число, либо строку. Если несколько параметров, то возвращает словарь
+    вида: {key(index): value, }
+    """
     config = configparser.ConfigParser()
+
+    # Проверяем, переданы ли несколько ключей (в виде tuple/list)
+    is_multi_key = isinstance(key, (tuple, list))
+    keys = key if is_multi_key else [key]
 
     try:
         if not os.path.exists(filename):
-            p_log(f"Error: The file '{filename}' does not exist.")
-            return default
+            print(f"Error: The file '{filename}' does not exist.")
+            return {k: default for k in keys} if is_multi_key else default
 
         config.read(filename)
 
-        if 'DEFAULT' in config:
-            if config.has_option('DEFAULT', key):
-                val = config.get('DEFAULT', key)
-                if val.isdigit():
-                    return int(config.get('DEFAULT', key))
-                return config.get('DEFAULT', key)
-        return default
+        if 'DEFAULT' not in config:
+            return {k: default for k in keys} if is_multi_key else default
+
+        # Обработка значений
+        result = {}
+        for k in keys:
+            if config.has_option('DEFAULT', k):
+                val = config.get('DEFAULT', k)
+                result[k] = int(val) if val.isdigit() else val
+            else:
+                result[k] = default
+
+        # Возвращаем словарь (если ключей несколько) или одно значение
+        return result if is_multi_key else result[key]
 
     except (configparser.Error, IOError) as e:
-        p_log(f"Error: Failed to read the configuration file. {e}")
-        return default
+        print(f"Error: Failed to read the configuration file. {e}")
+        return {k: default for k in keys} if is_multi_key else default
 
 
 def change_config_value(section, key, new_value):
