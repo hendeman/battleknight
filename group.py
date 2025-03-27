@@ -32,15 +32,17 @@ url_group_delete = 'https://s32-ru.battleknight.gameforge.com/groupmission/delet
 
 
 def create_group():
+    gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
     payload = {
-        'name': 'меня нет',
+        'name': gm_param.get("gm_name"),
         'minLevel': 29,
         'maxLevel': 48,
-        'maxMember': 2,
-        'plandata': 'hard',
+        'maxMember': gm_param.get("gm_max_member"),
+        'plandata': gm_param.get("gm_plandata"),
         'onlyApply': 0,
-        'onlyOrder': get_config_value("only_order")
+        'onlyOrder': gm_param.get("gm_only_order")
     }
+    p_log(payload, level='debug')
     make_request(url_group)
     time.sleep(1)
     try:
