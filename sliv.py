@@ -11,7 +11,8 @@ from group import go_group, url_group
 from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import pars_gold_duel
-from module.game_function import buy_ring, group_time, check_progressbar, check_time_sleep, check_health, get_silver
+from module.game_function import buy_ring, is_time_between, check_progressbar, check_time_sleep, check_health, \
+    get_silver, handle_ring_operations
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
     url_ordermail, url_error, url_nicks, world_url
@@ -168,7 +169,7 @@ def online_tracking():
                 flag, resp = make_attack(gamer, heals_point=True)
                 if flag:
                     silver = get_silver()
-                    if silver > GOLD_LIMIT and get_config_value("buy_ring"):
+                    if silver > GOLD_LIMIT - 500 and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
                     received_gold, win_status = (pars_gold_duel(resp, gold_info=True, win_status=True)
                                                  if isinstance(resp, Response)
@@ -208,7 +209,9 @@ def online_tracking_only(reduce_flag=False):
 
 
 def reduce_experience(name_file=NICKS_GAMER):
-    GOLD_LIMIT = get_config_value(key='gold_limit')
+    cost_ring_auction = buy_ring(initial=True)  # получить цену кольца с аукциона
+    counter_reset_ring_auction = False
+
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
         sorted_dict = {k: v for k, v in sorted(loaded_dict.items(),
@@ -232,10 +235,13 @@ def reduce_experience(name_file=NICKS_GAMER):
                 flag, resp = make_attack(nick)
                 if flag:
                     received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, Response) else 0
-                    # попытаться купить амулет на аукционе если на руках больше GOLD_LIMIT
                     silver = get_silver()
-                    if silver > GOLD_LIMIT and get_config_value("buy_ring"):
-                        buy_ring()  # покупка кольца на аукционе
+                    # инициализация стоимости кольца либо покупка кольца на аукционе
+                    p_log(f"cost_ring_auction={cost_ring_auction}, "
+                          f"counter_reset_ring_auction={counter_reset_ring_auction}", level='debug')
+                    cost_ring_auction, counter_reset_ring_auction = handle_ring_operations(silver,
+                                                                                           cost_ring_auction,
+                                                                                           counter_reset_ring_auction)
 
                     loaded_dict[nick]["data"] = current_date
                     loaded_dict[nick]["gold"] = received_gold
@@ -390,7 +396,7 @@ def click():
     # ________________________ Для прохождения группы ____________________________
     check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
 
-    if group_time(start_hour='21:29', end_hour='21:35'):
+    if is_time_between(start_hour='21:29', end_hour='21:35'):
         go_group(60 * 30)
         timer_group = check_progressbar()
         if timer_group:

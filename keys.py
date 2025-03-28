@@ -8,7 +8,7 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, group_time, move_item, get_silver, \
+    get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, get_silver, \
     check_progressbar, go_auction, buy_ring
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
@@ -66,7 +66,7 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             # _______________________ Время для групповой миссии __________________________
             check_time_sleep(start_hour='19:20', end_hour='21:29', sleep_hour='21:30')
 
-            if group_time(start_hour='21:29', end_hour='21:35'):
+            if is_time_between(start_hour='21:29', end_hour='21:35'):
                 go_group(3600)
                 timer_group = check_progressbar()
                 if timer_group:
