@@ -314,7 +314,7 @@ def my_place():
     return place, None
 
 
-def group_time(start_hour: str, end_hour: str):
+def is_time_between(start_hour: str, end_hour: str):
     now = datetime.now().time()
     start_time = datetime.strptime(start_hour, "%H:%M").time()
     end_time = datetime.strptime(end_hour, "%H:%M").time()
@@ -622,7 +622,28 @@ def payout(silver_out: int):
         p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
 
 
-def buy_ring(tariff_travel=0):
+def handle_ring_operations(silver: int, cost_ring_auction: int,
+                           counter_reset_ring_auction: bool) -> tuple:
+    """
+    Обрабатывает операции с кольцом: обновление цены после 13:00 и покупку
+    Возвращает кортеж: (новая цена кольца, флаг сброса)
+    """
+    if is_time_between(start_hour='13:00', end_hour='14:30') and not counter_reset_ring_auction:
+        cost_ring_auction = buy_ring(initial=True)
+        counter_reset_ring_auction = True
+
+    conditions = [cost_ring_auction,
+                  silver - 500 > cost_ring_auction,
+                  not is_time_between(start_hour='11:00', end_hour='13:00')
+                  ]
+
+    if all(conditions) and get_config_value("buy_ring"):
+        buy_ring()  # покупка кольца на аукционе
+        cost_ring_auction = buy_ring(initial=True)
+    return cost_ring_auction, counter_reset_ring_auction
+
+
+def buy_ring(initial=False, tariff_travel=0):
     response = make_request(url_auctioneer)
     soup = BeautifulSoup(response.text, 'lxml')
     auction_item_box = soup.find_all('div', class_='auctionItemBox')
@@ -652,6 +673,9 @@ def buy_ring(tariff_travel=0):
     else:
         min_key = min(dct, key=lambda k: int(dct[k]))
         min_value = int(dct[min_key])
+        if initial:
+            return min_value
+
         if min_value > target_number:
             need_silver = min_value - target_number
             p_log(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
