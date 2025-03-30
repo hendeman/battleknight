@@ -633,7 +633,7 @@ def handle_ring_operations(silver: int, cost_ring_auction: int,
         counter_reset_ring_auction = True
 
     conditions = [cost_ring_auction,
-                  silver - 500 > cost_ring_auction,
+                  silver > cost_ring_auction - 500,
                   not is_time_between(start_hour='11:00', end_hour='13:00')
                   ]
 
