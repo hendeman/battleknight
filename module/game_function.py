@@ -628,7 +628,7 @@ def handle_ring_operations(silver: int, cost_ring_auction: int,
     Обрабатывает операции с кольцом: обновление цены после 13:00 и покупку
     Возвращает кортеж: (новая цена кольца, флаг сброса)
     """
-    if is_time_between(start_hour='13:00', end_hour='14:30') and not counter_reset_ring_auction:
+    if is_time_between(start_hour='13:00', end_hour='15:00') and not counter_reset_ring_auction:
         cost_ring_auction = buy_ring(initial=True)
         counter_reset_ring_auction = True
 
