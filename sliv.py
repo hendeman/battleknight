@@ -129,6 +129,12 @@ def update_players_gold(dict_gamer, list_of_players):
 def set_initial_gold():
     with open('battle.json', 'r', encoding='utf-8') as file:
         list_of_players = json.load(file)
+        # Выбераем для атаки только тех, у которых 'allow_attack'=true, либо этот параметр отсутсвует
+        list_of_players = {
+            player_id: player_data
+            for player_id, player_data in list_of_players.items()
+            if player_data.get('allow_attack', True)
+        }
 
     try:
         with open(GOLD_GAMER, 'rb') as file_gamer:
