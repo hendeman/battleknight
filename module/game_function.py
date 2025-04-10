@@ -632,6 +632,9 @@ def handle_ring_operations(silver: int, cost_ring_auction: int,
         cost_ring_auction = buy_ring(initial=True)
         counter_reset_ring_auction = True
 
+    # Установка значения по умолчанию, если cost_ring_auction равен None
+    cost_ring_auction = cost_ring_auction or 0
+
     conditions = [cost_ring_auction,
                   silver > cost_ring_auction - 500,
                   not is_time_between(start_hour='11:00', end_hour='13:00')
