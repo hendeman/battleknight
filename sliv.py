@@ -215,8 +215,7 @@ def online_tracking_only(reduce_flag=False):
 
 
 def reduce_experience(name_file=NICKS_GAMER):
-    cost_ring_auction = buy_ring(initial=True)  # получить цену кольца с аукциона
-    counter_reset_ring_auction = False
+    init_handle_ring_operations = handle_ring_operations(buy_ring(initial=True), False)
 
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
@@ -242,12 +241,9 @@ def reduce_experience(name_file=NICKS_GAMER):
                 if flag:
                     received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, Response) else 0
                     silver = get_silver()
+
                     # инициализация стоимости кольца либо покупка кольца на аукционе
-                    p_log(f"cost_ring_auction={cost_ring_auction}, "
-                          f"counter_reset_ring_auction={counter_reset_ring_auction}", level='debug')
-                    cost_ring_auction, counter_reset_ring_auction = handle_ring_operations(silver,
-                                                                                           cost_ring_auction,
-                                                                                           counter_reset_ring_auction)
+                    init_handle_ring_operations(silver)
 
                     loaded_dict[nick]["data"] = current_date
                     loaded_dict[nick]["gold"] = received_gold

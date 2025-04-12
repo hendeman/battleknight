@@ -622,28 +622,33 @@ def payout(silver_out: int):
         p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
 
 
-def handle_ring_operations(silver: int, cost_ring_auction: int,
-                           counter_reset_ring_auction: bool) -> tuple:
+def handle_ring_operations(a: int, b: bool):
     """
     Обрабатывает операции с кольцом: обновление цены после 13:00 и покупку
-    Возвращает кортеж: (новая цена кольца, флаг сброса)
     """
-    if is_time_between(start_hour='13:00', end_hour='15:00') and not counter_reset_ring_auction:
-        cost_ring_auction = buy_ring(initial=True)
-        counter_reset_ring_auction = True
+    cost_ring_auction = a
+    counter_reset_ring_auction = b
 
-    # Установка значения по умолчанию, если cost_ring_auction равен None
-    cost_ring_auction = cost_ring_auction or 0
+    def wrapper(silver):
+        nonlocal cost_ring_auction, counter_reset_ring_auction
+        p_log(f"cost_ring_auction={cost_ring_auction}, "
+              f"counter_reset_ring_auction={counter_reset_ring_auction}", level='debug')
+        if is_time_between(start_hour='13:00', end_hour='15:00') and not counter_reset_ring_auction:
+            cost_ring_auction = buy_ring(initial=True)
+            counter_reset_ring_auction = True
 
-    conditions = [cost_ring_auction,
-                  silver > cost_ring_auction - 500,
-                  not is_time_between(start_hour='11:00', end_hour='13:00')
-                  ]
+        # Установка значения по умолчанию, если cost_ring_auction равен None
+        cost_ring_auction = cost_ring_auction or 0
 
-    if all(conditions) and get_config_value("buy_ring"):
-        buy_ring()  # покупка кольца на аукционе
-        cost_ring_auction = buy_ring(initial=True)
-    return cost_ring_auction, counter_reset_ring_auction
+        conditions = [cost_ring_auction,
+                      silver > cost_ring_auction - 500,
+                      not is_time_between(start_hour='11:00', end_hour='13:00')
+                      ]
+
+        if all(conditions) and get_config_value("buy_ring"):
+            buy_ring()  # покупка кольца на аукционе
+            cost_ring_auction = buy_ring(initial=True)
+    return wrapper
 
 
 def buy_ring(initial=False, tariff_travel=0):
