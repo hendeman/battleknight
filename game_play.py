@@ -10,9 +10,9 @@ from module.all_function import get_config_value, time_sleep_main, wait_until, f
 from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper
+    get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time
 from module.http_requests import post_request, make_request
-from setting import start_game, start_time
+from setting import start_game, start_time, auction_castles, castles_all
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
 
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
@@ -130,8 +130,17 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
 #             common_actions(process_function, process_name)
 #         count_work += 1
 
-def autoplay(num_period):
-    count_work = num_period
+def autoplay(town, mission_name, side):
+    # __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
+    time_sleep(check_progressbar())
+    place, my_town = my_place()
+    p_log(f"Я нахожусь в {place}")
+    if my_town != town:
+        post_travel(out=my_town, where=town)
+
+    count_work, next_time = get_next_time_and_index(start_time)
+    time_sleep(wait_until(next_time))
+
     while True:
 
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
@@ -139,11 +148,17 @@ def autoplay(num_period):
             register_joust()  # регистрация на турнир
 
         time_sleep(check_progressbar())
-        attack_mission(game_mode=get_config_value("game_mode"))
-        post_travel(out='GhostTown', where='CityOne', how='horse')
-        p_log("Сидим в Алкране несколько часов...")
+        attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
+
+        # Если в городе нет аукциона, то едем в ближайший
+        if my_town not in auction_castles:
+            my_town = get_castle_min_time()
+            post_travel(out=town, where=my_town)
+
+        p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
+
         if count_work % 3 == 0:
-            work(working_hours=8)  # отправить работать
+            work(working_hours=8, side=side)  # отправить работать
             time_sleep(8 * 60 * 60 + int(get_random_value(60, 100)))
             get_reward()  # забрать награду за работу спустя время
 
@@ -176,7 +191,12 @@ def autoplay(num_period):
                 time_sleep(timer_group)
         time_sleep(check_progressbar())
         count_work += 1
-        post_travel(out='CityOne', where='GhostTown', how='horse')
+
+        # вернутся обратно в город
+        place, my_town = my_place()
+        p_log(f"Я нахожусь в {place}")
+        if my_town != town:
+            post_travel(out=my_town, where=town)
 
         # синхронизация общей программы
         if (count_work + 2) % 3 == 0:
@@ -225,16 +245,14 @@ if __name__ == "__main__":
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
 
-    # __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
-    time_sleep(check_progressbar())
-    place, my_town = my_place()
-    p_log(f"Я нахожусь в {place}")
-    if my_town != 'GhostTown':
-        post_travel(out=my_town, where='GhostTown')
-
-    next_index, next_time = get_next_time_and_index(start_time)
-    time_sleep(wait_until(next_time))
-    autoplay(next_index)
+    event_list = {
+        'not_event': {'town': 'GhostTown', 'mission_name': 'DragonLair', 'side': 'good'},
+        'easter': {'town': 'TradingPostOne', 'mission_name': 'EgghatchGrotto', 'side': 'neutral'}
+    }
+    if get_config_value("event_easter"):
+        autoplay(**event_list.get('easter'))
+    else:
+        autoplay(**event_list.get('not_event'))
 
     # Завершение дочернего процесса логирования
     queue.put(None)  # Отправляем сигнал для завершения

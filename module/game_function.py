@@ -792,10 +792,10 @@ def conv_name_potion(potion):
 
 # ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
 @use_helper('rabbit')
-def work(working_hours):
+def work(working_hours, side='good'):
     payload = {
         'hours': working_hours,
-        'side': 'good'
+        'side': side
     }
     make_request(work_url)
     time.sleep(1)
