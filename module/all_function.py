@@ -70,7 +70,14 @@ def get_config_value(key, default=0):
         for k in keys:
             if config.has_option('DEFAULT', k):
                 val = config.get('DEFAULT', k)
-                result[k] = int(val) if val.isdigit() else val
+                # Проверяем, является ли значение int, float или строкой
+                if val.isdigit():
+                    result[k] = int(val)
+                else:
+                    try:
+                        result[k] = float(val)  # Пробуем преобразовать в float
+                    except ValueError:
+                        result[k] = val  # Если не число, возвращаем строку
             else:
                 result[k] = default
 
