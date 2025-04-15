@@ -151,6 +151,8 @@ def autoplay(town, mission_name, side):
         attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
 
         # Если в городе нет аукциона, то едем в ближайший
+        place, my_town = my_place()
+        p_log(f"Я нахожусь в {place}")
         if my_town not in auction_castles:
             my_town = get_castle_min_time()
             post_travel(out=town, where=my_town)
