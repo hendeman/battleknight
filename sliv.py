@@ -15,7 +15,7 @@ from module.game_function import buy_ring, is_time_between, check_progressbar, c
     get_silver, handle_ring_operations
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, world_url
+    url_ordermail, url_error, url_nicks, world_url, NAME
 
 date = datetime(2024, 9, 17, 19)
 
@@ -33,7 +33,7 @@ def make_attack(nick, heals_point=False):
         return True, resp
 
     while status_duel in status_list:
-        p_log(f"lupatik status: {status_duel}")
+        p_log(f"{NAME} status: {status_duel}")
         time_sleep()
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
@@ -187,7 +187,7 @@ def online_tracking():
                     dict_gamer[gamer]["spoil"] = received_gold
 
                     # Отправить в орден коровку
-                    if win_status == "lupatik выиграл" and received_gold > 100:
+                    if win_status == f"{NAME} выиграл" and received_gold > 100:
                         p_log(win_status)
                         p_log(f"{filtered_data[gamer]['name']} +{received_gold}")
                         if get_config_value(key='order_message'):

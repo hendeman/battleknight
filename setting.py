@@ -9,6 +9,7 @@ today = date.today()
 
 CHRISTMAS_MODE = False
 
+NAME = 'lupatik'
 GOLD_DAY = 25090
 GOLD_LIMIT = 7000
 CURRENT_TAX = 0.6
