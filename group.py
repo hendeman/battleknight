@@ -4,7 +4,8 @@ from bs4 import BeautifulSoup
 import re
 
 from logs.logs import p_log
-from module.all_function import no_cache, format_time, get_config_value
+from module.all_function import no_cache, format_time, get_config_value, time_sleep
+from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
 
 # Регулярное выражение для поиска
@@ -119,6 +120,7 @@ def go_group(time_wait=0):
         if time_wait:
             p_log(f"Ожидание игроков для группы {format_time(time_wait)} ...")
         time.sleep(time_wait)
+        time_sleep(check_progressbar())
         if "К сожалению, у вас недостаточно очков миссий" in pas_group():
             p_log("Группа успешно завершена с игроком")
         else:
