@@ -27,13 +27,13 @@ def make_request(url, timeout=10, game_sleep=True):
             return response
 
         except Timeout as e:
-            p_log("Connection error:", e, level='warning')
+            p_log("Connection error:", e, level='debug')
             p_log("The waiting time has expired. Check your network connection and server availability.", level='debug')
             p_log("Try again after 10 seconds...", level='debug')
             time.sleep(timeout)
 
         except RequestException as e:
-            p_log("Connection error:", e, level='warning')
+            p_log("Connection error:", e, level='debug')
             p_log("Try again after 10 seconds...", level='debug')
             time.sleep(timeout)  # Подождать некоторое время перед повторной попыткой
 
@@ -48,6 +48,6 @@ def post_request(make_post_url, data, timeout=10):
             return response
 
         except RequestException as e:
-            p_log("Connection error:", e, level='warning')
-            p_log("Try again after 5 seconds...", level='warning')
+            p_log("Connection error:", e, level='debug')
+            p_log("Try again after 5 seconds...", level='debug')
             time.sleep(timeout - 1)  # Подождать некоторое время перед повторной попыткой
