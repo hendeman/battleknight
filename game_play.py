@@ -238,7 +238,7 @@ def run_process_for_hours(target_function, hours, process_name):
     process.terminate()
     process.join()
     p_log("Дополнительное ожидание")
-    time_sleep(650 + get_config_value("correct_time"))
+    time_sleep_main(650 + get_config_value("correct_time"), interval=300)
 
 
 if __name__ == "__main__":
