@@ -91,7 +91,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
         else:
             p_log('Не удалось найти тег <a> с нужным атрибутом onclick.')
         game_mode -= 1
-        if not game_mode:
+        if not game_mode and not get_config_value("contribute_to_treasury"):
             contribute_to_treasury()
         time_sleep(check_progressbar())
 
