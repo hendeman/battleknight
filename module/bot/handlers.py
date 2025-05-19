@@ -174,14 +174,17 @@ def register_handlers(bot):
                             war_mess = f"\nwarning {len(warning_list) * '*'}" if warning_list else ""
                             log_message = '\n'.join(processed_lines) + war_mess
                             for user_id in ALLOWED_USERS:
-                                while True:  # Бесконечный цикл для повторных попыток
-                                    try:
-                                        bot.send_message(user_id, log_message)
-                                        break  # Выход из цикла при успешной отправке
-                                    except requests.exceptions.ConnectionError as e:
-                                        logging.error(
-                                            f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
-                                        time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
+                                max_length = 1000
+                                parts = [log_message[i:i + max_length] for i in range(0, len(log_message), max_length)]
+                                for part in parts:
+                                    while True:  # Бесконечный цикл для повторных попыток
+                                        try:
+                                            bot.send_message(user_id, part)
+                                            break  # Выход из цикла при успешной отправке
+                                        except requests.exceptions.ConnectionError as e:
+                                            logging.error(
+                                                f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
+                                            time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
                         except requests.exceptions.HTTPError as e:
                             if e.response.status_code == 502:
                                 logging.error("Ошибка 502: Bad Gateway при отправке логов.")
