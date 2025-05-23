@@ -1,4 +1,5 @@
 import ast
+import json
 import re
 from typing import Union, Tuple
 from time import sleep
@@ -15,7 +16,8 @@ from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
     user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, \
-    potion_name_buy, event_healer_potions, NAME
+    potion_name_buy, event_healer_potions, NAME, url_name_json
+from sliv import get_gold_for_player
 
 
 def print_status(from_town, where_town, how, tt):
@@ -648,6 +650,7 @@ def handle_ring_operations(a: int, b: bool):
         if all(conditions) and get_config_value("buy_ring"):
             buy_ring()  # покупка кольца на аукционе
             cost_ring_auction = buy_ring(initial=True)
+
     return wrapper
 
 
@@ -809,3 +812,36 @@ def get_reward():
 
     post_request(work_url, payload)
     p_log(f"Награда за работу принята")
+
+
+# _________________________________ Обновление данных активности игроков файла battle.json __________
+
+def init_status_players():
+    try:
+        with open(url_name_json, 'r', encoding='utf-8') as file:
+            list_of_players = json.load(file)
+
+            for player, values in list_of_players.items():
+                current_loot = get_gold_for_player(player)
+                loot_per_day = current_loot - values.get('loot', 0)
+                if loot_per_day > values.get('gold_diff'):
+                    p_log(f"Игрок {values.get('name')} активен. Добыча {loot_per_day}")
+                    if values.get('initiative'):
+                        list_of_players[player]['allow_attack'] = True
+                    else:
+                        list_of_players[player]['allow_attack'] = False
+                else:
+                    p_log(f"Игрок не {values.get('name')} активен")
+                    list_of_players[player]['allow_attack'] = False
+
+                list_of_players[player]['loot_per_day'] = loot_per_day
+                list_of_players[player]['loot'] = current_loot
+
+        with open(url_name_json, 'w') as file_gamer:
+            json.dump(list_of_players, file_gamer, indent=4)
+            p_log(f"Файл {url_name_json} обновлен", level='debug')
+
+    except json.decoder.JSONDecodeError as er:
+        print(f"Ошибка в структуре файла {url_name_json}: {er}")
+
+

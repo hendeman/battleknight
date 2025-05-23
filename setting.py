@@ -35,6 +35,7 @@ GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
 filename = 'config.ini'
+url_name_json = 'battle.json'
 url_nicks = "nicksflower.txt"
 
 headers = {

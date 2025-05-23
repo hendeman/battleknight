@@ -10,7 +10,8 @@ from module.all_function import get_config_value, time_sleep_main, wait_until, f
 from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
-    get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time
+    get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
+    init_status_players
 from module.http_requests import post_request, make_request
 from setting import start_game, start_time, auction_castles, castles_all
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -146,6 +147,9 @@ def autoplay(town, mission_name, side):
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
         if get_config_value("register_joust"):
             register_joust()  # регистрация на турнир
+
+        if get_config_value(key="online_track"):
+            init_status_players()  # Обновление battle.json
 
         time_sleep(check_progressbar())
         attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
