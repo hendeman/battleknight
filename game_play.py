@@ -148,8 +148,6 @@ def autoplay(town, mission_name, side):
         if get_config_value("register_joust"):
             register_joust()  # регистрация на турнир
 
-        if get_config_value(key="online_track"):
-            init_status_players()  # Обновление battle.json
 
         time_sleep(check_progressbar())
         attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
@@ -175,6 +173,10 @@ def autoplay(town, mission_name, side):
                 p_log(f"Ошибка покупки HP: {er}")
 
         elif (count_work + 2) % 3 == 0:
+
+            if get_config_value(key="online_track"):
+                init_status_players()  # Обновление battle.json
+
             p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")

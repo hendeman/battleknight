@@ -830,7 +830,7 @@ def init_status_players():
                     else:
                         list_of_players[player]['allow_attack'] = False
                 else:
-                    p_log(f"Игрок не {values.get('name')} активен")
+                    p_log(f"Игрок {values.get('name')} не активен")
                     list_of_players[player]['allow_attack'] = False
 
                 list_of_players[player]['loot_per_day'] = loot_per_day
