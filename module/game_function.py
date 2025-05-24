@@ -17,7 +17,6 @@ from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_c
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
     user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, \
     potion_name_buy, event_healer_potions, NAME, url_name_json
-from sliv import get_gold_for_player
 
 
 def print_status(from_town, where_town, how, tt):
@@ -820,7 +819,7 @@ def init_status_players():
     try:
         with open(url_name_json, 'r', encoding='utf-8') as file:
             list_of_players = json.load(file)
-
+            from sliv import get_gold_for_player
             for player, values in list_of_players.items():
                 current_loot = get_gold_for_player(player)
                 loot_per_day = current_loot - values.get('loot', 0)
