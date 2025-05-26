@@ -48,7 +48,8 @@ csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
 cookies_str = os.getenv('COOKIES')
 cookies = json.loads(cookies_str) if cookies_str else {}
 
-castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван", 'TradingPostFour': 'Милей'}
+castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван",
+                  'TradingPostFour': 'Милей', 'FogIsland': 'Фехан'}
 castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'CoastalFortressTwo': "Гастайн",
            'FortressOne': "Тулгар",
            'GhostTown': "Талфур",

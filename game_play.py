@@ -1,5 +1,7 @@
 import time
 import multiprocessing
+from random import choice
+
 from bs4 import BeautifulSoup
 
 from group import go_group
@@ -50,6 +52,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     time.sleep(1)
     while game_mode:
         # break_outer = False
+        mission_name = choice(mission_name) if isinstance(mission_name, list) else mission_name
         response = make_request(url)
         time.sleep(1)
 
@@ -97,47 +100,18 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
         time_sleep(check_progressbar())
 
 
-# __________________________________________________________________________________________________
-
-# def fehan():
-#     count_work = 2
-#     while True:
-#         time_sleep(check_progressbar())  # проверка состояния
-#         attack_mission(mission_name='Laguna')
-#         p_log("Rabota osnovnoj programmy")
-#         # if count_work % 3 == 0:
-#         #     work()
-#         #     get_reward()
-#         # elif (count_work + 2) % 3 == 0:
-#         #     p_log("Sidim v Fehan 7 chasov...")
-#         #     if get_config_value("attack"):
-#         #         set_initial_gold()
-#         #         run_process_for_hours(reduce_experience, 7, "reduce_experience")
-#         #     else:
-#         #         time_sleep(7 * 60 * 60 + 900 + get_config_value("correct_time"))
-#         # else:
-#         #     p_log("Sidim v Fehan 7 chasov...")
-#         #     if get_config_value("attack"):
-#         #         set_initial_gold()
-#         #         run_process_for_hours(online_tracking_only, 7, "online_tracking_only")
-#         #     else:
-#         #         time_sleep(7 * 60 * 60 + 900 + get_config_value("correct_time"))
-#         if count_work % 3 == 0:
-#             work()
-#             get_reward()
-#         else:
-#             process_function = reduce_experience if (count_work + 2) % 3 == 0 and get_config_value("reduce_experience") else online_tracking_only
-#             process_name = "reduce_experience" if (count_work + 2) % 3 == 0 and get_config_value("reduce_experience") else "online_tracking_only"
-#             common_actions(process_function, process_name)
-#         count_work += 1
-
 def autoplay(town, mission_name, side):
     # __________________________ Проверить статус персонажа и переместиться в Талфур _______________________
     time_sleep(check_progressbar())
     place, my_town = my_place()
     p_log(f"Я нахожусь в {place}")
     if my_town != town:
-        post_travel(out=my_town, where=town)
+        if town == 'FogIsland':
+            post_travel(out=my_town, where='CoastalFortressOne')
+            my_town = 'CoastalFortressOne'
+            post_travel(out=my_town, where=town, how='fogBoat')
+        else:
+            post_travel(out=my_town, where=town)
 
     count_work, next_time = get_next_time_and_index(start_time)
     time_sleep(wait_until(next_time))
@@ -148,18 +122,17 @@ def autoplay(town, mission_name, side):
         if get_config_value("register_joust"):
             register_joust()  # регистрация на турнир
 
-
         time_sleep(check_progressbar())
         attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
 
         # Если в городе нет аукциона, то едем в ближайший
         place, my_town = my_place()
         p_log(f"Я нахожусь в {place}")
-        if my_town not in auction_castles:
+        if my_town not in auction_castles and my_town != 'FogIsland':
             my_town = get_castle_min_time()
             post_travel(out=town, where=my_town)
 
-        p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
+            p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
 
         if count_work % 3 == 0:
             work(working_hours=8, side=side)  # отправить работать
@@ -255,12 +228,11 @@ if __name__ == "__main__":
 
     event_list = {
         'not_event': {'town': 'GhostTown', 'mission_name': 'DragonLair', 'side': 'good'},
-        'easter': {'town': 'TradingPostOne', 'mission_name': 'EgghatchGrotto', 'side': 'neutral'}
+        'easter': {'town': 'TradingPostOne', 'mission_name': 'EgghatchGrotto', 'side': 'neutral'},
+        'fehan': {'town': 'FogIsland', 'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'], 'side': 'good'}
     }
-    if get_config_value("event_easter"):
-        autoplay(**event_list.get('easter'))
-    else:
-        autoplay(**event_list.get('not_event'))
+
+    autoplay(**event_list.get(get_config_value("event")))
 
     # Завершение дочернего процесса логирования
     queue.put(None)  # Отправляем сигнал для завершения
