@@ -117,7 +117,7 @@ def autoplay(town, mission_name, side):
     time_sleep(wait_until(next_time))
 
     while True:
-
+        phase_offset = get_config_value("phase_offset")
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
         if get_config_value("register_joust"):
             register_joust()  # регистрация на турнир
@@ -145,7 +145,7 @@ def autoplay(town, mission_name, side):
             except Exception as er:
                 p_log(f"Ошибка покупки HP: {er}")
 
-        elif (count_work + 2) % 3 == 0:
+        elif (count_work + 2) % 3 == phase_offset:  # phase_offset 0 для первой фазы, 1 - для второй
 
             if get_config_value(key="online_track"):
                 init_status_players()  # Обновление battle.json
@@ -162,7 +162,7 @@ def autoplay(town, mission_name, side):
                 common_actions(online_tracking_only, "online_tracking_only")
 
             # создание Групповой миссии
-            if (count_work + 2) % 3 == 1:
+            if (count_work + 2) % 3 == 1 - phase_offset:  # 1 - phase_offset 0 для первой фазы, 1 - для второй
                 go_group(3600)
                 timer_group = check_progressbar()
                 if timer_group:
