@@ -352,6 +352,14 @@ def get_silver():
     p_log(f"На руках {silver_count} серебра")
     return silver_count
 
+def get_gold_for_player(gamer) -> int:
+    url_gamer = f'https://s32-ru.battleknight.gameforge.com/common/profile/{gamer}/Scores/Player'
+    resp = make_request(url_gamer)
+    time.sleep(0.5)
+    soup = BeautifulSoup(resp.text, 'lxml')
+    gold = int(soup.find('table', class_='profileTable').find_all('tr')[3].text.split()[2])
+    return gold
+
 
 def check_status_mission(name_mission, length_mission):
     response = make_request(world_url)
@@ -819,7 +827,6 @@ def init_status_players():
     try:
         with open(url_name_json, 'r', encoding='utf-8') as file:
             list_of_players = json.load(file)
-            from sliv import get_gold_for_player
             for player, values in list_of_players.items():
                 current_loot = get_gold_for_player(player)
                 loot_per_day = current_loot - values.get('loot', 0)
