@@ -12,7 +12,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, is_time_between, check_progressbar, check_time_sleep, check_health, \
-    get_silver, handle_ring_operations
+    get_silver, handle_ring_operations, get_gold_for_player
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
     url_ordermail, url_error, url_nicks, world_url, NAME
@@ -104,37 +104,41 @@ def handle_error(nick):
     return False
 
 
-def get_gold_for_player(gamer) -> int:
-    url_gamer = f'https://s32-ru.battleknight.gameforge.com/common/profile/{gamer}/Scores/Player'
-    resp = make_request(url_gamer)
-    time.sleep(0.5)
-    soup = BeautifulSoup(resp.text, 'lxml')
-    gold = int(soup.find('table', class_='profileTable').find_all('tr')[3].text.split()[2])
-    return gold
-
-
 def update_players_gold(dict_gamer, list_of_players):
     for gamer in list_of_players:
         list_of_players[gamer].setdefault('time',
                                           dict_gamer[gamer].get('time', date) if gamer in dict_gamer else date)
         list_of_players[gamer].setdefault('win_status',
-                                          dict_gamer[gamer].get('win_status', None) if gamer in dict_gamer else None)
+                                          dict_gamer[gamer].get('win_status', "uncertain") if gamer in dict_gamer else "uncertain")
         list_of_players[gamer].setdefault('spoil',
-                                          dict_gamer[gamer].get('spoil', None) if gamer in dict_gamer else None)
+                                          dict_gamer[gamer].get('spoil', 0) if gamer in dict_gamer else 0)
         list_of_players[gamer]["gold"] = get_gold_for_player(gamer)
 
     return list_of_players
 
 
 def set_initial_gold():
+    """
+    В данной функции необходимо реализовать следующий функционал:
+    - формирование словаря из players_not_allow_attack, где 'allow_attack' == False
+    - добавление элементов players_not_allow_attack в NICKS_GAMER, если их там нету
+    - удаление элементов list_of_players из NICKS_GAMER, если они там есть
+    - создать переменную config, которая будет игнорировать данный функционал и удалит все ключи,
+    которые есть в GOLD_GAMER ( dict(**list_of_players, **players_not_allow_attack) )
+
+    Обратить внимание на то, что ключи list_of_players (players_not_allow_attack) и NICKS_GAMER
+    могут отличаться. Проверить не неконфликтоность.
+    """
     with open('battle.json', 'r', encoding='utf-8') as file:
         list_of_players = json.load(file)
-        # Выбераем для атаки только тех, у которых 'allow_attack'=true, либо этот параметр отсутсвует
-        list_of_players = {
-            player_id: player_data
-            for player_id, player_data in list_of_players.items()
-            if player_data.get('allow_attack', True)
-        }
+        players_allow_attack = {}  # содержит игроков с allow_attack=True или без этого ключа
+        players_not_allow_attack = {}  # содержит игроков с allow_attack=False
+
+        for player_id, player_data in list_of_players.items():
+            if player_data.get('allow_attack', True):
+                players_allow_attack[player_id] = player_data
+            else:
+                players_not_allow_attack[player_id] = player_data
 
     try:
         with open(GOLD_GAMER, 'rb') as file_gamer:
@@ -145,7 +149,7 @@ def set_initial_gold():
         p_log("Файла не существует, будет создан новый", level='warning')
         dict_gamer = {}
 
-    filtered_dct = update_players_gold(dict_gamer, list_of_players)
+    filtered_dct = update_players_gold(dict_gamer, players_allow_attack)
 
     # filtered_dct = {key: dict_gamer[key] for key in list_of_players}
     with open(GOLD_GAMER, 'wb') as file_gamer:
@@ -222,8 +226,8 @@ def reduce_experience(name_file=NICKS_GAMER):
         loaded_dict = pickle.load(f)
         sorted_dict = {k: v for k, v in sorted(loaded_dict.items(),
                                                key=lambda item: (
-                                                   -item[1]['gold'] if item[1]['gold'] > 50 else float('inf'),
-                                                   item[1]['data']
+                                                   -item[1]['spoil'] if item[1]['spoil'] > 50 else float('inf'),
+                                                   item[1]['time']
                                                ))}
 
         # number_of_attacks задается из config.ini - количесвто проводимых атак
@@ -236,7 +240,7 @@ def reduce_experience(name_file=NICKS_GAMER):
                 online_tracking_only(reduce_flag=True)  # функция нахождения и атаки на играющих игроков
 
             time_str, current_date = current_time()
-            difference_data = current_date - loaded_dict[nick]["data"]
+            difference_data = current_date - loaded_dict[nick]["time"]
             if int(difference_data.total_seconds() / 3600) >= 12:
                 flag, resp = make_attack(nick)
                 if flag:
@@ -246,8 +250,8 @@ def reduce_experience(name_file=NICKS_GAMER):
                     # инициализация стоимости кольца либо покупка кольца на аукционе
                     init_handle_ring_operations(silver)
 
-                    loaded_dict[nick]["data"] = current_date
-                    loaded_dict[nick]["gold"] = received_gold
+                    loaded_dict[nick]["time"] = current_date
+                    loaded_dict[nick]["spoil"] = received_gold
                     with open(name_file, 'wb') as f:
                         pickle.dump(loaded_dict, f)
                     if isinstance(resp, Response):
@@ -268,19 +272,19 @@ def reduce_experience(name_file=NICKS_GAMER):
 
 def korovk_reduce_experience(name_file=NICKS_GAMER):
     def update_knight_data(loaded_dict, nick, current_date, received_gold):
-        loaded_dict[nick]["data"] = current_date
-        loaded_dict[nick]["gold"] = received_gold
+        loaded_dict[nick]["time"] = current_date
+        loaded_dict[nick]["spoil"] = received_gold
         with open(name_file, 'wb') as f:
             pickle.dump(loaded_dict, f)
 
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
-        sorted_dict = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]["gold"], reverse=True)}
+        sorted_dict = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]["spoil"], reverse=True)}
         list_fail = []
         while sorted_dict or list_fail:
             for nick in list(sorted_dict.keys()):
                 time_str, current_date = current_time()
-                difference_data = current_date - loaded_dict[nick]["data"]
+                difference_data = current_date - loaded_dict[nick]["time"]
                 if int(difference_data.total_seconds() / 3600) >= 12:
                     flag, resp = make_attack(nick)
                     if flag:
@@ -359,9 +363,9 @@ def create_pickle_file(name_file=NICKS_GAMER):
 def read_pickle_file(name_file=NICKS_GAMER):
     with open(f"{name_file}", 'rb') as f:
         loaded_dict = pickle.load(f)
-        dct = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]["gold"], reverse=True)}
-        p_log(f"Коровки дадут {sum(x['gold'] for x in loaded_dict.values())} серебра")
-        for key, value in dct.items():
+        # dct = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]['spoil'], reverse=True)}
+        # p_log(f"Коровки дадут {sum(x['spoil'] for x in loaded_dict.values())} серебра")
+        for key, value in loaded_dict.items():
             p_log(f'{key}:{value}')
 
 
