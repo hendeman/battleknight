@@ -135,13 +135,15 @@ def autoplay(town, mission_name, side):
             p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
 
         if count_work % 3 == 0:
+            if get_config_value("buy_ring"):
+                buy_ring()  # покупка кольца на аукционе
             work(working_hours=8, side=side)  # отправить работать
             time_sleep(8 * 60 * 60 + int(get_random_value(60, 100)))
             get_reward()  # забрать награду за работу спустя время
 
-            # Закупка необходимым количеством баночек HP
+            # Закупка необходимым количеством баночек HP buy_potion_count
             try:
-                main_buy_potion(10)
+                main_buy_potion(get_config_value("buy_potion_count"))
             except Exception as er:
                 p_log(f"Ошибка покупки HP: {er}")
 
@@ -201,10 +203,11 @@ def wrapper_function(func1, func2, process_name):
 
 
 def common_actions(process_function, process_name):
+    function_duration = get_config_value("function_duration")  # продолжительность работы цикла в часах
     if get_config_value("attack"):
-        run_process_for_hours(process_function, 4.9, process_name)
+        run_process_for_hours(target_function=process_function, hours=function_duration, process_name=process_name)
     else:
-        time_sleep(4.9 * 60 * 60 + 650 + get_config_value("correct_time"))
+        time_sleep(function_duration * 60 * 60 + 650 + get_config_value("correct_time"))
 
 
 def run_process_for_hours(target_function, hours, process_name):
