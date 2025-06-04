@@ -88,3 +88,10 @@ def get_csrf_token(resp):
             return csrf_token
         else:
             p_log("Тег meta с именем 'csrf-token' не найден.", level='debug')
+
+
+def get_title(resp):
+    soup = BeautifulSoup(resp.content, 'html.parser')
+    title_tag = soup.find('title')
+    title = title_tag.get_text(strip=True) if title_tag else None
+    return title
