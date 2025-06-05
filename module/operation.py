@@ -37,13 +37,19 @@ def party(soup) -> dict:
     for row in soup.find('table', id='membersTable').find_all('tr')[1:]:
         list_td = []
         for i in row.find_all('td'):
-            if not i.text.split():
+            if not i.get_text(strip=True):
                 continue
-            list_td.append(i.text.replace('\n', '').strip())
+            if i.get('class') and i.get('class')[0] == 'memberRank':
+                selected_option = i.find('option', selected=True)
+                list_td.append(selected_option.get('value') if selected_option else i.get_text(strip=True))
+            else:
+                list_td.append(i.get_text(strip=True))
 
         key = row.attrs['id'].replace("recordMember", "")
-        value = {"name": remove_cyrillic(list_td[1]), "level": int(list_td[2]),
-                 "gold": int(list_td[3].replace(".", ""))}
+        value = {"name": remove_cyrillic(list_td[1]),
+                 "level": int(list_td[2]),
+                 "gold": int(list_td[3].replace(".", "")),
+                 "rank": list_td[0]}
         list_tr.setdefault(key, value)
 
     return list_tr
