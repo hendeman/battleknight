@@ -2,63 +2,63 @@
     "982930": {
         "gold_diff": 6000,
         "name": "Tom Hardy",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 24378023,
+        "loot": 24619403,
         "loot_per_day": 0
     },
     "10053": {
         "gold_diff": 6000,
         "name": "-Gora-",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 19803838,
+        "loot": 20007178,
         "loot_per_day": 0
     },
     "979627": {
         "gold_diff": 7000,
         "name": "luntik",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 17334567,
+        "loot": 17791144,
         "loot_per_day": 0
     },
     "984843": {
         "gold_diff": 5000,
         "name": "Nagayna",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 12633553,
+        "loot": 12822113,
         "loot_per_day": 0
     },
     "984811": {
         "gold_diff": 6000,
         "name": "MOreRandom",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 11563341,
-        "loot_per_day": 0
+        "loot": 11790112,
+        "loot_per_day": 107
     },
     "984678": {
         "gold_diff": 2500,
         "name": "Saver",
-	    "allow_attack": true,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 5484223,
+        "loot": 5564188,
         "loot_per_day": 0
     },
     "984932": {
         "gold_diff": 2500,
         "name": "Roomeer",
-	    "allow_attack": true,
+        "allow_attack": true,
         "initiative": true,
-        "loot": 5392077,
-        "loot_per_day": 0
+        "loot": 5605335,
+        "loot_per_day": 5181
     },
     "984988": {
         "gold_diff": 5000,
         "name": "Sigurd",
-	    "allow_attack": false,
+        "allow_attack": false,
         "initiative": true,
         "loot": 3039949,
         "loot_per_day": 0
@@ -66,15 +66,15 @@
     "982978": {
         "gold_diff": 6000,
         "name": "Nakamura Makoto",
-	    "allow_attack": false,
+        "allow_attack": false,
         "initiative": true,
-        "loot": 20147506,
+        "loot": 20391432,
         "loot_per_day": 0
     },
     "984938": {
         "gold_diff": 5000,
         "name": "Arraga",
-	    "allow_attack": false,
+        "allow_attack": false,
         "initiative": true,
         "loot": 8636189,
         "loot_per_day": 0
@@ -82,17 +82,17 @@
     "1050211": {
         "gold_diff": 5000,
         "name": "KsAzAgRaX",
-	    "allow_attack": false,
-        "initiative": true,
-        "loot": 5432695,
-        "loot_per_day": 0
+        "allow_attack": false,
+        "initiative": false,
+        "loot": 5638135,
+        "loot_per_day": 4893
     },
     "985002": {
         "gold_diff": 5000,
         "name": "Alexstrasza",
-	    "allow_attack": false,
-        "initiative": true,
-        "loot": 4102507,
-        "loot_per_day": 0
+        "allow_attack": false,
+        "initiative": false,
+        "loot": 4275515,
+        "loot_per_day": 5563
     }
 }

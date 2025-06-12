@@ -15,7 +15,7 @@ from module.game_function import buy_ring, is_time_between, check_progressbar, c
     get_silver, handle_ring_operations, get_gold_for_player
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, world_url, NAME
+    url_ordermail, url_error, url_nicks, world_url, NAME, url_name_json
 
 date = datetime(2024, 9, 17, 19)
 
@@ -109,7 +109,8 @@ def update_players_gold(dict_gamer, list_of_players):
         list_of_players[gamer].setdefault('time',
                                           dict_gamer[gamer].get('time', date) if gamer in dict_gamer else date)
         list_of_players[gamer].setdefault('win_status',
-                                          dict_gamer[gamer].get('win_status', "uncertain") if gamer in dict_gamer else "uncertain")
+                                          dict_gamer[gamer].get('win_status',
+                                                                "uncertain") if gamer in dict_gamer else "uncertain")
         list_of_players[gamer].setdefault('spoil',
                                           dict_gamer[gamer].get('spoil', 0) if gamer in dict_gamer else 0)
         list_of_players[gamer]["gold"] = get_gold_for_player(gamer)
@@ -118,27 +119,11 @@ def update_players_gold(dict_gamer, list_of_players):
 
 
 def set_initial_gold():
-    """
-    В данной функции необходимо реализовать следующий функционал:
-    - формирование словаря из players_not_allow_attack, где 'allow_attack' == False
-    - добавление элементов players_not_allow_attack в NICKS_GAMER, если их там нету
-    - удаление элементов list_of_players из NICKS_GAMER, если они там есть
-    - создать переменную config, которая будет игнорировать данный функционал и удалит все ключи,
-    которые есть в GOLD_GAMER ( dict(**list_of_players, **players_not_allow_attack) )
-
-    Обратить внимание на то, что ключи list_of_players (players_not_allow_attack) и NICKS_GAMER
-    могут отличаться. Проверить не неконфликтоность.
-    """
-    with open('battle.json', 'r', encoding='utf-8') as file:
+    with open(url_name_json, 'r', encoding='utf-8') as file:
         list_of_players = json.load(file)
-        players_allow_attack = {}  # содержит игроков с allow_attack=True или без этого ключа
-        players_not_allow_attack = {}  # содержит игроков с allow_attack=False
 
-        for player_id, player_data in list_of_players.items():
-            if player_data.get('allow_attack', True):
-                players_allow_attack[player_id] = player_data
-            else:
-                players_not_allow_attack[player_id] = player_data
+        if get_config_value(key='exclude_allow_attack'):
+            list_of_players = {key: value for key, value in list_of_players.items() if value.get('allow_attack')}
 
     try:
         with open(GOLD_GAMER, 'rb') as file_gamer:
@@ -149,7 +134,7 @@ def set_initial_gold():
         p_log("Файла не существует, будет создан новый", level='warning')
         dict_gamer = {}
 
-    filtered_dct = update_players_gold(dict_gamer, players_allow_attack)
+    filtered_dct = update_players_gold(dict_gamer, list_of_players)
 
     # filtered_dct = {key: dict_gamer[key] for key in list_of_players}
     with open(GOLD_GAMER, 'wb') as file_gamer:
@@ -168,13 +153,17 @@ def online_tracking():
             p_log("В gamer_gold.pickle нападать не на кого")
             return False
 
-        for gamer in filtered_data:
-            golden_factor = get_config_value('golden_factor')
+        for gamer in sorted(filtered_data, key=lambda x: filtered_data[x]['allow_attack'], reverse=True):
+            if filtered_data[gamer]['allow_attack']:
+                golden_factor = get_config_value('golden_factor')
+                gold = get_gold_for_player(gamer)
+                gold_diff = gold - filtered_data[gamer]['gold']
+                gold_diff_proc = int(gold_diff / (filtered_data[gamer]['gold_diff'] * golden_factor) * 100)
+                p_log(f"{gamer} {filtered_data[gamer]['name']} накопил {gold_diff} [{gold_diff_proc}%] серебра")
+            else:
+                golden_factor, gold = 0, 99999999  # заглушка для "allow_attack": false
+                p_log(f"Атака вне слежки на {filtered_data[gamer]['name']}")
             time_str, current_date = current_time()
-            gold = get_gold_for_player(gamer)
-            gold_diff = gold - filtered_data[gamer]['gold']
-            gold_diff_proc = int(gold_diff / (filtered_data[gamer]['gold_diff'] * golden_factor) * 100)
-            p_log(f"{gamer} {filtered_data[gamer]['name']} накопил {gold_diff} [{gold_diff_proc}%] серебра")
             time.sleep(2)
             if gold - filtered_data[gamer]["gold"] > filtered_data[gamer]['gold_diff'] * golden_factor:
                 flag, resp = make_attack(gamer, heals_point=True)
