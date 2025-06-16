@@ -22,7 +22,7 @@ from sliv import reduce_experience, online_tracking_only
 
 def complete_mission(length_mission, current_castle, save_mission=None, cog_plata=False):
     response = make_request(world_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, 'lxml')
     name_mission = find_mission(soup, length_mission)
     if save_mission:
         element = name_mission.index(save_mission)

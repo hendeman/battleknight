@@ -42,7 +42,7 @@ def complete_mission(soup, length_mission, cog_plata=False):
             p_log("Миссий нет. Ждем час...")
             time_sleep(3600)
             response = make_request(world_url)
-            soup = BeautifulSoup(response.content, 'html.parser')
+            soup = BeautifulSoup(response.content, 'lxml')
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
         else:
@@ -53,7 +53,7 @@ def complete_mission(soup, length_mission, cog_plata=False):
                 name_mission=name_mission
             )
             response = make_request(world_url)
-            soup = BeautifulSoup(response.content, 'html.parser')
+            soup = BeautifulSoup(response.content, 'lxml')
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
@@ -75,7 +75,7 @@ def complete_mission(soup, length_mission, cog_plata=False):
 def process_page(event, rubies, length_mission, name_mission):
     break_outer = False
     response = make_request(world_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, 'lxml')
     a_tags = []
 
     if event == 'dragon':
@@ -129,7 +129,7 @@ def process_page(event, rubies, length_mission, name_mission):
 
 def travel_mission(length_mission='small'):
     response = make_request(world_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, 'lxml')
     complete_mission(soup, length_mission, cog_plata=True)
 
 

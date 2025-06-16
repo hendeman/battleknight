@@ -402,7 +402,7 @@ def click():
 
     break_outer = False
     response = make_request(world_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, 'lxml')
 
     a_tags = soup.find_all('a', onclick=lambda
         onclick: onclick and "chooseMission('small', 'DragonLair', 'Good', this)" in onclick)

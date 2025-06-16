@@ -61,7 +61,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
             use_potion()
             response = make_request(url)
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, 'lxml')
         search_string = f"chooseMission('small', '{mission_name}', 'Good', this)"
         a_tags = soup.find_all('a', onclick=lambda onclick: onclick and search_string in onclick)
 
