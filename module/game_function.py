@@ -11,7 +11,8 @@ from datetime import datetime
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
     get_config_value
-from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel
+from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
+    check_cooldown_poit
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
@@ -58,7 +59,7 @@ def convert_to_minutes(time_str):
 # _________________________________ Найти ближайший замок с аукционами ________________________________
 
 def get_castle_min_time():
-    soup = BeautifulSoup(make_request(url_world).text, 'html.parser')
+    soup = BeautifulSoup(make_request(url_world).text, 'lxml')
 
     # Словарь для хранения результатов
     travel_times = {}
@@ -136,6 +137,18 @@ def check_health(heals_point=False):
     life_count = heals(resp)
     if life_count < 10:
         if heals_point:
+
+            # проверка на перезарядку зелья
+            try:
+                p_log('Проверка на перезарядку зелья')
+                cooldown_timer = check_cooldown_poit(resp)
+                if cooldown_timer:
+                    p_log(f"Нельзя использовать зелье. Перезарядка {cooldown_timer} секунд")
+                    time_sleep(cooldown_timer)
+            except Exception as er:
+                p_log(f"Ошибка получения значения перезарядки зелья: {er}", level='warning')
+                time_sleep(600)
+
             use_potion()
             resp = make_request(duel_url)
             return heals(resp)
@@ -351,6 +364,7 @@ def get_silver():
     silver_count = int(soup.find(id='silverCount').text)
     p_log(f"На руках {silver_count} серебра")
     return silver_count
+
 
 def get_gold_for_player(gamer) -> int:
     url_gamer = f'https://s32-ru.battleknight.gameforge.com/common/profile/{gamer}/Scores/Player'
@@ -849,5 +863,3 @@ def init_status_players():
 
     except json.decoder.JSONDecodeError as er:
         print(f"Ошибка в структуре файла {url_name_json}: {er}")
-
-

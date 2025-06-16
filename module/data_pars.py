@@ -1,3 +1,5 @@
+import re
+
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
@@ -51,7 +53,7 @@ def get_status_helper(response, type_helper):
 
 # Парсинг ключа 'description' - результат покупки зелья в событии "Лекарь"
 def pars_healer_result(description_html):
-    soup = BeautifulSoup(description_html, 'html.parser')
+    soup = BeautifulSoup(description_html, 'lxml')
 
     # Находим первый тег <td>
     td_tag = soup.find('td')
@@ -70,7 +72,7 @@ def pars_healer_result(description_html):
 
 
 def get_all_silver(resp):
-    soup = BeautifulSoup(resp.content, 'html.parser')
+    soup = BeautifulSoup(resp.content, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     return silver_count
 
@@ -78,7 +80,7 @@ def get_all_silver(resp):
 def get_csrf_token(resp):
     content_type = resp.headers.get('Content-Type', '')
     if 'text/html' in content_type:
-        soup = BeautifulSoup(resp.content, 'html.parser')
+        soup = BeautifulSoup(resp.content, 'lxml')
         # Находим тег meta с нужным атрибутом
         meta_tag = soup.find('meta', attrs={'name': 'csrf-token'})
 
@@ -91,7 +93,30 @@ def get_csrf_token(resp):
 
 
 def get_title(resp):
-    soup = BeautifulSoup(resp.content, 'html.parser')
+    soup = BeautifulSoup(resp.content, 'lxml')
     title_tag = soup.find('title')
     title = title_tag.get_text(strip=True) if title_tag else None
     return title
+
+
+def check_cooldown_poit(html_page):
+    """
+    Функция проверяет таймер перезарядки использования зелья, повторно т.к. зелье можно использовать раз в 30 минут.
+    Парсинг значения из g_potionCooldownCounter = new SimpleCountdown('.potionCooldown', 0)
+    :param html_page: ответ get-запроса
+    :return: таймер перезарядки в секундах
+    """
+    soup = BeautifulSoup(html_page.text, 'lxml')
+    script_tags = soup.find_all('script')
+    target_number = None
+
+    for script in script_tags:
+        if script.string:  # Проверяем, есть ли текст внутри тега script
+            # Ищем нужную строку с помощью регулярного выражения
+            match = re.search(r'g_potionCooldownCounter\s*=\s*new\s*SimpleCountdown\([^,]+\s*,\s*(\d+)\);',
+                              script.string)
+            if match:
+                target_number = int(match.group(1))
+                break
+
+    return target_number
