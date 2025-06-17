@@ -21,7 +21,7 @@ event_list = {
 }
 
 
-def find_mission(soup, length_mission):
+def find_mission(soup, length_mission, name_mission):
     name_missions = []
     st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', 'Good', this\\);"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
@@ -31,12 +31,13 @@ def find_mission(soup, length_mission):
         if match:
             nm = match.group(1)  # Извлекаем значение name_mission
             name_missions.append(nm)  # Добавляем в список
-    name_mission = random.choice(name_missions)
+
+    name_mission = random.choice(name_missions) if not name_mission else name_mission
     return name_mission, a_tags
 
 
-def complete_mission(soup, length_mission, cog_plata=False):
-    name_mission, a_tags = find_mission(soup, length_mission)
+def complete_mission(soup, length_mission, name_mission, cog_plata=False):
+    name_mission, a_tags = find_mission(soup, length_mission, name_mission)
     while True:
         if 'disabledSpecialBtn' in a_tags[0].get('class', []):
             p_log("Миссий нет. Ждем час...")
@@ -58,7 +59,7 @@ def complete_mission(soup, length_mission, cog_plata=False):
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
 
-            if not cog_plata:
+            if not cog_plata and name_mission != "DragonEventGreatDragon":
                 num_point = get_config_value(key='event_healer_potion')
                 price_potion = event_healer_potions[num_point]['price']
                 if silver_count >= price_potion:
@@ -81,6 +82,7 @@ def process_page(event, rubies, length_mission, name_mission):
     if event == 'dragon':
         st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
         a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
+        p_log(a_tags, level='debug')
 
     if event == 'healer':
         silver_count = int(soup.find(id='silverCount').text)
@@ -91,7 +93,7 @@ def process_page(event, rubies, length_mission, name_mission):
             post_healer(num_point)
         else:
             p_log(f"Необходимо {price_potion} серебра. На руках {silver_count}")
-            name_mission, a_tags = find_mission(soup, length_mission)
+            name_mission, a_tags = find_mission(soup, length_mission, name_mission)
 
     if a_tags:
         for a_tag in a_tags:
@@ -120,7 +122,7 @@ def process_page(event, rubies, length_mission, name_mission):
                     if break_outer:
                         break
         else:
-            complete_mission(soup, length_mission)
+            complete_mission(soup, length_mission, name_mission)
 
     else:
         if event == 'dragon':
@@ -193,18 +195,18 @@ if __name__ == "__main__":
 
     check_timer()
     kwargs = {
-        'event': 'healer',
+        'event': 'dragon',
         'rubies': False,
         'length_mission': 'small'
     }
     partial_event_search = partial(event_search, **kwargs)
     while True:
-        p_log(f"Запуск {'healer'} процесса...")
+        p_log(f"Запуск {kwargs.get('event')} процесса...")
         process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
         process.start()
-        p_log(f"Процесс {'healer'} будет работать до 19:30...")
+        p_log(f"Процесс {kwargs.get('event')} будет работать до 19:30...")
         time_sleep_main(wait_until('19:30'), interval=1800)
-        p_log(f"Остановка {'healer'} процесса...")
+        p_log(f"Остановка {kwargs.get('event')} процесса...")
         process.terminate()
         process.join()
         check_timer()
