@@ -11,9 +11,10 @@ from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
-    post_healer, check_progressbar
+    post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury
 from module.http_requests import make_request
 from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer, event_healer_potions
+from sliv import online_tracking_only
 
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
@@ -41,7 +42,20 @@ def complete_mission(soup, length_mission, name_mission, cog_plata=False):
     while True:
         if 'disabledSpecialBtn' in a_tags[0].get('class', []):
             p_log("Миссий нет. Ждем час...")
-            time_sleep(3600)
+
+            # пока миссий нету, запускаем процесс атак на коровок
+            hours = 1
+            online_tracking = partial(online_tracking_only)
+            process_online_tracking = multiprocessing.Process(target=wrapper_function, args=(online_tracking,))
+            process_online_tracking.start()
+            p_log(f"Ожидание {hours} часов... Работает online_tracking функция")
+            time_sleep_main(hours * 60 * 60)  # Ожидание в часах
+            p_log(f"Остановка online_tracking процесса...")
+            process_online_tracking.terminate()
+            process_online_tracking.join()
+            p_log("Дополнительное ожидание")
+            time_sleep_main(650 + get_config_value("correct_time"), interval=300)
+
             response = make_request(world_url)
             soup = BeautifulSoup(response.content, 'lxml')
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
@@ -49,15 +63,29 @@ def complete_mission(soup, length_mission, name_mission, cog_plata=False):
         else:
             p_log("Есть доступные миссии")
             check_hit_point()  # проверка количества здоровья
+
+            if name_mission == "DragonEventGreatDragon":
+                dragon_bar = soup.find('div', id='dragonLiveBar')['style']
+                p_log(f"У дракона осталось {dragon_bar.split()[1]} здоровья")
+
             post_dragon(
                 length_mission=length_mission,
                 name_mission=name_mission
             )
+
             response = make_request(world_url)
             soup = BeautifulSoup(response.content, 'lxml')
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
+
+            # Купить кольцо на аукционе, либо положить в казну
+            if silver_count > get_config_value("gold_limit"):
+                if get_config_value("buy_ring"):
+                    buy_ring(tariff_travel=800)  # покупка кольца на аукционе
+
+                if get_config_value("contribute_to_treasury") and not check_treasury_timers():
+                    contribute_to_treasury()
 
             if not cog_plata and name_mission != "DragonEventGreatDragon":
                 num_point = get_config_value(key='event_healer_potion')
@@ -132,11 +160,13 @@ def process_page(event, rubies, length_mission, name_mission):
 def travel_mission(length_mission='small'):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
-    complete_mission(soup, length_mission, cog_plata=True)
+    complete_mission(soup, length_mission, name_mission=None, cog_plata=True)
 
 
 def event_search(event, rubies, length_mission):
     check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
+    move_item(how='loot', name='ring', rand=False)
+
     place, my_town = my_place()  # Джаро, VillageFour
     p_log(f"Я нахожусь в {place}")
     response = make_request(map_url)
