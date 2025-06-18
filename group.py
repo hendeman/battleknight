@@ -115,7 +115,7 @@ def get_mercenary():
         return s
 
 
-def go_group(time_wait=0):
+def go_group(time_wait=get_config_value(key='group_wait')):
     if create_group():
         if time_wait:
             p_log(f"Ожидание игроков для группы {format_time(time_wait)} ...")
