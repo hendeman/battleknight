@@ -229,17 +229,18 @@ if __name__ == "__main__":
     }
     partial_event_search = partial(event_search, **kwargs)
     while True:
-        p_log(f"Запуск {kwargs.get('event')} процесса...")
-        process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
-        process.start()
-        p_log(f"Процесс {kwargs.get('event')} будет работать до 19:30...")
-        time_sleep_main(wait_until('19:30'), interval=1800)
-        p_log(f"Остановка {kwargs.get('event')} процесса...")
-        process.terminate()
-        process.join()
+        if not check_time_sleep(start_hour='19:31', end_hour='21:29'):
+            p_log(f"Запуск {kwargs.get('event')} процесса...")
+            process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
+            process.start()
+            p_log(f"Процесс {kwargs.get('event')} будет работать до 19:30...")
+            time_sleep_main(wait_until('19:30'), interval=1800)
+            p_log(f"Остановка {kwargs.get('event')} процесса...")
+            process.terminate()
+            process.join()
         check_timer()
         # Ожидание до 21:30 для синхронизации. 2 часа должно быть достаточно в большинстве случаев
-        time_begin = wait_until("21:30")
+        time_begin = wait_until("21:00")
         p_log(f"До начала группы осталось {format_time(time_begin)}. Ожидаем...")
         time_sleep(time_begin)
         # Создаем группу
