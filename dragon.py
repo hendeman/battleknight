@@ -208,12 +208,10 @@ def event_search(event, rubies, length_mission):
 
 
 def wrapper_function(func1):
-    while True:
-        try:
-            func1()  # Запускаем первую функцию с аргументами
-        except Exception as e:
-            print(f"Исключение в {func1}:", e)
-            break
+    try:
+        func1()  # Запускаем первую функцию с аргументами
+    except Exception as e:
+        p_log(f"Исключение в {func1}: {e}", level='warning')
 
 
 if __name__ == "__main__":
@@ -245,7 +243,7 @@ if __name__ == "__main__":
         p_log(f"До начала группы осталось {format_time(time_begin)}. Ожидаем...")
         time_sleep(time_begin)
         # Создаем группу
-        go_group(3600)
+        go_group()
         timer_group = check_progressbar()
         if timer_group:
             p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
