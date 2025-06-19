@@ -164,47 +164,48 @@ def travel_mission(length_mission='small'):
 
 
 def event_search(event, rubies, length_mission):
-    check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
-    move_item(how='loot', name='ring', rand=False)
+    while True:
+        check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
+        move_item(how='loot', name='ring', rand=False)
 
-    place, my_town = my_place()  # Джаро, VillageFour
-    p_log(f"Я нахожусь в {place}")
-    response = make_request(map_url)
-    soup = BeautifulSoup(response.text, 'lxml')
-    silver_count = int(soup.find(id='silverCount').text)
-    dragon_town = soup.find(id=event_list[event]['icon']).get('class')[0]
-    if not dragon_town:
-        raise f"{event} нет на карте"
-    p_log(f"{event} находится в {castles_all[dragon_town]}")
+        place, my_town = my_place()  # Джаро, VillageFour
+        p_log(f"Я нахожусь в {place}")
+        response = make_request(map_url)
+        soup = BeautifulSoup(response.text, 'lxml')
+        silver_count = int(soup.find(id='silverCount').text)
+        dragon_town = soup.find(id=event_list[event]['icon']).get('class')[0]
+        if not dragon_town:
+            raise f"{event} нет на карте"
+        p_log(f"{event} находится в {castles_all[dragon_town]}")
 
-    if (my_town in castles_island and dragon_town in castles_island) or (my_town in castles and dragon_town in castles):
-        if my_town == dragon_town:
-            p_log(f"Вы в городе с {event}!")
-            check_hit_point()  # проверка количества здоровья
-            process_page(
-                event=event,
-                rubies=rubies,
-                length_mission=length_mission,
-                name_mission=event_list[event]['name']
-            )  # атака на дракона
-        else:
-            post_travel(out=my_town, where=dragon_town)
+        if (my_town in castles_island and dragon_town in castles_island) or (my_town in castles and dragon_town in castles):
+            if my_town == dragon_town:
+                p_log(f"Вы в городе с {event}!")
+                check_hit_point()  # проверка количества здоровья
+                process_page(
+                    event=event,
+                    rubies=rubies,
+                    length_mission=length_mission,
+                    name_mission=event_list[event]['name']
+                )  # атака на дракона
+            else:
+                post_travel(out=my_town, where=dragon_town)
 
-    if my_town in castles_island and dragon_town in castles:
-        if my_town == 'HarbourTwo':
-            if silver_count < 800:
-                travel_mission(length_mission='small')
-            post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
-        else:
-            post_travel(out=my_town, where='HarbourTwo')
+        if my_town in castles_island and dragon_town in castles:
+            if my_town == 'HarbourTwo':
+                if silver_count < 800:
+                    travel_mission(length_mission='small')
+                post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
+            else:
+                post_travel(out=my_town, where='HarbourTwo')
 
-    if my_town in castles and dragon_town in castles_island:
-        if my_town == 'HarbourOne':
-            if silver_count < 800:
-                travel_mission(length_mission='small')
-            post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
-        else:
-            post_travel(out=my_town, where='HarbourOne')
+        if my_town in castles and dragon_town in castles_island:
+            if my_town == 'HarbourOne':
+                if silver_count < 800:
+                    travel_mission(length_mission='small')
+                post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
+            else:
+                post_travel(out=my_town, where='HarbourOne')
 
 
 def wrapper_function(func1):
