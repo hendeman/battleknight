@@ -165,6 +165,7 @@ def travel_mission(length_mission='small'):
 
 
 def event_search(event, rubies, length_mission):
+    check_timer()
     while True:
         check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
         move_item(how='loot', name='ring', rand=False)
@@ -236,7 +237,7 @@ if __name__ == "__main__":
             process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
             process.start()
             p_log(f"Процесс {kwargs.get('event')} будет работать до 19:30...")
-            time_sleep_main(wait_until('19:30'), interval=1800)
+            time_sleep_main(wait_until('19:20'), interval=1800)
             p_log(f"Остановка {kwargs.get('event')} процесса...")
             process.terminate()
             process.join()
