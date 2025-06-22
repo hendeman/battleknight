@@ -92,12 +92,13 @@ def get_castle_min_time():
     return castle_min_range
 
 
-def go_auction(out):
+def go_auction(out, going_back=True, tariff_travel=0):
     try:
         castle_auction = get_castle_min_time()
         post_travel(out=out, where=castle_auction)
-        buy_ring()
-        post_travel(out=castle_auction, where=out)
+        buy_ring(tariff_travel=tariff_travel)
+        if going_back:
+            post_travel(out=castle_auction, where=out)
     except:
         p_log(f'Ошибка выполнения функции go_auction', level='warning')
 

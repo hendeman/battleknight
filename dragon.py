@@ -11,9 +11,11 @@ from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
-    post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver
+    post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
+    go_auction
 from module.http_requests import make_request
-from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer, event_healer_potions
+from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer, event_healer_potions, \
+    auction_castles
 from sliv import online_tracking_only
 
 event_list = {
@@ -37,7 +39,7 @@ def find_mission(soup, length_mission, name_mission):
     return name_mission, a_tags
 
 
-def complete_mission(soup, length_mission, name_mission, cog_plata=False):
+def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=False):
     name_mission, a_tags = find_mission(soup, length_mission, name_mission)
     while True:
         if 'disabledSpecialBtn' in a_tags[0].get('class', []):
@@ -82,7 +84,12 @@ def complete_mission(soup, length_mission, name_mission, cog_plata=False):
             # Купить кольцо на аукционе, либо положить в казну
             if silver_count > get_config_value("gold_limit"):
                 if get_config_value("buy_ring"):
-                    buy_ring(tariff_travel=800)  # покупка кольца на аукционе
+                    not_auction_timer = any([check_time_sleep(start_hour='10:45', end_hour='12:45', sleep_hour=None),
+                                             check_time_sleep(start_hour='22:45', end_hour='23:59', sleep_hour=None)])
+                    if my_town not in auction_castles and not not_auction_timer:
+                        go_auction(out=my_town, going_back=False, tariff_travel=800)
+                    else:
+                        buy_ring(tariff_travel=800)  # покупка кольца на аукционе
                     silver_count = get_silver()  # обновить количество серебра
                 if silver_count > get_config_value("gold_limit") and get_config_value(
                         "contribute_to_treasury") and not check_treasury_timers():
@@ -102,7 +109,7 @@ def complete_mission(soup, length_mission, name_mission, cog_plata=False):
                 p_log(f"Необходимо 800 серебра. На руках {silver_count}")
 
 
-def process_page(event, rubies, length_mission, name_mission):
+def process_page(event, rubies, length_mission, name_mission, my_town):
     break_outer = False
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
@@ -151,7 +158,7 @@ def process_page(event, rubies, length_mission, name_mission):
                     if break_outer:
                         break
         else:
-            complete_mission(soup, length_mission, name_mission)
+            complete_mission(soup, length_mission, name_mission, my_town)
 
     else:
         if event == 'dragon':
@@ -161,7 +168,7 @@ def process_page(event, rubies, length_mission, name_mission):
 def travel_mission(length_mission='small'):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
-    complete_mission(soup, length_mission, name_mission=None, cog_plata=True)
+    complete_mission(soup, length_mission, name_mission=None, my_town=None, cog_plata=True)
 
 
 def event_search(event, rubies, length_mission):
@@ -188,7 +195,8 @@ def event_search(event, rubies, length_mission):
                     event=event,
                     rubies=rubies,
                     length_mission=length_mission,
-                    name_mission=event_list[event]['name']
+                    name_mission=event_list[event]['name'],
+                    my_town=my_town
                 )  # атака на дракона
             else:
                 post_travel(out=my_town, where=dragon_town)
