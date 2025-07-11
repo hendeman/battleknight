@@ -1,8 +1,10 @@
 import re
+import setting
 
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
+from module.all_function import remove_cyrillic, availability_id
 
 
 def heals(resp):
@@ -11,8 +13,8 @@ def heals(resp):
         life_count_element = int(soup.find(id="lifeCount").text.split()[0])
         p_log(f"Количество здоровья: {life_count_element}")
         return life_count_element
-    except Exception:
-        p_log("Error parsing current health", level='warning')
+    except AttributeError:
+        p_log("Ошибка получения здоровья", level='warning')
 
 
 def pars_gold_duel(response, gold_info=False, all_info=False, win_status=False):
@@ -120,3 +122,26 @@ def check_cooldown_poit(html_page):
                 break
 
     return target_number
+
+
+def set_name(resp):
+    soup = BeautifulSoup(resp.content, 'lxml')
+    title_tag = soup.find('h2')
+    title = title_tag.get_text(strip=True) if title_tag else None
+    if not title:
+        raise Exception("Ошибка получения имени. Проверьте куки")
+    setting.NAME = remove_cyrillic(title)  # Теперь это изменит глобальную переменную в модуле setting
+    p_log(f"Добро пожаловать в игру, {setting.NAME}!")
+
+
+def get_id(resp):
+    soup = BeautifulSoup(resp.content, 'lxml')
+    element = soup.find(id='shieldNeutral')
+    url_profile = element.get('href') if element else None
+    if not url_profile:
+        raise Exception("Ошибка получения имени. Проверьте куки")
+    match = re.search(r'/profile/(\d+)/', url_profile)
+    user_id = match.group(1)
+
+    if not availability_id(user_id):
+        raise Exception("Доступ запрещен")
