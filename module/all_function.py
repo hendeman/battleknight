@@ -1,3 +1,4 @@
+import base64
 import configparser
 import pickle
 import random
@@ -9,7 +10,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, filename, mount_list, SAVE_CASTLE
+from setting import waiting_time, filename, mount_list, SAVE_CASTLE, GAME_TOKEN
 
 
 def remove_cyrillic(stroka: str):
@@ -307,3 +308,10 @@ def get_next_time_and_index(start_times):
             next_index = index
 
     return next_index + 1, next_time.strftime('%H:%M')
+
+
+def availability_id(user_id):
+    decoded_bytes = base64.b64decode(GAME_TOKEN).decode('utf-8')
+    p_log(f"decoded_bytes: {decoded_bytes}", level='debug')
+    p_log(f"user_id: {user_id}", level='debug')
+    return user_id == decoded_bytes
