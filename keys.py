@@ -8,8 +8,9 @@ from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
-    get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, get_silver, \
-    check_progressbar, go_auction, buy_ring
+    get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, \
+    get_silver, \
+    check_progressbar, go_auction, buy_ring, account_verification
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
@@ -212,6 +213,7 @@ if __name__ == "__main__":
     logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
+    account_verification()
 
     while True:
         try:

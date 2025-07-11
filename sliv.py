@@ -12,7 +12,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
 from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, is_time_between, check_progressbar, check_time_sleep, check_health, \
-    get_silver, handle_ring_operations, get_gold_for_player
+    get_silver, handle_ring_operations, get_gold_for_player, account_verification
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
     url_ordermail, url_error, url_nicks, world_url, NAME, url_name_json
@@ -442,6 +442,7 @@ if __name__ == "__main__":
     # online_tracking_only()
     # korovk_reduce_experience(name_file="/pickles_data/korov.pickle")
     setup_logging()
+    account_verification()
     while True:
         click()
     # create_pickle_file()

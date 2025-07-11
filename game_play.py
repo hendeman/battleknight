@@ -13,7 +13,7 @@ from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
-    init_status_players
+    init_status_players, account_verification
 from module.http_requests import post_request, make_request
 from setting import start_game, start_time, auction_castles, castles_all
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -228,6 +228,7 @@ if __name__ == "__main__":
     logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
     logging_process.start()
     setup_logging(queue)  # Настраиваем логирование с использованием очереди
+    account_verification()
 
     event_list = {
         'not_event': {'town': 'GhostTown', 'mission_name': 'DragonLair', 'side': 'good'},

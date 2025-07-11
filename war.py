@@ -2,6 +2,7 @@ import threading
 
 from logs.logs import setup_logging
 from module.all_function import get_config_value
+from module.game_function import account_verification
 from module.http_requests import post_request
 from module.war.html_parser import main_pars_clanwar
 from module.war.members_operation import remove_members, accept_into_order
@@ -129,5 +130,6 @@ def check_status_war():
 
 if __name__ == "__main__":
     setup_logging(enable_rotation=False, log_file_path="logs/app_war.log")
+    account_verification()
     wait_until("17:00:00")
     check_status_war()
