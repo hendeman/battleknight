@@ -9,7 +9,8 @@ today = date.today()
 
 CHRISTMAS_MODE = False
 
-NAME = 'lupatik'
+NAME = None
+GAME_TOKEN = 'ODcyMTYx'
 GOLD_DAY = 25090
 GOLD_LIMIT = 7000
 CURRENT_TAX = 0.6
@@ -128,4 +129,3 @@ folder_name = (f"bk\\statistic\\{today.year}\\{months.get(today.month)}"
                f"\\statistic_{today.day:02d}_{today.month:02d}")
 folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)}"
                     f"\\statistic_loss_{today.day:02d}_{today.month:02d}")
-
