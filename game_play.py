@@ -231,9 +231,15 @@ if __name__ == "__main__":
     account_verification()
 
     event_list = {
-        'not_event': {'town': 'GhostTown', 'mission_name': 'DragonLair', 'side': 'good'},
-        'easter': {'town': 'TradingPostOne', 'mission_name': 'EgghatchGrotto', 'side': 'neutral'},
-        'fehan': {'town': 'FogIsland', 'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'], 'side': 'good'}
+        'not_event': {'town': get_config_value("town"),
+                      'mission_name': get_config_value("mission_name"),
+                      'side': 'good'},
+        'easter': {'town': 'TradingPostOne',
+                   'mission_name': 'EgghatchGrotto',
+                   'side': 'neutral'},
+        'fehan': {'town': 'FogIsland',
+                  'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'],
+                  'side': 'good'}
     }
 
     autoplay(**event_list.get(get_config_value("event")))
