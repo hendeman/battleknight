@@ -12,7 +12,7 @@ from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
     get_config_value
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit
+    check_cooldown_poit, set_name, get_id
 from module.http_requests import post_request, make_request
 from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
     post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
@@ -22,7 +22,10 @@ from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_c
 
 def print_status(from_town, where_town, how, tt):
     p_log(
-        f"{'Едем' if how == 'horse' else 'Плывем'} из {castles_all[from_town]} в {castles_all[where_town]}. Ожидание {tt}")
+        f"{'Едем' if how == 'horse' else 'Плывем'} "
+        f"из {castles_all[from_town]} в {castles_all[where_town]}. "
+        f"Ожидание {tt}"
+    )
 
 
 def check_timer():
@@ -99,7 +102,7 @@ def go_auction(out, going_back=True, tariff_travel=0):
         buy_ring(tariff_travel=tariff_travel)
         if going_back:
             post_travel(out=castle_auction, where=out)
-    except:
+    except Exception:
         p_log(f'Ошибка выполнения функции go_auction', level='warning')
 
 
@@ -171,9 +174,9 @@ def use_potion():
             '&merchant=false&table=user')
         make_request(use_url)
         sleep(get_random_value())
-        # Получить новый список из зельев
+        # Получить новый список зелья
         get_potion_bar()
-    except:
+    except Exception:
         p_log("Ошибка в получении банок ХП. Отдыхаем 10 минут", level='warning')
         time_sleep(600)
 
@@ -231,7 +234,7 @@ def use_helper(name_companion):
                 url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                               f'&inventory={num_inventory}&loc=character')
                 response = make_request(user_url)
-                response_helper = make_request(url_helper)
+                make_request(url_helper)
                 helper = get_status_helper(response, type_helper)
                 if helper and helper != id_helper:
                     id_helper_start = helper
@@ -743,7 +746,7 @@ def register_joust():
                 p_log("Вы зарегистрированы на турнир")
             else:
                 p_log("Вы уже участвуете в турнире")
-        except:
+        except Exception:
             p_log("Ошибка регистрации на турнир")
 
 
@@ -864,3 +867,10 @@ def init_status_players():
 
     except json.decoder.JSONDecodeError as er:
         print(f"Ошибка в структуре файла {url_name_json}: {er}")
+
+
+# ____________________________ Верификация доступа к игре __________________________________
+def account_verification():
+    response = make_request(user_url)
+    set_name(response)
+    get_id(response)
