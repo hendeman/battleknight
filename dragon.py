@@ -182,8 +182,9 @@ def event_search(event, rubies, length_mission):
         response = make_request(map_url)
         soup = BeautifulSoup(response.text, 'lxml')
         silver_count = int(soup.find(id='silverCount').text)
-        dragon_town = soup.find(id=event_list[event]['icon']).get('class')[0]
-        if not dragon_town:
+        try:
+            dragon_town = soup.find(id=event_list[event]['icon']).get('class')[0]
+        except AttributeError:
             raise f"{event} нет на карте"
         p_log(f"{event} находится в {castles_all[dragon_town]}")
 
