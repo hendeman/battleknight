@@ -13,7 +13,7 @@ from module.data_pars import heals
 from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
-    init_status_players, account_verification
+    init_status_players, account_verification, check_treasury_timers
 from module.http_requests import post_request, make_request
 from setting import start_game, start_time, auction_castles, castles_all
 from sliv import set_initial_gold, reduce_experience, online_tracking_only
@@ -95,7 +95,7 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
         else:
             p_log('Не удалось найти тег <a> с нужным атрибутом onclick.')
         game_mode -= 1
-        if not game_mode and get_config_value("contribute_to_treasury"):
+        if not game_mode and get_config_value("contribute_to_treasury") and not check_treasury_timers():
             contribute_to_treasury()
         time_sleep(check_progressbar())
 
