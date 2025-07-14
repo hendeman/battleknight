@@ -129,3 +129,7 @@ folder_name = (f"bk\\statistic\\{today.year}\\{months.get(today.month)}"
                f"\\statistic_{today.day:02d}_{today.month:02d}")
 folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)}"
                     f"\\statistic_loss_{today.day:02d}_{today.month:02d}")
+
+
+def get_name():
+    return NAME

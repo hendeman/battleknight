@@ -14,10 +14,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id
 from module.http_requests import post_request, make_request
-from setting import castles_all, status_list, CURRENT_TAX, mount_list, auction_castles, travel_url, mission_url, \
-    post_url, map_url, url_world, world_url, healer_url, url_market, url_loot, work_url, treasury_url, deposit_url, \
-    user_url, point_url, url_auctioneer, url_payout, duel_url, url_joust, url_joust_sign, url_alchemist, \
-    potion_name_buy, event_healer_potions, NAME, url_name_json
+from setting import *
 
 
 def print_status(from_town, where_town, how, tt):
@@ -116,9 +113,9 @@ def check_progressbar(resp=None):
     p_log("Проверка состояния")
 
     if element in status_list:
-        p_log(f"{NAME} status <{element}>")
+        p_log(f"{get_name()} status <{element}>")
         return progressbar_ends(soup)
-    p_log(f"{NAME} свободен")
+    p_log(f"{get_name()} свободен")
 
 
 def progressbar_ends(soup):
