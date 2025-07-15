@@ -137,9 +137,16 @@ def autoplay(town, mission_name, side):
         if count_work % 3 == 0:
             if get_config_value("buy_ring"):
                 buy_ring()  # покупка кольца на аукционе
-            work(working_hours=8, side=side)  # отправить работать
-            time_sleep(8 * 60 * 60 + int(get_random_value(60, 100)))
+
+            working_hours = get_config_value("working_hours")
+            work(working_hours=working_hours, side=side)  # отправить работать
+
+            use_helper('squire', restore=False, direct_call=True)
+
+            time_sleep(working_hours * 60 * 60 + int(get_random_value(60, 100)))
             get_reward()  # забрать награду за работу спустя время
+
+            use_helper('turtle', restore=False, direct_call=True)
 
             # Закупка необходимым количеством баночек HP buy_potion_count
             try:
@@ -233,13 +240,13 @@ if __name__ == "__main__":
     event_list = {
         'not_event': {'town': get_config_value("town"),
                       'mission_name': get_config_value("mission_name"),
-                      'side': 'good'},
+                      'side': get_config_value("working_karma")},
         'easter': {'town': 'TradingPostOne',
                    'mission_name': 'EgghatchGrotto',
                    'side': 'neutral'},
         'fehan': {'town': 'FogIsland',
                   'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'],
-                  'side': 'good'}
+                  'side': get_config_value("working_karma")}
     }
 
     autoplay(**event_list.get(get_config_value("event")))
