@@ -219,7 +219,14 @@ def put_gold(status="before"):
     return gold_count_element
 
 
-def use_helper(name_companion):
+def use_helper(name_companion, restore=True, direct_call=False):
+    """Декоратор для использования наездника/помощника.
+
+        Args:
+            name_companion (str): Имя наездника/помощника из mount_list (например, 'pegasus', 'fairy').
+            restore (bool): Вернуть исходного наездника/помощник после выполнения (по умолчанию True).
+            direct_call (bool): Если True, декоратор выполнится сразу без привязки к функции.
+        """
     def use_companion_deco(func):
         def wrapper(*args, **kwargs):
             validate_helper = mount_list.get(name_companion, None)
@@ -251,9 +258,10 @@ def use_helper(name_companion):
                     if resp.json()['result']:
                         p_log(f"{get_name_mount(id_helper)} надет")
 
-                func(*args, **kwargs)
+                if not direct_call:
+                    func(*args, **kwargs)
 
-                if get_config_value("ignor_mount"):
+                if restore and get_config_value("ignor_mount"):
                     resp = make_request(
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
                         f"={id_helper}&inventory={num_inventory}&type=normal")
@@ -268,9 +276,13 @@ def use_helper(name_companion):
                         p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
-                func(*args, **kwargs)
+                if not direct_call:
+                    func(*args, **kwargs)
 
         return wrapper
+
+    if direct_call:
+        return use_companion_deco(lambda: None)()  # Автоматически вызываем
 
     return use_companion_deco
 
