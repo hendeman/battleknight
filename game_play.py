@@ -165,7 +165,7 @@ def autoplay(town, mission_name, side):
 
             # создание Групповой миссии
             if (count_work + 2) % 3 == 1 - phase_offset:  # 1 - phase_offset 0 для первой фазы, 1 - для второй
-                go_group(3600)
+                go_group()
                 timer_group = check_progressbar()
                 if timer_group:
                     p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
