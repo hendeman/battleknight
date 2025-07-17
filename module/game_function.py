@@ -1,5 +1,4 @@
 import ast
-import json
 import re
 from typing import Union, Tuple
 from time import sleep
@@ -220,11 +219,11 @@ def put_gold(status="before"):
 
 
 def use_helper(name_companion, restore=True, direct_call=False):
-    """Декоратор для использования наездника/помощника.
+    """Декоратор для использования наездника/компаньона.
 
         Args:
-            name_companion (str): Имя наездника/помощника из mount_list (например, 'pegasus', 'fairy').
-            restore (bool): Вернуть исходного наездника/помощник после выполнения (по умолчанию True).
+            name_companion (str): Имя наездника/компаньона из mount_list (например, 'pegasus', 'fairy').
+            restore (bool): Вернуть исходного наездника/компаньона после выполнения (по умолчанию True).
             direct_call (bool): Если True, декоратор выполнится сразу без привязки к функции.
         """
     def use_companion_deco(func):
@@ -234,7 +233,7 @@ def use_helper(name_companion, restore=True, direct_call=False):
                 id_helper_start = None
                 id_helper = mount_list[name_companion]['id_helper']
                 type_helper = mount_list[name_companion]['type_helper']
-                num_inventory = "5" if type_helper == 'horse' else "6"
+                num_inventory = "5" if type_helper == type_helper_name[0] else "6"
                 url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                               f'&inventory={num_inventory}&loc=character')
                 response = make_request(user_url)
@@ -242,11 +241,6 @@ def use_helper(name_companion, restore=True, direct_call=False):
                 helper = get_status_helper(response, type_helper)
                 if helper and helper != id_helper:
                     id_helper_start = helper
-                    # resp = make_request(
-                    #     f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                    #     f"={id_helper_start}&inventory={num_inventory}&type=normal")
-                    # if resp.json()['result']:
-                    #     p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
                 if not id_helper_start and helper != id_helper:
                     p_log("Никакой помощник не надет")
                     id_helper_start = (
@@ -260,24 +254,17 @@ def use_helper(name_companion, restore=True, direct_call=False):
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"{get_name_mount(resp.json()['data']['id'])} надет")
+                        p_log(f"{type_helper} {get_name_mount(resp.json()['data']['id'])} надет")
 
                 if not direct_call:
                     func(*args, **kwargs)
 
                 if restore and get_config_value("ignor_mount"):
-                    # resp = make_request(
-                    #     f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                    #     f"={id_helper}&inventory={num_inventory}&type=normal")
-                    # if resp.json()['result']:
-                    #     p_log(f"{get_name_mount(id_helper)} снят")
-                    #
-                    # time_sleep(2)
                     resp = make_request(
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"{get_name_mount(resp.json()['data']['id'])} надет")
+                        p_log(f"{type_helper} {get_name_mount(resp.json()['data']['id'])} надет")
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
                 if not direct_call:
