@@ -242,38 +242,42 @@ def use_helper(name_companion, restore=True, direct_call=False):
                 helper = get_status_helper(response, type_helper)
                 if helper and helper != id_helper:
                     id_helper_start = helper
-                    resp = make_request(
-                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                        f"={id_helper_start}&inventory={num_inventory}&type=normal")
-                    if resp.json()['result']:
-                        p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
+                    # resp = make_request(
+                    #     f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                    #     f"={id_helper_start}&inventory={num_inventory}&type=normal")
+                    # if resp.json()['result']:
+                    #     p_log(f"Помощник {get_name_mount(id_helper_start)} снят")
                 if not id_helper_start and helper != id_helper:
                     p_log("Никакой помощник не надет")
-                    id_helper_start = mount_list['bear']['id_helper']
+                    id_helper_start = (
+                        mount_list['bear']['id_helper']
+                        if type_helper == 'horse'
+                        else mount_list['squire']['id_helper']
+                    )
 
                 if helper != id_helper:
                     resp = make_request(
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"{get_name_mount(id_helper)} надет")
+                        p_log(f"{get_name_mount(resp.json()['data']['id'])} надет")
 
                 if not direct_call:
                     func(*args, **kwargs)
 
                 if restore and get_config_value("ignor_mount"):
-                    resp = make_request(
-                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
-                        f"={id_helper}&inventory={num_inventory}&type=normal")
-                    if resp.json()['result']:
-                        p_log(f"{get_name_mount(id_helper)} снят")
-
-                    time_sleep(2)
+                    # resp = make_request(
+                    #     f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id"
+                    #     f"={id_helper}&inventory={num_inventory}&type=normal")
+                    # if resp.json()['result']:
+                    #     p_log(f"{get_name_mount(id_helper)} снят")
+                    #
+                    # time_sleep(2)
                     resp = make_request(
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"Помощник  {get_name_mount(id_helper_start)} надет")
+                        p_log(f"{get_name_mount(resp.json()['data']['id'])} надет")
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
                 if not direct_call:
