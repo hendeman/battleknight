@@ -126,7 +126,7 @@ def check_cooldown_poit(html_page):
 
 def set_name(resp):
     soup = BeautifulSoup(resp.content, 'lxml')
-    title_tag = soup.find('h2')
+    title_tag = soup.find(class_="char-title")
     title = title_tag.get_text(strip=True) if title_tag else None
     if not title:
         raise Exception("Ошибка получения имени. Проверьте куки")
