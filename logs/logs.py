@@ -71,6 +71,8 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="logs/app.log"
     # Отключаем логирование для библиотеки requests
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger('chardet').setLevel(logging.WARNING)
+    logging.getLogger('charset_normalizer').setLevel(logging.WARNING)
 
     def handle_uncaught_exception(exc_type, exc_value, exc_traceback):
         if issubclass(exc_type, KeyboardInterrupt):
