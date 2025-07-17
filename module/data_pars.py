@@ -34,7 +34,7 @@ def pars_gold_duel(response, gold_info=False, all_info=False, win_status=False):
 def get_status_helper(response, type_helper):
     soup = BeautifulSoup(response.text, 'lxml')
 
-    if type_helper == 'horse':
+    if type_helper == setting.type_helper_name[0]:
         item_helper = soup.find_all('div', id="itemHorse")
     else:
         item_helper = soup.find_all('div', id="itemCompanion")
