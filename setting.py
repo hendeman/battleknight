@@ -64,15 +64,16 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
                    'HarbourTwo', 'TradingPostFour')
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
-mount_list = {'pegasus': {'id_helper': '16888797', 'type_helper': 'horse', 'name': '<Пегас>'},
-              'bear': {'id_helper': '16896645', 'type_helper': 'horse', 'name': '<Боевой медведь>'},
-              'boar': {'id_helper': '17561824', 'type_helper': 'horse', 'name': '<Дикий кабан>'},
-              'unicorn': {'id_helper': '16459963', 'type_helper': 'horse', 'name': '<Белый единорог>'},
-              'squire': {'id_helper': '15959290', 'type_helper': 'companion', 'name': '<Сквайр>'},
-              'rabbit': {'id_helper': '15517097', 'type_helper': 'companion', 'name': '<Кролик>'},
-              'dog': {'id_helper': '16459964', 'type_helper': 'companion', 'name': '<Ищейка>'},
-              'fairy': {'id_helper': '18884016', 'type_helper': 'companion', 'name': '<Фея Света>'},
-              'turtle': {'id_helper': '22335273', 'type_helper': 'companion', 'name': '<Черепашка>'}}
+type_helper_name = ('наездник', 'компаньон')
+mount_list = {'pegasus': {'id_helper': '16888797', 'type_helper': type_helper_name[0], 'name': '<Пегас>'},
+              'bear': {'id_helper': '16896645', 'type_helper': type_helper_name[0], 'name': '<Боевой медведь>'},
+              'boar': {'id_helper': '17561824', 'type_helper': type_helper_name[0], 'name': '<Дикий кабан>'},
+              'unicorn': {'id_helper': '16459963', 'type_helper': type_helper_name[0], 'name': '<Белый единорог>'},
+              'squire': {'id_helper': '15959290', 'type_helper': type_helper_name[1], 'name': '<Сквайр>'},
+              'rabbit': {'id_helper': '15517097', 'type_helper': type_helper_name[1], 'name': '<Кролик>'},
+              'dog': {'id_helper': '16459964', 'type_helper': type_helper_name[1], 'name': '<Ищейка>'},
+              'fairy': {'id_helper': '18884016', 'type_helper': type_helper_name[1], 'name': '<Фея Света>'},
+              'turtle': {'id_helper': '22335273', 'type_helper': type_helper_name[1], 'name': '<Черепашка>'}}
 start_time = ['09:00', '15:25', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
