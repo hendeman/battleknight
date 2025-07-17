@@ -237,7 +237,7 @@ def no_cache():
 
 
 def get_name_mount(value):
-    return next((v['name'] for v in mount_list.values() if v['id_helper'] == value), value)
+    return next((v['name'] for v in mount_list.values() if v['id_helper'] == str(value)), value)
 
 
 def get_save_castle():
