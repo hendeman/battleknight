@@ -1,6 +1,5 @@
 from datetime import date
 import os
-import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -46,8 +45,14 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, br'
 }
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
-cookies_str = os.getenv('COOKIES')
-cookies = json.loads(cookies_str) if cookies_str else {}
+cookies = {
+    "BattleKnight": os.getenv("BATTLEKNIGHT_COOKIE"),
+    "gf-cookie-consent-4449562312": os.getenv("GF_CONSENT_COOKIE"),
+    "gf-token-production": os.getenv("GF_TOKEN"),
+    "gf_pz_token": os.getenv("GF_PZ_TOKEN"),
+    "pc_idt": os.getenv("PC_IDT"),
+    "BattleKnightSession": os.getenv("BATTLEKNIGHT_SESSION"),
+}
 
 castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван",
                   'TradingPostFour': 'Милей', 'FogIsland': 'Фехан'}
