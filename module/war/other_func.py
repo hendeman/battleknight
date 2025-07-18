@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from logs.logs import p_log
+from module.all_function import get_config_value
 from module.game_function import progressbar_ends, seconds_to_hhmmss
 from module.http_requests import make_request
 from module.war.settings import html_files_directory, url_clanwar
@@ -22,7 +23,7 @@ def wait_until_target_time(time_end, delay=0):
         p_log(f"Текущее время {get_current_time()}")
         p_log(f"До окончания битвы {time_end}")
         p_log(f"Ожидаем {time_difference} секунд ...")
-        time.sleep(time_difference - 3)
+        time.sleep(time_difference - get_config_value(key='atk_delay_tweak'))
 
 
 def wait_until(target_time_str):
