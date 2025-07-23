@@ -17,7 +17,7 @@ def digi(bad_string: str) -> int:
 
 def visit(soup) -> dict:
     new = []
-    lst = soup.find_all('script')[-1].text.replace("\n", "").replace(" ", "").split(";")
+    lst = soup.find_all('script')[-2].text.replace("\n", "").replace(" ", "").split(";")
     for i in lst:
         if "}" in i:
             break
