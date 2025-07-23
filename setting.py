@@ -52,6 +52,8 @@ cookies = {
     "gf_pz_token": os.getenv("GF_PZ_TOKEN"),
     "pc_idt": os.getenv("PC_IDT"),
     "BattleKnightSession": os.getenv("BATTLEKNIGHT_SESSION"),
+    "GTPINGRESSCOOKIE": os.getenv("GTPINGRESSCOOKIE"),
+    "__cf_bm": os.getenv("CF_BM")
 }
 
 castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван",
