@@ -10,42 +10,13 @@ from openpyxl.styles import Font, Alignment
 
 from bs4 import BeautifulSoup
 
-from module.all_function import remove_cyrillic, day, syntax_day, create_folder
+from module.all_function import day, syntax_day, create_folder
+from module.data_pars import pars_player
 from module.http_requests import make_request, post_request
 from setting import url_stat, STAT_FILE_NAME, folder_name, STAT_FILE_LOSS, \
     folder_name_loss, today
 
 DATA_CHANGE_FILE = datetime.now()
-
-
-def pars_player(soup) -> dict:
-    list_tr = {}
-    for row in soup.find_all('tr')[3:]:
-        list_td = []
-        for i in row.find_all('td'):
-            if not i.text.split():
-                continue
-            list_td.append(i.text.split()[-1])
-        try:
-            key = int(row.find(id='playerLink').get('href').split('/')[5])
-        except:
-            raise "Ссылка на рыцаря не найдена. Проверить чередование 'tr'"
-        link_tr = row.find_all(id='playerLink')
-        if len(link_tr) == 2:
-            name = remove_cyrillic(link_tr[0].text)
-            clan = link_tr[1].text
-        else:
-            name = remove_cyrillic(link_tr[0].text)
-            clan = ""
-        value = {"name": name,
-                 "clan": clan,
-                 "level": int(list_td[2]),
-                 "gold": int(list_td[3].replace('.', '')),
-                 "fights": int(list_td[4].replace('.', '')),
-                 "victory": int(list_td[5].replace('.', '')),
-                 "defeats": int(list_td[6].replace('.', ''))}
-        list_tr.setdefault(key, value)
-    return list_tr
 
 
 def get_statistic() -> dict:

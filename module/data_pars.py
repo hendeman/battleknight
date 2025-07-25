@@ -145,3 +145,35 @@ def get_id(resp):
 
     if not availability_id(user_id):
         raise Exception("Доступ запрещен")
+
+
+def pars_player(soup) -> dict:
+    list_tr = {}
+    for row in soup.find_all('tr')[3:]:
+        list_td = []
+        for i in row.find_all('td'):
+            if not i.text.split():
+                continue
+            list_td.append(i.text.split()[-1])
+        try:
+            key = int(row.find(id='playerLink').get('href').split('/')[5])
+        except Exception:
+            raise "Ссылка на рыцаря не найдена. Проверить чередование 'tr'"
+        link_tr = row.find_all(id='playerLink')
+        if len(link_tr) == 2:
+            name = remove_cyrillic(link_tr[0].text)
+            clan = link_tr[1].text
+        else:
+            name = remove_cyrillic(link_tr[0].text)
+            clan = ""
+        value = {"name": name,
+                 "clan": clan,
+                 "level": int(list_td[2]),
+                 "gold": int(list_td[3].replace('.', '')),
+                 "fights": int(list_td[4].replace('.', '')),
+                 "victory": int(list_td[5].replace('.', '')),
+                 "defeats": int(list_td[6].replace('.', '')),
+                 "change_name": [],
+                 "change_clan": []}
+        list_tr.setdefault(key, value)
+    return list_tr
