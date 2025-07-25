@@ -729,7 +729,7 @@ def buy_ring(initial=False, tariff_travel=0):
 def register_joust():
     now = datetime.now()
     month_number = now.day
-    if month_number % 5 == 0:
+    if month_number % 3 == 0:
         try:
             resp = make_request(url_joust)
             soup = BeautifulSoup(resp.content, 'lxml')
@@ -747,8 +747,8 @@ def register_joust():
                 p_log("Вы зарегистрированы на турнир")
             else:
                 p_log("Вы уже участвуете в турнире")
-        except Exception:
-            p_log("Ошибка регистрации на турнир")
+        except Exception as err:
+            p_log(f"Ошибка регистрации на турнир: {err}", level='warning')
 
 
 # __________________________________ Покупка баночек HP до нужного количества _______________________________
