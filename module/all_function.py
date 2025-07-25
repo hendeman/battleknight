@@ -1,5 +1,6 @@
 import base64
 import configparser
+import json
 import pickle
 import random
 import re
@@ -315,3 +316,76 @@ def availability_id(user_id):
     p_log(f"decoded_bytes: {decoded_bytes}", level='debug')
     p_log(f"user_id: {user_id}", level='debug')
     return user_id == decoded_bytes
+
+
+# _____________________ создание, загрузка и копия файла JSON __________________________________________
+
+def save_json_file(dct: dict, path: str, name_file: str):
+    path = path + name_file
+    with open(path, "w", encoding="utf-8-sig") as f:
+        json.dump(dct, f, ensure_ascii=False, indent=4)  # ensure_ascii=False для кириллицы
+        p_log(f"Данные успешно сохранены в {path}")
+
+
+def load_json_file(path: str, name_file: str) -> dict:
+    path = path + name_file
+    with open(path, "r", encoding="utf-8-sig") as f:
+        loaded_data = json.load(f)
+    return loaded_data
+
+
+def backup_json_file(original_path: str, save_dir: str) -> str:
+    """
+    Создает копию JSON-файла с датой в имени.
+
+    :param original_path: Путь к исходному JSON-файлу (например, 'data.json').
+    :param save_dir: Директория для резервных копий (например, 'backups').
+    :return: Путь к созданной копии.
+    """
+    # Проверяем, существует ли исходный файл
+    if not os.path.exists(original_path):
+        raise FileNotFoundError(f"Файл {original_path} не найден!")
+
+    # Создаем директорию для резервных копий, если её нет
+    os.makedirs(save_dir, exist_ok=True)
+
+    # Получаем имя файла без расширения и его расширение
+    file_name, ext = os.path.splitext(os.path.basename(original_path))
+
+    # Форматируем текущую дату (например, '20_05_25' для 25 мая 2025 года)
+    current_date = datetime.now().strftime("%y_%m_%d")
+
+    # Формируем новое имя файла (например, 'data_20_05_25.json')
+    backup_filename = f"{file_name}_{current_date}{ext}"
+    backup_path = os.path.join(save_dir, backup_filename)
+
+    # Копируем содержимое исходного файла в новый
+    with open(original_path, 'r', encoding='utf-8-sig') as original_file:
+        data = json.load(original_file)
+
+    with open(backup_path, 'w', encoding='utf-8-sig') as backup_file:
+        json.dump(data, backup_file, ensure_ascii=False, indent=4)
+
+    p_log(f"Создана резервная копия: {backup_path}")
+    return backup_path
+
+
+# _________________________________________________________________________________________________
+
+def check_file_exists(path_json_file: str, name_file: str) -> bool:
+    """
+    Проверяет, существует ли файл в указанной директории.
+
+    :param path_json_file: Путь к директории (например, '/backups').
+    :param name_file: Имя файла (по умолчанию 'data.json').
+    :return: True если файл существует, иначе False.
+    """
+    full_path = os.path.join(path_json_file, name_file)
+    return os.path.isfile(full_path)
+
+
+def get_html_files(directory: str) -> list:
+    """ Возвращает все html файлы в из директории directory """
+    html_files = [entry.name for entry in os.scandir(directory) if entry.is_file() and entry.name.endswith('.html')]
+
+    return html_files
