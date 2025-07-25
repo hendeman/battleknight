@@ -38,6 +38,14 @@ filename = 'config.ini'
 url_name_json = 'battle.json'
 url_nicks = "nicksflower.txt"
 
+excel_file_path = f"bk\\statistic\\stat.xlsx"
+path_json = f"bk\\statistic\\"
+backup_dir = f"bk\\statistic\\backup\\"
+statistic_old_dir = f"bk\\statistic\\statistic_old\\"
+statistic_new_dir = f"bk\\statistic\\statistic_new\\"
+name_file_old = 'data.json'
+name_file_new = 'data_new.json'
+
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 '
                   'Safari/537.36',
