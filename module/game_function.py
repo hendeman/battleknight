@@ -628,7 +628,9 @@ def move_item(how='buy', name='key', rand=True):
 
 def place_bet(id_item, bet):
     payload = {'noCache': no_cache()}
-    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}', payload)
+    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}',
+                        payload,
+                        csrf=False)
     try:
         if resp.json()['result']:
             p_log("Ставка выполнена успешно")
