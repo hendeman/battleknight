@@ -4,7 +4,6 @@ from random import choice
 
 from bs4 import BeautifulSoup
 
-from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
@@ -14,6 +13,7 @@ from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers
+from module.group import go_group
 from module.http_requests import post_request, make_request
 from setting import start_game, start_time, auction_castles, castles_all
 from sliv import set_initial_gold, reduce_experience, online_tracking_only

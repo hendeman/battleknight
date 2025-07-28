@@ -64,8 +64,13 @@ def make_request(url, timeout=10, game_sleep=True):
 
 
 @request_error_handler
-def post_request(url, data, timeout=10):
-    data['csrf_token'] = csrf_token
+def post_request(url, data, timeout=10, csrf=True):
+    """ Без csrf_token следующие POST-запросы:
+        - создание группы, пас-группы;
+        - получение списка баночек getPotionBar"""
+
+    if csrf:
+        data['csrf_token'] = csrf_token
     response = requests.post(
         url,
         cookies=cookies,

@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 
 from logs.logs import p_log
+
 from module.all_function import no_cache, format_time, get_config_value, time_sleep
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
@@ -30,7 +31,7 @@ url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission'
 url_group_members = 'https://s32-ru.battleknight.gameforge.com/groupmission/groupMembers'
 url_group_pas = 'https://s32-ru.battleknight.gameforge.com/groupmission/dice'
 url_group_delete = 'https://s32-ru.battleknight.gameforge.com/groupmission/deleteGroup'
-
+url_greate_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/foundGroup/'
 
 def create_group():
     gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
@@ -47,7 +48,7 @@ def create_group():
     make_request(url_group)
     time.sleep(1)
     try:
-        result = post_request('https://s32-ru.battleknight.gameforge.com/groupmission/foundGroup/', payload).json()
+        result = post_request(url_greate_group, payload, csrf=False).json()
         if result:
             p_log("Группа успешно создана")
             return True
@@ -74,7 +75,7 @@ def pas_group():
     make_request(url_group)  # попробуй url_group_pas
     time.sleep(2)
     payload = {'dicePassValue': 1}
-    post_request(url_group_pas, payload)
+    post_request(url_group_pas, payload, csrf=False)
     p_log("Запрос на ПАС группы выполнен")
     time.sleep(2)
     return BeautifulSoup(make_request(url_group).text, 'lxml').text

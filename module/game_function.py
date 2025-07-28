@@ -182,7 +182,7 @@ def get_potion_bar():
     payload = {
         'noCache': f'{int(time.time() * 1000)}'
     }
-    data = post_request(point_url, payload).json()
+    data = post_request(point_url, payload, csrf=False).json()
     result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
     p_log(result)
     last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']

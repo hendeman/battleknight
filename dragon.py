@@ -6,13 +6,13 @@ from functools import partial
 
 from bs4 import BeautifulSoup
 
-from group import go_group
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
     go_auction, account_verification
+from module.group import go_group
 from module.http_requests import make_request
 from setting import castles_all, castles_island, castles, world_url, map_url, url_zany_healer, event_healer_potions, \
     auction_castles
