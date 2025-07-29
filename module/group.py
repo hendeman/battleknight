@@ -33,6 +33,7 @@ url_group_pas = 'https://s32-ru.battleknight.gameforge.com/groupmission/dice'
 url_group_delete = 'https://s32-ru.battleknight.gameforge.com/groupmission/deleteGroup'
 url_greate_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/foundGroup/'
 
+
 def create_group():
     gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
     payload = {
@@ -48,14 +49,16 @@ def create_group():
     make_request(url_group)
     time.sleep(1)
     try:
-        result = post_request(url_greate_group, payload, csrf=False).json()
-        if result:
+        result = post_request(url_greate_group, payload).json()
+        if result['result']:
             p_log("Группа успешно создана")
             return True
         else:
             p_log("Ошибка создания группы. Проверьте post-запрос")
+            p_log(result, level='debug')
     except ValueError:
-        p_log("Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков", level='warning')
+        p_log("Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков",
+              level='warning')
 
 
 def hire_mercenary(id_mercenary):
