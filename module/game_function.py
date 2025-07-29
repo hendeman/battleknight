@@ -173,8 +173,8 @@ def use_potion():
         sleep(get_random_value())
         # Получить новый список зелья
         get_potion_bar()
-    except Exception:
-        p_log("Ошибка в получении банок ХП. Отдыхаем 10 минут", level='warning')
+    except Exception as err:
+        p_log(f"Ошибка в получении банок ХП. Отдыхаем 10 минут. Ошибка: {err}", level='warning')
         time_sleep(600)
 
 
@@ -182,7 +182,7 @@ def get_potion_bar():
     payload = {
         'noCache': f'{int(time.time() * 1000)}'
     }
-    data = post_request(point_url, payload, csrf=False).json()
+    data = post_request(point_url, payload).json()
     result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
     p_log(result)
     last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
@@ -628,9 +628,7 @@ def move_item(how='buy', name='key', rand=True):
 
 def place_bet(id_item, bet):
     payload = {'noCache': no_cache()}
-    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}',
-                        payload,
-                        csrf=False)
+    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}', payload)
     try:
         if resp.json()['result']:
             p_log("Ставка выполнена успешно")
