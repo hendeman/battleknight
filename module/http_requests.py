@@ -9,8 +9,8 @@ from module.all_function import get_random_value
 from module.data_pars import get_csrf_token, get_title
 from setting import cookies, headers
 
-csrf_token = None
-
+csrf_token = "8f93f7cde41e273dc13073f05760dacec8b43c3c2cae8c9accc620d0cfed13c4"
+max_csrf_retries = 3
 
 def validate_status(response):
     if response.status_code >= 400:
@@ -24,6 +24,7 @@ def request_error_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         timeout = kwargs.get('timeout', 10)
+        csrf_retries = 0  # Счетчик попыток из-за CSRF
         while True:
             try:
                 response = func(*args, **kwargs)
@@ -31,9 +32,19 @@ def request_error_handler(func):
                 if func.__name__ == 'make_request':
                     global csrf_token
                     token = get_csrf_token(response)
+
                     if token and csrf_token != token:
-                        p_log('CSRF token обновлен', level='debug')
+                        p_log(f'CSRF token обновлен (попытка {csrf_retries + 1}/{max_csrf_retries})', level='debug')
                         csrf_token = token
+
+                        # Если токен изменился и еще не превышен лимит попыток
+                        if csrf_retries < max_csrf_retries:
+                            csrf_retries += 1
+                            p_log('Повторный запрос из-за обновления CSRF токена', level='debug')
+                            continue  # Повторяем цикл с новым токеном
+                        else:
+                            p_log('Достигнут лимит попыток из-за обновления CSRF токена', level='debug')
+
                 return response
             except Timeout as e:
                 p_log(f"Timeout: {e}", level='debug')
