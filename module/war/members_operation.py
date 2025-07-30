@@ -21,14 +21,18 @@ def post_remove_member(id_name):
         f"/ajax/clan/removeMember/?knightID={id_name}"
     )
     payload = {'knightID': id_name}
-    resp = post_request(url_remove_member, payload).json()
-    if resp["result"]:
-        p_log(f"{current_thread_name} успешно удален из ордена")
-    else:
-        p_log(resp["reason"])
+    try:
+        resp = post_request(url_remove_member, payload).json()
+        if resp["result"]:
+            p_log(f"{current_thread_name} успешно удален из ордена")
+        else:
+            p_log(f'Неудача. Причина: {resp.get("reason")}')
+    except Exception as err:
+        p_log(f'Ошибка запроса удаления игрока: {err}')
 
 
 def remove_members(mode='var', delete_war_list=None):
+    mode_status = {'var': "Во время битвы", 'be_var': "После битвы"}
     if mode == 'var' and delete_war_list is None:
         return 0
 
@@ -48,7 +52,7 @@ def remove_members(mode='var', delete_war_list=None):
         # Получение списка игроков, которые участвуют в текущей битве
         try:
             resp = make_request(url_war_damage).json()
-            war_members = set([x.get('id') for x in resp['data']['attacker']['member']])
+            war_members = [x.get('id') for x in resp['data']['attacker']['member']]
         except Exception as er:
             p_log(f"Ошибка получения списка воющих игроков: {er}")
             war_members = remove_member_list
@@ -64,6 +68,9 @@ def remove_members(mode='var', delete_war_list=None):
         p_log(f"remove_member_list_in_war: {remove_member_list_in_war}", level="debug")
 
         remove_member_list = remove_member_list_not_war
+
+    remove_member_name_list = list(map(lambda game_id: remove_member_list.get(game_id).get('name'), remove_member_list))
+    p_log(f"{mode_status.get(mode)} будут удалены следующие игроки {remove_member_name_list}")
 
     threads = [
         threading.Thread(target=post_remove_member,
@@ -112,23 +119,26 @@ def is_rank_player(dict1, dict2):
     :Словарь игроков ордена dict2:
     Проверка на наличие игроков в ордене из dict1, проверка ранга, установка ранга
     """
-    players = set(dict1.keys()) & set(dict2.keys())
+    players = set(dict1) & set(dict2)
     for player in players:
-        if dict1[player].get('rank') != dict2[player].get('rank'):
-            set_knight_rank(name=dict1[player].get('name'),
+        target_rank, current_rank = dict1[player].get('rank'), dict2[player].get('rank')
+        if target_rank != current_rank:
+            name = dict1[player].get('name')
+            p_log(f"У рыцаря {name} {current_rank} ранг")
+            set_knight_rank(name=name,
                             player=player,
-                            rank=dict1[player].get('rank'))
+                            rank=target_rank)
 
 
 def accept_into_order():
     p_log("Открылся поток для принятия заявок", level='debug')
-    count = 4
-    repeat_time = 4 * 60 * 60
+    count = 5
+    repeat_time = int(0.5 * 60 * 60)
     while count:
         with open(war_list, 'r', encoding='utf-8') as file:
             remove_member_list = json.load(file)
         time.sleep(repeat_time)
-        # remove_member_list = ast.literal_eval(get_config_value(key='remove_member_list'))
+
         resp = make_request(url_members, game_sleep=False)
         soup = BeautifulSoup(resp.text, 'lxml')
 
@@ -152,5 +162,6 @@ def accept_into_order():
                 set_knight_rank(name=name,
                                 player=number_id,
                                 rank=remove_member_list[number_id].get('rank'))
+        repeat_time *= 2
         count -= 1
     p_log("Поток для принятия заявок завершился!", level='debug')
