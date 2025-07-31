@@ -53,6 +53,7 @@ def remove_members(mode='var', delete_war_list=None):
         try:
             resp = make_request(url_war_damage).json()
             war_members = [x.get('id') for x in resp['data']['attacker']['member']]
+            p_log(f"war_members: {war_members}", level='debug')
         except Exception as er:
             p_log(f"Ошибка получения списка воющих игроков: {er}")
             war_members = remove_member_list
