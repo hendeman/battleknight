@@ -9,8 +9,9 @@ from module.all_function import get_random_value
 from module.data_pars import get_csrf_token, get_title
 from setting import cookies, headers
 
-csrf_token = "8f93f7cde41e273dc13073f05760dacec8b43c3c2cae8c9accc620d0cfed13c4"
+csrf_token = None
 max_csrf_retries = 3
+
 
 def validate_status(response):
     if response.status_code >= 400:
@@ -59,13 +60,14 @@ def request_error_handler(func):
 
 
 @request_error_handler
-def make_request(url, timeout=10, game_sleep=True):
+def make_request(url, timeout=10, game_sleep=True, browser_cookies=cookies, http_headers=headers, proxies=None):
     response = requests.get(
         url,
-        cookies=cookies,
-        headers=headers,
+        cookies=browser_cookies,
+        headers=http_headers,
         allow_redirects=True,
-        timeout=timeout
+        timeout=timeout,
+        proxies=proxies
     )
     p_log(f"GET {response.status_code}: {url}", level='debug')
     validate_status(response)
@@ -75,7 +77,7 @@ def make_request(url, timeout=10, game_sleep=True):
 
 
 @request_error_handler
-def post_request(url, data, timeout=10, csrf=True):
+def post_request(url, data, timeout=10, csrf=True, browser_cookies=cookies, http_headers=headers, proxies=None):
     """ Без csrf_token следующие POST-запросы:
         - создание группы, пас-группы;
         - получение списка баночек getPotionBar"""
@@ -84,11 +86,12 @@ def post_request(url, data, timeout=10, csrf=True):
         data['csrf_token'] = csrf_token
     response = requests.post(
         url,
-        cookies=cookies,
-        headers=headers,
+        cookies=browser_cookies,
+        headers=http_headers,
         data=data,
         allow_redirects=True,
-        timeout=timeout
+        timeout=timeout,
+        proxies=proxies
     )
     p_log(f"POST {response.status_code}: {url}", level='debug')
     validate_status(response)
