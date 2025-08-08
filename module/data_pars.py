@@ -134,7 +134,7 @@ def set_name(resp):
     p_log(f"Добро пожаловать в игру, {setting.NAME}!")
 
 
-def get_id(resp):
+def get_id(resp, not_token=False):
     soup = BeautifulSoup(resp.content, 'lxml')
     element = soup.find(id='shieldNeutral')
     url_profile = element.get('href') if element else None
@@ -143,7 +143,7 @@ def get_id(resp):
     match = re.search(r'/profile/(\d+)/', url_profile)
     user_id = match.group(1)
 
-    if not availability_id(user_id):
+    if not availability_id(user_id, not_token):
         raise Exception("Доступ запрещен")
 
 

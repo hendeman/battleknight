@@ -311,7 +311,9 @@ def get_next_time_and_index(start_times):
     return next_index + 1, next_time.strftime('%H:%M')
 
 
-def availability_id(user_id):
+def availability_id(user_id, not_token=False):
+    if not_token:
+        return user_id == not_token
     decoded_bytes = base64.b64decode(GAME_TOKEN).decode('utf-8')
     p_log(f"decoded_bytes: {decoded_bytes}", level='debug')
     p_log(f"user_id: {user_id}", level='debug')
