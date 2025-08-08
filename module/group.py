@@ -27,7 +27,7 @@ def calculate_sum(num_list):
     return total
 
 
-url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission'
+url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group'
 url_group_members = 'https://s32-ru.battleknight.gameforge.com/groupmission/groupMembers'
 url_group_pas = 'https://s32-ru.battleknight.gameforge.com/groupmission/dice'
 url_group_delete = 'https://s32-ru.battleknight.gameforge.com/groupmission/deleteGroup'
