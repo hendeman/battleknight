@@ -106,8 +106,8 @@ def main_pars_clanwar(soup):
                     script_content = script_content.replace(text_match.group(0), '', 1)
 
             try:
-                with open(castles, 'w') as file_gamer:
-                    json.dump(castles_dict, file_gamer, indent=4)
+                with open(castles, 'w', encoding="utf-8-sig") as file_gamer:
+                    json.dump(castles_dict, file_gamer, ensure_ascii=False, indent=4)
                     p_log(f"Файл {castles} обновлен", level='debug')
             except Exception as er:
                 p_log(f"Ошибка записи {castles}: {er}")
