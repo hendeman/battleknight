@@ -5,6 +5,7 @@ url_attack_castle = f'https://s{server_number}-ru.battleknight.gameforge.com:443
 url_status_war = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwar'
 url_members = f'https://s{server_number}-ru.battleknight.gameforge.com/clan/members'
 url_war_damage = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwar/getDamageData'
+url_clan_leave = f'https://s{server_number}-ru.battleknight.gameforge.com/clan/resign'
 
 html_files_directory = 'module/war/war_file'
 castles = 'module/war/data_files/castles.json'
