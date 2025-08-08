@@ -34,10 +34,15 @@ def attack_castle(trade_name, delete_war_list=None):
             except Exception as er:
                 p_log(f"Ошибка при удалении игроков после окончания войны: {er}")
 
-            payload = {'castleID': castle_id, 'warType': 'conquer'}
-            decorated_post_request = deco_time(post_request)
-            resp = decorated_post_request(url_attack_castle, payload)
-            save_html_file(trade_name, resp, 'answer')
+            if get_config_value(key='leave_clan'):
+                p_log("Будет осуществлена попытка выйти из ордена")
+                decorated_get_request = deco_time(make_request)  # тут пост или гет проверить
+                resp = decorated_get_request(url_clan_leave, game_sleep=False)
+            else:
+                payload = {'castleID': castle_id, 'warType': 'conquer'}
+                decorated_post_request = deco_time(post_request)
+                resp = decorated_post_request(url_attack_castle, payload)
+                save_html_file(trade_name, resp, 'answer')
         else:
             p_log(f"Запрос {trade_name}. Ошибка получения castle_id")
     else:
