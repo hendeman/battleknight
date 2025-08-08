@@ -871,7 +871,7 @@ def init_status_players():
 
 
 # ____________________________ Верификация доступа к игре __________________________________
-def account_verification():
+def account_verification(not_token=False):
     response = make_request(user_url)
     set_name(response)
-    get_id(response)
+    get_id(response, not_token)
