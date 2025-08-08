@@ -1,5 +1,4 @@
 import time
-from functools import wraps
 
 import requests
 from requests import Timeout, RequestException
@@ -13,6 +12,7 @@ from setting import cookies, headers
 
 csrf_token = None
 max_csrf_retries = 3
+max_retries = 3
 
 
 class LazyProxyManager:
@@ -45,81 +45,87 @@ def validate_status(response):
         raise RequestException(f"Страница 404: {title}")
 
 
-def request_error_handler(func):
-    @wraps(func)
-    def wrapper(url, *args, **kwargs):
-        timeout = kwargs.get('timeout', 10)
-        csrf = kwargs.get('csrf', False)
-        proxies = kwargs.get('proxies', None)
-        proxy_manager = kwargs.get('proxy_manage', LazyProxyManager())
+def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwargs):
+    """
+    Универсальная функция для выполнения HTTP запросов с обработкой ошибок
 
-        if isinstance(proxy_manager, str):
-            proxy_manager = LazyProxyManager(custom_proxy=proxy_manager)
+    Args:
+        request_func: функция requests.get или requests.post
+        url: URL для запроса
+        timeout: таймаут запроса
+        proxy_manager: менеджер прокси
+        **kwargs: дополнительные параметры для запроса
+    """
+    global csrf_token
+    csrf_retries = 0
+    request_retries = 0
 
-        max_retries = 3
-        csrf_retries = 0  # Счетчик попыток из-за CSRF
-        request_retries = 0
+    # Извлекаем параметры, которые не нужны для requests
+    csrf_enabled = kwargs.pop('csrf', True)  # Удаляем csrf из kwargs
 
-        while True:
-            try:
+    if isinstance(proxy_manager, str):
+        proxy_manager = LazyProxyManager(custom_proxy=proxy_manager)
+    elif proxy_manager is None:
+        proxy_manager = LazyProxyManager()
+
+    while True:
+        try:
+            # Установка прокси
+            proxies = None
+            if proxy_manager:
+                current_proxy = proxy_manager.get_current_proxy()
+                kwargs['proxies'] = {"http": current_proxy,
+                                     "https": current_proxy}
+                proxies = kwargs.get('proxies').get('http')
+
+            # Выполнение запроса
+            response = request_func(url, timeout=timeout, **kwargs)
+            validate_status(response)
+
+            # Логирование
+            method = "POST" if request_func == requests.post else "GET"
+            p_log(f"{method} {response.status_code}: {url} | proxy:{proxies}", level='debug')
+
+            # CSRF-логика (только для GET запросов)
+            if request_func == requests.get and csrf_enabled:
+                token = get_csrf_token(response)
+                if token and csrf_token != token:
+                    p_log(f'CSRF token обновлен (попытка {csrf_retries + 1}/{max_csrf_retries})', level='debug')
+                    csrf_token = token
+
+                    if csrf_retries < max_csrf_retries:
+                        csrf_retries += 1
+                        p_log('Повторный запрос из-за обновления CSRF токена', level='debug')
+                        continue
+                    else:
+                        p_log('Достигнут лимит попыток из-за обновления CSRF токена', level='debug')
+
+            return response
+
+        except ProxyError as e:
+            request_retries += 1
+            p_log(f"ProxyError: {e}", level='debug')
+            p_log(f"Повтор через {timeout} сек...", level='debug')
+
+            if request_retries >= max_retries:
                 if proxy_manager:
-                    current_proxy = proxy_manager.get_current_proxy()
-                    kwargs['proxies'] = {"http": current_proxy,
-                                         "https": current_proxy}
-                    proxies = kwargs.get('proxies').get('http')
-
-                response = func(url, *args, **kwargs)
-                validate_status(response)
-
-                if func.__name__ == 'make_request':
-                    p_log(f"GET {response.status_code}: {url} | proxy:{proxies}", level='debug')
-                else:
-                    p_log(f"POST {response.status_code}: {url} | proxy:{proxies}", level='debug')
-
-                # CSRF-логика только для make_request
-                if func.__name__ == 'make_request' and csrf:
-                    global csrf_token
-                    token = get_csrf_token(response)
-
-                    if token and csrf_token != token:
-                        p_log(f'CSRF token обновлен (попытка {csrf_retries + 1}/{max_csrf_retries})', level='debug')
-                        csrf_token = token
-
-                        # Если токен изменился и еще не превышен лимит попыток
-                        if csrf_retries < max_csrf_retries:
-                            csrf_retries += 1
-                            p_log('Повторный запрос из-за обновления CSRF токена', level='debug')
-                            continue  # Повторяем цикл с новым токеном
-                        else:
-                            p_log('Достигнут лимит попыток из-за обновления CSRF токена', level='debug')
-
-                return response
-            except ProxyError as e:
-                request_retries += 1
-                old_proxy = proxy_manager.get_current_proxy()
-                p_log(f"ProxyError: {e}", level='debug')
-                p_log(f"Повтор через {timeout} сек...", level='debug')
-
-                if request_retries >= max_retries:
+                    old_proxy = proxy_manager.get_current_proxy()
                     new_proxy = proxy_manager.get_next_proxy()
                     p_log(f"Превышено количество попыток для прокси {old_proxy}", level='debug')
                     p_log(f"Будет выбран следующий прокси {new_proxy}", level='debug')
-                    request_retries = 0
+                request_retries = 0
 
-            except Timeout as e:
-                p_log(f"Timeout: {e}", level='debug')
-                p_log(f"Повтор через {timeout} сек...", level='debug')
+        except Timeout as e:
+            p_log(f"Timeout: {e}", level='debug')
+            p_log(f"Повтор через {timeout} сек...", level='debug')
 
-            except RequestException as e:
-                p_log(f"Ошибка: {e}", level='debug')
-                p_log(f"Повтор через {timeout} сек...", level='debug')
+        except RequestException as e:
+            p_log(f"Ошибка: {e}", level='debug')
+            p_log(f"Повтор через {timeout} сек...", level='debug')
 
-            time.sleep(timeout)
-
-    return wrapper
+        time.sleep(timeout)
 
 
-@request_error_handler
 def make_request(url,
                  timeout=10,
                  game_sleep=True,
@@ -128,41 +134,50 @@ def make_request(url,
                  csrf=True,
                  proxy_manage=None,
                  proxies=None):
-    response = requests.get(
-        url,
+    """GET запрос"""
+
+    response = make_http_request(
+        request_func=requests.get,
+        url=url,
+        timeout=timeout,
+        proxy_manager=proxy_manage,
         cookies=browser_cookies,
         headers=http_headers,
         allow_redirects=True,
-        timeout=timeout,
-        proxies=proxies
+        proxies=proxies,
+        csrf=csrf
     )
+
     if game_sleep:
         time.sleep(get_random_value(1, 2.5))
     return response
 
 
-@request_error_handler
 def post_request(url,
-                 data,
+                 data=None,
                  timeout=10,
                  csrf=True,
                  browser_cookies=cookies,
                  http_headers=headers,
                  proxies=None,
                  proxy_manage=None):
-    """ Без csrf_token следующие POST-запросы:
-        - создание группы, пас-группы;
-        - получение списка баночек getPotionBar"""
+    """POST запрос"""
 
+    # Добавление CSRF токена если нужно
     if csrf:
         data['csrf_token'] = csrf_token
-    response = requests.post(
-        url,
+
+    response = make_http_request(
+        request_func=requests.post,
+        url=url,
+        timeout=timeout,
+        proxy_manager=proxy_manage,
+        data=data,
         cookies=browser_cookies,
         headers=http_headers,
-        data=data,
         allow_redirects=True,
-        timeout=timeout,
-        proxies=proxies
+        proxies=proxies,
+        csrf=csrf
     )
+
     return response
