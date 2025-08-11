@@ -32,7 +32,7 @@ def post_remove_member(id_name):
 
 
 def remove_members(mode='var', delete_war_list=None):
-    mode_status = {'var': "Во время битвы", 'be_var': "После битвы"}
+    mode_status = {'be_var': "Во время битвы", 'var': "После битвы"}
     if mode == 'var' and delete_war_list is None:
         return 0
 
