@@ -118,6 +118,7 @@ def autoplay(town, mission_name, side):
 
     while True:
         phase_offset = get_config_value("phase_offset")
+        p_log(f"phase_offset={phase_offset}, count_work={count_work}", level='debug')
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
         if get_config_value("register_joust"):
             register_joust()  # регистрация на турнир
@@ -159,7 +160,6 @@ def autoplay(town, mission_name, side):
             if get_config_value(key="online_track"):
                 init_status_players()  # Обновление battle.json
 
-            p_log(f"Значение count_work={count_work}", level="debug")
             if get_config_value("reduce_experience"):
                 common_actions(reduce_experience, "reduce_experience")
             else:
