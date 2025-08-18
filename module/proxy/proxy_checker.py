@@ -2,7 +2,7 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from logs.logs import p_log
+from logs.logs import p_log, setup_logging
 
 # Получаем директорию, где лежит этот скрипт
 MODULE_DIR = Path(__file__).parent
@@ -186,7 +186,7 @@ def save_proxy_txt(results):
                     f.write(f" - ERROR: {res.get('error')}")
                 f.write("\n")
 
-        p_log("\nРезультаты сохранены в proxy_results.txt")
+        p_log(f"Результаты сохранены в {FILE_PATH_RESULT}")
 
     except FileNotFoundError:
         p_log(f"Ошибка: файл {FILE_PATH_RESULT} не найден")
@@ -209,4 +209,5 @@ def proxy_checker(max_workers=20):
 
 
 if __name__ == "__main__":
+    setup_logging()
     print(proxy_checker())
