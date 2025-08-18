@@ -1,8 +1,6 @@
 from datetime import date
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from env_loader import load_custom_env
 
 today = date.today()
 
@@ -53,16 +51,7 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, br'
 }
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
-cookies = {
-    "BattleKnight": os.getenv("BATTLEKNIGHT_COOKIE"),
-    "gf-cookie-consent-4449562312": os.getenv("GF_CONSENT_COOKIE"),
-    "gf-token-production": os.getenv("GF_TOKEN"),
-    "gf_pz_token": os.getenv("GF_PZ_TOKEN"),
-    "pc_idt": os.getenv("PC_IDT"),
-    "BattleKnightSession": os.getenv("BATTLEKNIGHT_SESSION"),
-    "GTPINGRESSCOOKIE": os.getenv("GTPINGRESSCOOKIE"),
-    "__cf_bm": os.getenv("CF_BM")
-}
+cookies = load_custom_env()
 
 castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван",
                   'TradingPostFour': 'Милей', 'FogIsland': 'Фехан'}
@@ -150,3 +139,10 @@ folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)
 
 def get_name():
     return NAME
+
+
+def reload_cookies(env_file=None):
+    """Перезагружает куки из указанного .env файла"""
+    global cookies
+    cookies = load_custom_env(env_file)
+    return cookies
