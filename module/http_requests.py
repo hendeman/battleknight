@@ -8,7 +8,7 @@ from logs.logs import p_log
 from module.all_function import get_random_value
 from module.data_pars import get_csrf_token, get_title
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import cookies, headers
+from setting import headers
 
 csrf_token = None
 max_csrf_retries = 3
@@ -18,15 +18,35 @@ max_retries = 3
 class LazyProxyManager:
     _instance = None
     _custom_proxy = None
+    _force_enabled = False  # Новый флаг принудительного включения
 
     def __new__(cls, custom_proxy=None):
         if custom_proxy:
             # Создаем временный менеджер с кастомным прокси
             return cls.create_custom_manager(custom_proxy)
 
+        if cls._force_enabled and cls._instance is None:
+            cls.enable(force=True)  # Активируем если включен принудительный режим
+
         if cls._instance is None:
             cls._instance = create_proxy_manager() or None
         return cls._instance
+
+    @classmethod
+    def enable(cls, force=True, custom_proxies=None):
+        """
+        Глобально активирует прокси-менеджер
+        :param force: bool - активировать/деактивировать
+        :param custom_proxies: list - кастомный список прокси (опционально)
+        """
+        cls._force_enabled = force
+        if force and cls._instance is None:
+            if custom_proxies:
+                # Используем кастомные прокси если переданы
+                cls._instance = ProxyManager(proxies=custom_proxies)
+            else:
+                # Иначе создаем стандартный менеджер
+                cls._instance = create_proxy_manager(read_conf=False)
 
     @classmethod
     def create_custom_manager(cls, proxy):
@@ -35,6 +55,12 @@ class LazyProxyManager:
         if not validated:
             raise ValueError(f"Неверный формат прокси: {proxy}")
         return ProxyManager(proxies=[proxy])
+
+    @classmethod
+    def reset(cls):
+        """Сбрасывает текущий экземпляр менеджера"""
+        cls._instance = None
+        cls._force_enabled = False
 
 
 def validate_status(response):
@@ -129,12 +155,15 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
 def make_request(url,
                  timeout=10,
                  game_sleep=True,
-                 browser_cookies=cookies,
+                 browser_cookies=None,
                  http_headers=headers,
                  csrf=True,
                  proxy_manage=None,
                  proxies=None):
     """GET запрос"""
+    if browser_cookies is None:
+        from setting import cookies
+        browser_cookies = cookies
 
     response = make_http_request(
         request_func=requests.get,
@@ -157,11 +186,14 @@ def post_request(url,
                  data=None,
                  timeout=10,
                  csrf=True,
-                 browser_cookies=cookies,
+                 browser_cookies=None,
                  http_headers=headers,
                  proxies=None,
                  proxy_manage=None):
     """POST запрос"""
+    if browser_cookies is None:
+        from setting import cookies
+        browser_cookies = cookies
 
     # Добавление CSRF токена если нужно
     if csrf:
