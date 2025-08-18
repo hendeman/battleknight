@@ -12,10 +12,10 @@ def proxies_validate(proxy: str):
     return num.isdigit() and length == 2 and len(proxy.split(".")) == 4
 
 
-def create_proxy_manager():
+def create_proxy_manager(read_conf=True):
     config = configparser.ConfigParser()
     config.read(filename)
-    if not config.getboolean('proxy', 'enabled', fallback=False):
+    if not config.getboolean('proxy', 'enabled', fallback=False) and read_conf:
         return None
 
     proxy_list = [
