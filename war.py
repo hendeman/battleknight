@@ -140,7 +140,7 @@ if __name__ == "__main__":
     account_verification(helper_init=False)
     if not check_file_exists(data_files_directory, members):
         p_log(f"Файл {members} не найден. Будет создан новый")
-        match_clan()
+        match_clan(create_file=True)
     parser = war_parser()
     args = parser.parse_args()
     if args.save:

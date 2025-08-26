@@ -111,13 +111,17 @@ def change_clan_dict(dct_new, dct_old):
     return dct_old
 
 
-def match_clan():
+def match_clan(create_file=False):
     resp = make_request(url_members, game_sleep=False)
     soup = BeautifulSoup(resp.text, 'lxml')
     party_members = party(soup)
-    party_members_old = load_json_file(data_files_directory, members)
-    party_members_new = change_clan_dict(party_members, party_members_old)
-    save_json_file(party_members_new, data_files_directory, members)
+    if not create_file:
+        party_members_old = load_json_file(data_files_directory, members)
+        party_members_new = change_clan_dict(party_members, party_members_old)
+        save_json_file(party_members_new, data_files_directory, members)
+    else:
+        save_json_file(remove_keys_from_nested(party_members, ['gold', 'level']),
+                       data_files_directory, members)
 
 
 def set_kick_members(members_list):
