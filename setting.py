@@ -14,6 +14,18 @@ CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "09:00"
 
+BAG_CONFIG = {
+    'companion': 6,
+    'horse': (5, 7)
+}
+
+ALL_BAG_NUMS = {6, 5, 7}
+
+NAME_HELPERS = {
+    "companion": {'item_name': "itemCompanion", 'type_helper_names': 'компаньон'},
+    "horse": {'item_name': "itemHorse", 'type_helper_names': 'наездник'}
+}
+
 # Выбор программы:
 # 1 - это программа клановой статистики
 # 0 - это программа серверной статистики
@@ -34,6 +46,7 @@ NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
 filename = 'config.ini'
 url_name_json = 'battle.json'
+url_helper_json = "helper.json"
 url_nicks = "nicksflower.txt"
 
 excel_file_path = f"bk\\statistic\\stat.xlsx"
@@ -69,15 +82,6 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 type_helper_name = ('наездник', 'компаньон')
-mount_list = {'pegasus': {'id_helper': '16888797', 'type_helper': type_helper_name[0], 'name': '<Пегас>'},
-              'bear': {'id_helper': '16896645', 'type_helper': type_helper_name[0], 'name': '<Боевой медведь>'},
-              'boar': {'id_helper': '17561824', 'type_helper': type_helper_name[0], 'name': '<Дикий кабан>'},
-              'unicorn': {'id_helper': '16459963', 'type_helper': type_helper_name[0], 'name': '<Белый единорог>'},
-              'squire': {'id_helper': '15959290', 'type_helper': type_helper_name[1], 'name': '<Сквайр>'},
-              'rabbit': {'id_helper': '15517097', 'type_helper': type_helper_name[1], 'name': '<Кролик>'},
-              'dog': {'id_helper': '16459964', 'type_helper': type_helper_name[1], 'name': '<Ищейка>'},
-              'fairy': {'id_helper': '18884016', 'type_helper': type_helper_name[1], 'name': '<Фея Света>'},
-              'turtle': {'id_helper': '22335273', 'type_helper': type_helper_name[1], 'name': '<Черепашка>'}}
 start_time = ['09:00', '15:25', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
