@@ -6,10 +6,11 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from logs.logs import p_log
-from module.all_function import get_config_value
+from module.all_function import get_config_value, load_json_file, save_json_file
 from module.game_function import progressbar_ends, seconds_to_hhmmss
 from module.http_requests import make_request
-from module.war.settings import html_files_directory, url_clanwar
+from module.operation import party
+from module.war.settings import html_files_directory, url_clanwar, data_files_directory, members, url_members
 
 
 def wait_until_target_time(time_end, delay=0):
@@ -77,3 +78,78 @@ def get_time_end():
     soup = BeautifulSoup(resp.text, 'lxml')
     sec = progressbar_ends(soup)
     return seconds_to_hhmmss(sec), sec, soup
+
+
+# _________________________________ Для формирования и обновления json игроков удаления _____________________
+def remove_keys_from_nested(dictionary, keys_to_remove):
+    """Удаляет указанные ключи из всех вложенных словарей и добавляет новый ключ."""
+    for inner_dict in dictionary.values():
+        for key in keys_to_remove:
+            inner_dict.pop(key, None)
+        inner_dict['clan_kick'] = 0
+    return dictionary
+
+
+def change_clan_dict(dct_new, dct_old):
+    for gamer, param in dct_new.items():
+        if gamer not in dct_old:
+            p_log(f"Появился новый игрок {param.get('name')}")
+            dct_old[gamer] = {
+                'name': param.get('name'),
+                'rank': param.get('rank'),
+                'clan_kick': 0
+            }
+        else:
+            name = param.get('name')
+            rank = param.get('rank')
+            if name != dct_old[gamer].get('name'):
+                p_log(f'Игрок с id={gamer} изменил имя с {dct_old[gamer].get("name")} на {name}')
+                dct_old[gamer]['name'] = name
+            if param.get('rank') != dct_old[gamer].get('rank'):
+                p_log(f'Игрок {name} изменил ранг с {dct_old[gamer].get("rank")} на {rank}')
+                dct_old[gamer]['rank'] = param.get('rank')
+    return dct_old
+
+
+def match_clan():
+    resp = make_request(url_members, game_sleep=False)
+    soup = BeautifulSoup(resp.text, 'lxml')
+    party_members = party(soup)
+    party_members_old = load_json_file(data_files_directory, members)
+    party_members_new = change_clan_dict(party_members, party_members_old)
+    save_json_file(party_members_new, data_files_directory, members)
+
+
+def set_kick_members(members_list):
+    party_members = load_json_file(data_files_directory, members)
+    change_name = []
+
+    if members_list == 'reset':
+        # Сброс всех clan_kick
+        for value in party_members.values():
+            if value.get('clan_kick'):
+                value['clan_kick'] = 0
+                change_name.append(value.get('name'))
+    else:
+        # Создаем словарь для быстрого поиска по имени
+        name_to_entry = {}
+        for gamer_id, data in party_members.items():
+            name_to_entry[data['name']] = (gamer_id, data)
+
+        # Устанавливаем clan_kick
+        for member in members_list:
+            if member in name_to_entry:
+                gamer_id, data = name_to_entry[member]
+                data['clan_kick'] = 1
+                change_name.append(member)
+
+    if change_name:
+        p_log(f"Изменен статус удаления у {', '.join(change_name)}")
+        save_json_file(party_members, data_files_directory, members)
+
+
+def get_kick_members():
+    party_members = load_json_file(data_files_directory, members)
+    return list(map(lambda x: x['name'],
+                    filter(lambda x: x.get('clan_kick') == 1,
+                           party_members.values())))
