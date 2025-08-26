@@ -1,3 +1,4 @@
+import json
 import re
 import setting
 
@@ -177,3 +178,94 @@ def pars_player(soup) -> dict:
                  "change_clan": []}
         list_tr.setdefault(key, value)
     return list_tr
+
+
+# __________________________________ Парсинг надетых компаньона и наездника по ID ______________________
+def find_item_data(soup, target_item_id):
+    script_tags = soup.find_all('script')
+
+    for script in script_tags:
+        if script.string:  # Проверяем, что тег script содержит текст
+            # Ищем все вызовы g_dragFunctions.storeAttributes в тексте скрипта
+            matches = re.finditer(
+                r'g_dragFunctions\.storeAttributes\((.+?)\);',
+                script.string,
+                re.DOTALL
+            )
+            for match in matches:
+                # Пытаемся разобрать аргументы функции
+                args_text = match.group(1)
+                # Разделяем аргументы, учитывая вложенные структуры
+                args = split_args(args_text)
+
+                # Последний аргумент должен быть словарем
+                if len(args) >= 9:  # Проверяем, что аргументов достаточно
+                    try:
+                        last_arg = args[-1]
+                        # Очищаем JSON от возможных лишних символов
+                        data = json.loads(last_arg)
+
+                        # Проверяем совпадение item_id
+                        if str(data.get('item_id')) == str(target_item_id):
+                            return {
+                                'item_id': data.get('item_id'),
+                                'item_fullName': data.get('item_fullName'),
+                                'item_pic': data.get('item_pic'),
+                                'speed_travel': data.get('item_special_ability').get('HorseTravelTimeReduction', 0)
+                                if data.get('item_special_ability')
+                                else 0,
+                                'item_use': int(data.get('item_use', 0))
+                            }
+                    except json.JSONDecodeError:
+                        continue  # Пропускаем некорректные JSON
+    return None
+
+
+def split_args(args_text):
+    # Функция для разделения аргументов, учитывая вложенные структуры
+    args = []
+    current_arg = []
+    brace_level = 0
+    bracket_level = 0
+    quote_char = None
+    escape = False
+
+    for char in args_text.strip():
+        if escape:
+            current_arg.append(char)
+            escape = False
+            continue
+
+        if char == '\\':
+            escape = True
+            current_arg.append(char)
+            continue
+
+        if char == '"' or char == "'":
+            if quote_char is None:
+                quote_char = char
+            elif quote_char == char:
+                quote_char = None
+            current_arg.append(char)
+        elif quote_char is not None:
+            current_arg.append(char)
+        else:
+            if char == '{':
+                brace_level += 1
+            elif char == '}':
+                brace_level -= 1
+            elif char == '[':
+                bracket_level += 1
+            elif char == ']':
+                bracket_level -= 1
+
+            if char == ',' and brace_level == 0 and bracket_level == 0:
+                args.append(''.join(current_arg).strip())
+                current_arg = []
+            else:
+                current_arg.append(char)
+
+    if current_arg:
+        args.append(''.join(current_arg).strip())
+
+    return args
