@@ -9,10 +9,10 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_name_mount, get_random_value, \
-    get_config_value
+from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
+    get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id
+    check_cooldown_poit, set_name, get_id, find_item_data
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -219,22 +219,30 @@ def put_gold(status="before"):
     return gold_count_element
 
 
-def use_helper(name_companion, restore=True, direct_call=False):
+def use_helper(config_name, restore=True, direct_call=False):
     """Декоратор для использования наездника/компаньона.
 
         Args:
-            name_companion (str): Имя наездника/компаньона из mount_list (например, 'pegasus', 'fairy').
+            config_name (str): Параметр наездника/компаньона из config.ini (например, comp_tournament, comp_fight...).
             restore (bool): Вернуть исходного наездника/компаньона после выполнения (по умолчанию True).
             direct_call (bool): Если True, декоратор выполнится сразу без привязки к функции.
         """
+
     def use_companion_deco(func):
         def wrapper(*args, **kwargs):
-            validate_helper = mount_list.get(name_companion, None)
+            name_companion = get_config_value(config_name)
+            available_helpers = {}
+            validate_helper = None
+            try:
+                available_helpers = load_json_file("", url_helper_json)
+                validate_helper = check_name_companion(available_helpers, name_companion)
+            except Exception as er:
+                p_log(f'Ошибка получения помощника {er}', level='warning')
             if validate_helper:
                 id_helper_start = None
-                id_helper = mount_list[name_companion]['id_helper']
-                type_helper = mount_list[name_companion]['type_helper']
-                num_inventory = "5" if type_helper == type_helper_name[0] else "6"
+                id_helper = validate_helper.get('item_id')
+                type_helper = validate_helper.get('type_helper')
+                num_inventory = validate_helper.get('number_bag')
                 url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
                               f'&inventory={num_inventory}&loc=character')
                 response = make_request(user_url)
@@ -245,9 +253,9 @@ def use_helper(name_companion, restore=True, direct_call=False):
                 if not id_helper_start and helper != id_helper:
                     p_log("Никакой помощник не надет")
                     id_helper_start = (
-                        mount_list['bear']['id_helper']
-                        if type_helper == 'horse'
-                        else mount_list['squire']['id_helper']
+                        check_name_companion(available_helpers, get_config_value('horse_tournament')).get('item_id')
+                        if type_helper == type_helper_name[0]
+                        else check_name_companion(available_helpers, get_config_value('comp_tournament')).get('item_id')
                     )
 
                 if helper != id_helper:
@@ -255,7 +263,8 @@ def use_helper(name_companion, restore=True, direct_call=False):
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"{type_helper} {get_name_mount(resp.json()['data']['id'])} надет")
+                        name_helper = get_name_companion(available_helpers, resp.json()['data']['id'])
+                        p_log(f"{type_helper} {name_helper} надет")
 
                 if not direct_call:
                     func(*args, **kwargs)
@@ -265,7 +274,8 @@ def use_helper(name_companion, restore=True, direct_call=False):
                         f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
-                        p_log(f"{type_helper} {get_name_mount(resp.json()['data']['id'])} надет")
+                        name_helper = get_name_companion(available_helpers, resp.json()['data']['id'])
+                        p_log(f"{type_helper} {name_helper} надет")
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
                 if not direct_call:
@@ -279,7 +289,7 @@ def use_helper(name_companion, restore=True, direct_call=False):
     return use_companion_deco
 
 
-@use_helper('pegasus')
+@use_helper("horse_travel")
 def post_travel(out='', where='', how='horse'):
     payload = {
         'travelwhere': f'{where}',
@@ -820,7 +830,7 @@ def conv_name_potion(potion):
 
 
 # ____________Отправить рыцаря на работу work и получить награду за работу get_reward___________
-@use_helper('rabbit')
+@use_helper("comp_work")
 def work(working_hours, side='good'):
     payload = {
         'hours': working_hours,
@@ -870,8 +880,96 @@ def init_status_players():
         print(f"Ошибка в структуре файла {url_name_json}: {er}")
 
 
+# _____________________________ Получение компаньонов и наездников __________________________
+
+
+def get_use_helper():
+    response = make_request(user_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    dct = {}
+
+    for helper, data_helper in NAME_HELPERS.items():
+        item_horse = soup.find(id=data_helper.get('item_name')).find('div',
+                                                                     {'id': lambda x: x and x.startswith('item')})
+        item_id = item_horse['id'].replace('item', '') if item_horse else None
+
+        item_data = find_item_data(soup, item_id)
+        if item_data:  # Если данные не None
+            item_data['type_helper'] = data_helper.get('type_helper_names')
+            number_bag = BAG_CONFIG.get(helper)
+            item_data['number_bag'] = number_bag if isinstance(number_bag, int) else number_bag[0]
+            dct.setdefault(helper, []).append(item_data)
+        else:  # Если None — создаём пустой список
+            dct.setdefault(helper, [])
+
+    return dct
+
+
+def get_helper_bag(bag_num=None):
+    def data_parsing(helper_type, num_bag, dct):
+        url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+                      f'&inventory={num_bag}&loc=character')
+        resp = make_request(url_helper)
+        resp_json = resp.json()
+        if not resp_json.get('result'):
+            return
+        for item in resp_json.get('items', []):
+            item_data = {
+                'item_id': item.get('item_id'),
+                'item_fullName': item.get('item_fullName'),
+                'item_pic': item.get('item_pic'),
+                'speed_travel': item.get('item_special_ability').get('HorseTravelTimeReduction', 0)
+                if item.get('item_special_ability')
+                else 0,
+                'item_use': int(item.get('item_use', 0)),
+                'type_helper': NAME_HELPERS[helper_type].get('type_helper_names'),
+                'number_bag': num_bag
+            }
+            dct.setdefault(helper_type, []).append(item_data)
+        return dct
+
+    result = {}
+    if bag_num is None:
+        for helper, nums in BAG_CONFIG.items():
+            bag_numbers = [nums] if isinstance(nums, int) else nums
+            for num in bag_numbers:
+                result = data_parsing(helper, num, result)
+    else:
+        if bag_num not in ALL_BAG_NUMS:
+            raise ValueError(f"Не существует сумки с номером {bag_num}")
+        helper = next(
+            (key for key, value in BAG_CONFIG.items()
+             if value == bag_num or (isinstance(value, tuple) and bag_num in value)),
+            None
+        )
+
+        result = data_parsing(helper, bag_num, result)
+
+    return result
+
+
+def all_helper(save_json=True):
+    p_log("Инициализация всех помощников")
+    dct_2 = get_use_helper()
+    dct_1 = get_helper_bag()
+
+    if dct_2['companion']:
+        dct_1['companion'].extend(dct_2['companion'])  # Добавляем надетого компаньонов
+
+    if dct_2['horse']:
+        dct_1['horse'].extend(dct_2['horse'])  # Добавляем надетого наездника
+
+    if save_json:
+        save_json_file(dct_1, "", url_helper_json)
+    return dct_1
+
+
 # ____________________________ Верификация доступа к игре __________________________________
-def account_verification(not_token=False):
+def account_verification(not_token=False, helper_init=True):
     response = make_request(user_url)
     set_name(response)
     get_id(response, not_token)
+    # инициализация компаньонов и наездников
+    if helper_init:
+        all_helper(save_json=True)
