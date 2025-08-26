@@ -43,8 +43,8 @@ def post_dragon(buy_rubies='', mission_name='DragonLair'):
     # time_sleep(check_progressbar())
 
 
-@use_helper('fairy')
-@use_helper('boar')
+@use_helper("comp_mission")
+@use_helper("horse_mission")
 def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     response = make_request(url)
     time.sleep(1)
@@ -142,12 +142,12 @@ def autoplay(town, mission_name, side):
             working_hours = get_config_value("working_hours")
             work(working_hours=working_hours, side=side)  # отправить работать
 
-            use_helper('squire', restore=False, direct_call=True)
+            use_helper("comp_tournament", restore=False, direct_call=True)
 
             time_sleep(working_hours * 60 * 60 + int(get_random_value(60, 100)))
             get_reward()  # забрать награду за работу спустя время
 
-            use_helper('turtle', restore=False, direct_call=True)
+            use_helper("comp_fight", restore=False, direct_call=True)
 
             # Закупка необходимым количеством баночек HP buy_potion_count
             try:
@@ -222,7 +222,7 @@ def run_process_for_hours(target_function, hours, process_name):
     process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function, process_name))
     process.start()
     p_log(f"Ожидание {hours} часов... Работает {process_name} функция")
-    time_sleep_main(hours * 60 * 60)  # Ожидание в часах
+    time_sleep_main(hours * 60 * 60, name=process_name)  # Ожидание в часах
     p_log(f"Остановка {process_name} процесса...")
     process.terminate()
     process.join()
