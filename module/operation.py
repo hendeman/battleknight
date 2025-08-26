@@ -49,7 +49,7 @@ def party(soup) -> dict:
         value = {"name": remove_cyrillic(list_td[1]),
                  "level": int(list_td[2]),
                  "gold": int(list_td[3].replace(".", "")),
-                 "rank": list_td[0]}
+                 "rank": list_td[0] if list_td[0].isdigit() else '1'}
         list_tr.setdefault(key, value)
 
     return list_tr
@@ -180,5 +180,3 @@ def get_statistic_clan(write_flag):
 
         return all_dct
 
-
-get_gold_day()
