@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, filename, mount_list, SAVE_CASTLE, GAME_TOKEN
+from setting import waiting_time, filename, SAVE_CASTLE, GAME_TOKEN
 
 
 def remove_cyrillic(stroka: str):
@@ -200,23 +200,48 @@ def get_random_value(a=0.1, b=0.5):
 
 def time_sleep(seconds=0):
     if seconds:
-        for i in tqdm(range(int(seconds)), desc="Ostalos vremeni", unit="sec"):
+        for i in tqdm(range(int(seconds)), desc="Осталось времени", unit="sec"):
             time.sleep(1)
     if seconds == 0:
         seconds = random.randint(waiting_time + 60, waiting_time + 120)
-        for i in tqdm(range(seconds), desc="Ostalos vremeni", unit="sec"):
+        for i in tqdm(range(seconds), desc="Осталось времени", unit="sec"):
             time.sleep(1)
-        p_log("Gotov k atake")
+        p_log("Готов к атаке")
 
 
 def format_time(seconds):
-    """Форматирует время в строку формата '00:00:00'."""
-    hours, remainder = divmod(int(seconds), 3600)
+    """
+    Форматирует время в строку формата 'Xд Xч Xм Xс'.
+    Показывает только ненулевые значения.
+
+    Args:
+        seconds: Время в секундах
+
+    Returns:
+        Отформатированная строка времени
+    """
+    seconds = int(seconds)
+
+    # Разбиваем на составляющие
+    days, remainder = divmod(seconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
     minutes, seconds = divmod(remainder, 60)
-    return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+    # Формируем части только для ненулевых значений
+    parts = []
+    if days > 0:
+        parts.append(f"{days} дн")
+    if hours > 0:
+        parts.append(f"{hours} ч")
+    if minutes > 0:
+        parts.append(f"{minutes} мин")
+    if seconds > 0 or not parts:  # Если все нули, показываем хотя бы секунды
+        parts.append(f"{seconds} сек")
+
+    return ", ".join(parts)
 
 
-def time_sleep_main(total_seconds, interval=1800):
+def time_sleep_main(total_seconds, interval=1800, name="Осталось"):
     remaining_time = total_seconds
 
     # Убедимся, что интервал не превышает общее время
@@ -230,15 +255,11 @@ def time_sleep_main(total_seconds, interval=1800):
 
         # Вывод информации о оставшемся времени
         # print(f"Осталось времени: {format_time(remaining_time)}")
-        p_log(f"Процессу атаки осталось работать: {format_time(remaining_time)}")
+        p_log(f"{name}: {format_time(remaining_time)}")
 
 
 def no_cache():
     return int(time.time() * 1000)
-
-
-def get_name_mount(value):
-    return next((v['name'] for v in mount_list.values() if v['id_helper'] == str(value)), value)
 
 
 def get_save_castle():
@@ -324,15 +345,16 @@ def availability_id(user_id, not_token=False):
 # _____________________ создание, загрузка и копия файла JSON __________________________________________
 
 def save_json_file(dct: dict, path: str, name_file: str):
-    path = path + name_file
-    with open(path, "w", encoding="utf-8-sig") as f:
+    file_path = os.path.join(path, name_file)
+    normalized_path = os.path.normpath(file_path)
+    with open(file_path, "w", encoding="utf-8-sig") as f:
         json.dump(dct, f, ensure_ascii=False, indent=4)  # ensure_ascii=False для кириллицы
-        p_log(f"Данные успешно сохранены в {path}")
+        p_log(f"Данные успешно сохранены в {normalized_path}")
 
 
 def load_json_file(path: str, name_file: str) -> dict:
-    path = path + name_file
-    with open(path, "r", encoding="utf-8-sig") as f:
+    file_path = os.path.join(path, name_file)
+    with open(file_path, "r", encoding="utf-8-sig") as f:
         loaded_data = json.load(f)
     return loaded_data
 
@@ -392,3 +414,51 @@ def get_html_files(directory: str) -> list:
     html_files = [entry.name for entry in os.scandir(directory) if entry.is_file() and entry.name.endswith('.html')]
 
     return html_files
+
+
+def check_name_companion(dct, item_find: str):
+    """
+
+    :param dct:"companion": [
+        {
+            "item_id": "15517097",
+            "item_fullName": "Кролик",
+            "item_pic": "Companion06",
+            "speed_travel": 0,
+            "item_use": 0,
+            "type_helper": "компаньон",
+            "number_bag": 6
+        }]...
+    :param item_find: "Companion06"
+    :return: {элемент словаря, в котором есть item_find}.
+    """
+    for helper, data_helper in dct.items():
+        if not data_helper:
+            continue
+        for item in data_helper:
+            if item.get('item_pic') == item_find:
+                return item
+
+
+def get_name_companion(dct, id_find: int):
+    """
+    :param id_find:
+    :param dct:"companion": [
+        {
+            "item_id": "15517097",
+            "item_fullName": "Кролик",
+            "item_pic": "Companion06",
+            "speed_travel": 0,
+            "item_use": 0,
+            "type_helper": "компаньон",
+            "number_bag": 6
+        }]....
+    :param id_find: 16896645
+    :return: "Черный Боевой Медведь"
+    """
+    for helper, data_helper in dct.items():
+        if not data_helper:
+            continue
+        for item in data_helper:
+            if item.get('item_id') == str(id_find):
+                return item.get('item_fullName')
