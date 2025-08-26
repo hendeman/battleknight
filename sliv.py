@@ -208,7 +208,7 @@ def online_tracking_only(reduce_flag=False):
             break
 
 
-def reduce_experience(name_file=NICKS_GAMER):
+def reduce_experience(name_file=NICKS_GAMER, tracking=True):
     init_handle_ring_operations = handle_ring_operations(buy_ring(initial=True), False)
 
     with open(name_file, 'rb') as f:
@@ -225,7 +225,7 @@ def reduce_experience(name_file=NICKS_GAMER):
 
         for nick in sorted_dict:
             # online_track = 1 tracking active from config.ini
-            if attack_flag and get_config_value(key="online_track"):
+            if tracking and attack_flag and get_config_value(key="online_track"):
                 online_tracking_only(reduce_flag=True)  # функция нахождения и атаки на играющих игроков
 
             time_str, current_date = current_time()
@@ -255,7 +255,7 @@ def reduce_experience(name_file=NICKS_GAMER):
                 p_log(f"{nick} не может быть атакован", level='debug')
                 attack_flag = False
         # когда закончилился список из рыцаряй для слива опыта
-        if get_config_value(key="online_track"):
+        if tracking and get_config_value(key="online_track"):
             online_tracking_only()
 
 
