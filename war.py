@@ -1,7 +1,7 @@
 import threading
 
 from logs.logs import setup_logging
-from module.all_function import time_sleep_main, format_time
+from module.all_function import time_sleep_main, format_time, check_file_exists
 from module.game_function import account_verification
 from module.http_requests import post_request
 from module.war.cli import war_parser
@@ -137,7 +137,10 @@ def check_status_war():
 
 if __name__ == "__main__":
     setup_logging(enable_rotation=False, log_file_path="logs/app_war.log")
-    # account_verification(helper_init=False)
+    account_verification(helper_init=False)
+    if not check_file_exists(data_files_directory, members):
+        p_log(f"Файл {members} не найден. Будет создан новый")
+        match_clan()
     parser = war_parser()
     args = parser.parse_args()
     if args.save:
