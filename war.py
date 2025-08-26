@@ -1,9 +1,10 @@
 import threading
 
 from logs.logs import setup_logging
-from module.all_function import get_config_value
+from module.all_function import time_sleep_main, format_time
 from module.game_function import account_verification
 from module.http_requests import post_request
+from module.war.cli import war_parser
 from module.war.html_parser import main_pars_clanwar
 from module.war.members_operation import remove_members, accept_into_order
 from module.war.other_func import *
@@ -37,7 +38,7 @@ def attack_castle(trade_name, delete_war_list=None):
             if get_config_value(key='leave_clan'):
                 p_log("Будет осуществлена попытка выйти из ордена")
                 decorated_get_request = deco_time(make_request)  # тут пост или гет проверить
-                resp = decorated_get_request(url_clan_leave, game_sleep=False)
+                decorated_get_request(url_clan_leave, game_sleep=False)
             else:
                 payload = {'castleID': castle_id, 'warType': 'conquer'}
                 decorated_post_request = deco_time(post_request)
@@ -75,12 +76,13 @@ def check_status_war():
                 battle_round = int(battle_round_status.text.split()[1])
                 p_log(f'Текущий раунд: {battle_round}')
                 if battle_round < 9:
-                    p_log("Ожидание 8 часов...")
-                    time_sleep(8 * 3600)
+                    time_wait = (9 - battle_round) * 8 * 60 * 60 + sec - 60 * 60
+                    p_log(f"Ожидание: {format_time(time_wait)}")
+                    time_sleep_main(time_wait, interval=8*3600, name="До конца войны")
                 else:
                     stop_event.clear()
-                    # Синхронизация времени грубая за час
-                    wait_until_target_time(time_end, delay=60 * 60)
+                    # Синхронизация времени грубая за 30 минут
+                    wait_until_target_time(time_end, delay=30 * 60)
 
                     time_end, sec, soup = get_time_end()
                     wait_until_target_time(time_end, delay=3 * 60)
@@ -135,6 +137,29 @@ def check_status_war():
 
 if __name__ == "__main__":
     setup_logging(enable_rotation=False, log_file_path="logs/app_war.log")
-    account_verification()
-    wait_until("17:00:00")
-    check_status_war()
+    # account_verification(helper_init=False)
+    parser = war_parser()
+    args = parser.parse_args()
+    if args.save:
+        check_status_war()
+    elif args.capture:
+        p_log("Программа захвата замка")
+        # capture_enemy_castle()
+    elif args.clan:
+        p_log("Программа обновления списка участников ордена")
+        match_clan()
+    elif args.read:
+        kick_gamers = get_kick_members()
+        if kick_gamers:
+            p_log(f"Игроки, которые будут удалены из ордена: {', '.join(kick_gamers)}")
+        else:
+            p_log("Никто не будет удален из ордена")
+    elif args.set:
+        if 'reset' in args.set:
+            p_log(f"Будет сброшен статус удаления из ордена для всех игроков")
+            set_kick_members('reset')
+        else:
+            p_log(f"Удалить из ордена следующие имена: {args.set}")
+            set_kick_members(args.set)
+    else:
+        parser.print_help()
