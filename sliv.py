@@ -246,7 +246,9 @@ def reduce_experience(name_file=NICKS_GAMER, tracking=True):
                     if isinstance(resp, Response):
                         p_log("Ожидание 10 мин перед следующей атакой...")
                         time_sleep()
-                    attack_flag = True
+                        attack_flag = True
+                    else:
+                        attack_flag = False
 
                     number_of_attacks -= 1
                     if not number_of_attacks:
