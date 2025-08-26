@@ -8,5 +8,7 @@ url_war_damage = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwa
 url_clan_leave = f'https://s{server_number}-ru.battleknight.gameforge.com/clan/resign'
 
 html_files_directory = 'module/war/war_file'
+data_files_directory = 'module/war/data_files'
 castles = 'module/war/data_files/castles.json'
-war_list = 'module/war/data_files/protected_players.json'
+war_list = 'module/war/data_files/clan_members.json'
+members = 'clan_members.json'

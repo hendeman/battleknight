@@ -36,8 +36,9 @@ def remove_members(mode='var', delete_war_list=None):
     if mode == 'var' and delete_war_list is None:
         return 0
 
-    with open(war_list, 'r', encoding='utf-8') as file:
-        list_of_players = json.load(file)
+    with open(war_list, 'r', encoding="utf-8-sig") as file:
+        party_members = json.load(file)
+        list_of_players = dict(filter(lambda item: item[1].get('clan_kick'), party_members.items()))
 
     remove_member_list = list_of_players if mode == 'be_var' else delete_war_list
     remove_member_list_not_war, remove_member_list_in_war = {}, {}
