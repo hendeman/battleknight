@@ -1,5 +1,7 @@
 import logging
 import sys
+import threading
+
 import colorlog
 from logging.handlers import TimedRotatingFileHandler, QueueHandler
 import os
@@ -80,7 +82,13 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="logs/app.log"
             return
         logging.error("Необработанное исключение", exc_info=(exc_type, exc_value, exc_traceback))
 
+    def handle_thread_exception(args):
+        """Обработчик исключений в потоках"""
+        logging.error("Необработанное исключение в потоке:",
+                      exc_info=(args.exc_type, args.exc_value, args.exc_traceback))
+
     sys.excepthook = handle_uncaught_exception
+    threading.excepthook = handle_thread_exception
 
 
 if __name__ == "__main__":
