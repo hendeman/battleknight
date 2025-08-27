@@ -137,7 +137,7 @@ def accept_into_order():
     count = 5
     repeat_time = int(0.5 * 60 * 60)
     while count:
-        with open(war_list, 'r', encoding='utf-8') as file:
+        with open(war_list, 'r', encoding="utf-8-sig") as file:
             remove_member_list = json.load(file)
         time.sleep(repeat_time)
 
