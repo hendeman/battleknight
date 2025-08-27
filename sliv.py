@@ -1,3 +1,4 @@
+import os
 import pickle
 import json
 import re
@@ -335,6 +336,10 @@ def change_pickle_file(name_file=GOLD_GAMER):
 
 
 def create_pickle_file(name_file=NICKS_GAMER):
+    if not os.path.exists(name_file):
+        with open(name_file, 'wb') as f:
+            pickle.dump({}, f)
+
     with open(name_file, 'rb+') as f:
         loaded_dict = pickle.load(f)
         with open(url_nicks, 'r', encoding='utf-8') as file_nicks:
@@ -343,7 +348,7 @@ def create_pickle_file(name_file=NICKS_GAMER):
                 key = id_gold[0]
                 gold = 0 if len(id_gold) == 1 else id_gold[1]
                 if key not in loaded_dict:
-                    loaded_dict[key] = {"data": date, "gold": int(gold)}
+                    loaded_dict[key] = {"time": date, "spoil": int(gold)}
 
         f.seek(0)  # Перемещение курсора в начало файла
         f.truncate()  # Очистка содержимого файла
