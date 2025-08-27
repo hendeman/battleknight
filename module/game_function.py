@@ -914,7 +914,10 @@ def get_helper_bag(bag_num=None):
         resp_json = resp.json()
         if not resp_json.get('result'):
             return
-        for item in resp_json.get('items', []):
+        helpers = resp_json.get('items', [])
+        if not helpers:
+            return dct.setdefault(helper_type, [])
+        for item in helpers:
             item_data = {
                 'item_id': item.get('item_id'),
                 'item_fullName': item.get('item_fullName'),
