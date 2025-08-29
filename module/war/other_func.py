@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from datetime import datetime, timedelta
 
@@ -36,6 +37,29 @@ def wait_until(target_time_str):
         # Если время уже прошло, запланируем на следующий день
         target_time += timedelta(days=1)
     time.sleep((target_time - now).total_seconds())
+
+
+def get_time_difference(text):
+    # Извлекаем дату и время из строки
+    pattern = r'(\d{2}\.\d{2}\.\d{4}) - (\d{2}:\d{2})'
+    match = re.search(pattern, text)
+
+    if not match:
+        return None
+
+    date_str = match.group(1)  # "28.08.2025"
+    time_str = match.group(2)  # "02:20"
+
+    # Преобразуем строку в объект datetime
+    target_datetime = datetime.strptime(f"{date_str} {time_str}", "%d.%m.%Y %H:%M")
+
+    # Получаем текущее время
+    current_datetime = datetime.now()
+
+    # Вычисляем разницу в секундах
+    time_difference = (target_datetime - current_datetime).total_seconds()
+
+    return time_difference
 
 
 def save_html_file(trade_name, resp, status):
