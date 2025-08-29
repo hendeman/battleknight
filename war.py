@@ -13,49 +13,81 @@ from module.war.settings import *
 stop_event = threading.Event()
 
 
-def attack_castle(trade_name, delete_war_list=None):
+def attack_castle(trade_name, castle_info=None, delete_war_list=None):
     p_log("Будет отправлен запрос на проверку статуса войны")
     decorated_get_request = deco_time(make_request)
     resp = decorated_get_request(url_status_war, game_sleep=False)
-    save_html_file(trade_name, resp, 'check')
 
     soup = BeautifulSoup(resp.text, 'lxml')
-    sec = progressbar_ends(soup)
-    p_log(f"Таймер sec: {sec}, stop_event: {stop_event.is_set()}", level='debug')
-    if not sec and not stop_event.is_set():
-        stop_event.set()
-        castle_id = main_pars_clanwar(str(soup))
-        if castle_id:
-            p_log(f"Война окончена, будет отправлен запрос на захват - {castle_id}")
+    sec = None
+    castle_id = None
 
+    # Определяем режим работы: обычная атака или атака врага
+    if castle_info:
+        # Режим атаки врага
+        if soup.find('div', id=castle_info[0]).has_attr('onclick'):
+            sec = False
+            castle_id = castle_info[1].get('castleID')
+            save_html_file(trade_name, resp, 'open')
+    else:
+        # Обычный режим атаки
+        save_html_file(trade_name, resp, 'check')
+        sec = progressbar_ends(soup)
+        if not sec:
+            castle_id = main_pars_clanwar(str(soup))
+
+    p_log(f"Таймер sec: {sec}, stop_event: {stop_event.is_set()}", level='debug')
+
+    if not sec and not stop_event.is_set() and castle_id:
+        stop_event.set()
+        p_log(f"Война окончена, будет отправлен запрос на захват - {castle_id}")
+
+        # Удаление игроков (только для обычного режима)
+        if delete_war_list:
             try:
-                if delete_war_list:
-                    remove_members(mode='var', delete_war_list=delete_war_list)
-                    time.sleep(get_config_value(key='remove_member_time_sleep'))
+                remove_members(mode='var', delete_war_list=delete_war_list)
+                time.sleep(get_config_value(key='remove_member_time_sleep'))
             except Exception as er:
                 p_log(f"Ошибка при удалении игроков после окончания войны: {er}")
 
-            if get_config_value(key='leave_clan'):
-                p_log("Будет осуществлена попытка выйти из ордена")
-                decorated_get_request = deco_time(make_request)  # тут пост или гет проверить
-                decorated_get_request(url_clan_leave, game_sleep=False)
-            else:
-                payload = {'castleID': castle_id, 'warType': 'conquer'}
-                decorated_post_request = deco_time(post_request)
-                resp = decorated_post_request(url_attack_castle, payload)
-                save_html_file(trade_name, resp, 'answer')
+        # Выход из ордена или атака
+        if not castle_info and get_config_value(key='leave_clan'):
+            p_log("Будет осуществлена попытка выйти из ордена")
+            decorated_get_request(url_clan_leave, game_sleep=False)
         else:
-            p_log(f"Запрос {trade_name}. Ошибка получения castle_id")
+            payload = {'castleID': castle_id, 'warType': 'conquer'}
+            decorated_post_request = deco_time(post_request)
+            resp = decorated_post_request(url_attack_castle, payload)
+            save_html_file(trade_name, resp, 'answer')
     else:
-        p_log(f"Запрос {trade_name} оказался холостым")
+        if not castle_id:
+            p_log(f"Запрос {trade_name}. Ошибка получения castle_id")
+        else:
+            p_log(f"Запрос {trade_name} оказался холостым")
 
 
-def capture_castle(delete_war_list):
+def capture_castle(delete_war_list=None, castle_info=None):
+    max_concurrent = 10  # Максимально количество одновременных потоков
+    semaphore = threading.Semaphore(max_concurrent)
+
     threads = []
-    for i in range(1, 8):
-        if stop_event.is_set():  # Проверяем флаг перед запуском нового потока
+    max_threads = 120 if castle_info else 7
+
+    def limited_attack(*arge):
+        with semaphore:  # Semaphore ограничивает одновременный доступ
+            return attack_castle(*arge)
+
+    for i in range(1, max_threads + 1):
+        if stop_event.is_set():
             break
-        thread = threading.Thread(target=attack_castle, args=(f"trade_name{i}", delete_war_list,))
+
+        # Создаем аргументы в зависимости от режима
+        if castle_info:
+            arg = (f"trade_name{i}", castle_info)
+        else:
+            arg = (f"trade_name{i}", None, delete_war_list)
+
+        thread = threading.Thread(target=limited_attack, args=arg)
         threads.append(thread)
         thread.start()
         time.sleep(0.5)  # Задержка перед запуском следующего потока
@@ -78,7 +110,7 @@ def check_status_war():
                 if battle_round < 9:
                     time_wait = (9 - battle_round) * 8 * 60 * 60 + sec - 60 * 60
                     p_log(f"Ожидание: {format_time(time_wait)}")
-                    time_sleep_main(time_wait, interval=8*3600, name="До конца войны")
+                    time_sleep_main(time_wait, interval=8 * 3600, name="До конца войны")
                 else:
                     stop_event.clear()
                     # Синхронизация времени грубая за 30 минут
@@ -135,6 +167,23 @@ def check_status_war():
             break
 
 
+def capture_enemy_castle(tag_castle='cf1'):
+    decorated_get_request = deco_time(make_request)
+    resp = decorated_get_request(url_status_war, game_sleep=False)
+    soup = BeautifulSoup(resp.text, 'lxml')
+
+    castles_dict = main_pars_clanwar(str(soup), save=False)
+    castle_info = castles_dict.get(tag_castle, None)
+    if castles_dict:
+        tip = castles_dict.get(tag_castle).get('tip')
+        time_difference = get_time_difference(tip)
+        if time_difference:
+            time_sleep_main(time_difference, interval=1800, name="До захвата осталось: ")
+        capture_castle(delete_war_list=None, castle_info=(tag_castle, castle_info))
+    else:
+        p_log(f'Замок {tag_castle} не найден', level='error', is_error=True)
+
+
 if __name__ == "__main__":
     setup_logging(enable_rotation=False, log_file_path="logs/app_war.log")
     account_verification(helper_init=False)
@@ -144,10 +193,11 @@ if __name__ == "__main__":
     parser = war_parser()
     args = parser.parse_args()
     if args.save:
+        p_log(f"Программа сохранения замка")
         check_status_war()
     elif args.capture:
-        p_log("Программа захвата замка")
-        # capture_enemy_castle()
+        p_log(f"Программа захвата вражеского замка: '{args.capture}'")
+        capture_enemy_castle(args.capture)
     elif args.clan:
         p_log("Программа обновления списка участников ордена")
         match_clan()
