@@ -49,7 +49,7 @@ def remove_html_tags(text):
     return re.sub(clean, '', text)  # Удаляет все теги
 
 
-def main_pars_clanwar(soup):
+def main_pars_clanwar(soup, save=True):
     # # Открываем HTML-файл и читаем его содержимое
     # with open('clanwar_answer_trade_name1_retry.html', 'r', encoding='utf-8') as file:
     #     html_content = file.read()
@@ -111,6 +111,9 @@ def main_pars_clanwar(soup):
                     p_log(f"Файл {castles} обновлен", level='debug')
             except Exception as er:
                 p_log(f"Ошибка записи {castles}: {er}")
+
+            if not save:
+                return castles_dict
 
             # p_log(output, level='debug')
             output_free = [value['castleID'] for key, value in castles_dict.items() if
