@@ -150,3 +150,9 @@ def reload_cookies(env_file=None):
     global cookies
     cookies = load_custom_env(env_file)
     return cookies
+
+
+def reload_config(name_config):
+    global filename
+    filename = name_config + '.ini'
+    return filename
