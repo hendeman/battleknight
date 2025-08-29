@@ -1,6 +1,7 @@
 import ast
 import json
 import re
+from pprint import pprint
 from typing import Union, Tuple
 from time import sleep
 import time
@@ -916,7 +917,8 @@ def get_helper_bag(bag_num=None):
             return
         helpers = resp_json.get('items', [])
         if not helpers:
-            return dct.setdefault(helper_type, [])
+            dct.setdefault(helper_type, [])
+            return dct
         for item in helpers:
             item_data = {
                 'item_id': item.get('item_id'),
