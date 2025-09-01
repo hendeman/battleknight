@@ -169,7 +169,7 @@ def online_tracking():
             if gold - filtered_data[gamer]["gold"] > filtered_data[gamer]['gold_diff'] * golden_factor:
                 flag, resp = make_attack(gamer, heals_point=True)
                 if flag:
-                    silver = get_silver()
+                    silver = get_silver(resp)
                     if silver > GOLD_LIMIT - 500 and get_config_value("buy_ring"):
                         buy_ring()  # покупка кольца на аукционе
                     received_gold, win_status = (pars_gold_duel(resp, gold_info=True, win_status=True)
@@ -234,11 +234,13 @@ def reduce_experience(name_file=NICKS_GAMER, tracking=True):
             if int(difference_data.total_seconds() / 3600) >= 12:
                 flag, resp = make_attack(nick)
                 if flag:
-                    received_gold = pars_gold_duel(resp, gold_info=True) if isinstance(resp, Response) else 0
-                    silver = get_silver()
-
-                    # инициализация стоимости кольца либо покупка кольца на аукционе
-                    init_handle_ring_operations(silver)
+                    if isinstance(resp, Response):
+                        received_gold = pars_gold_duel(resp, gold_info=True)
+                        silver = get_silver(resp)
+                        # инициализация стоимости кольца либо покупка кольца на аукционе
+                        init_handle_ring_operations(silver)
+                    else:
+                        received_gold = 0
 
                     loaded_dict[nick]["time"] = current_date
                     loaded_dict[nick]["spoil"] = received_gold

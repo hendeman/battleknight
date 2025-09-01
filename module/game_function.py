@@ -8,6 +8,8 @@ import random
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+from requests import Response
+
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion
@@ -374,8 +376,11 @@ def hide_silver(silver_limit):
     return silver_count
 
 
-def get_silver():
-    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
+def get_silver(resp=False):
+    if isinstance(resp, Response):
+        soup = BeautifulSoup(resp.text, 'lxml')
+    else:
+        soup = BeautifulSoup(make_request(world_url).text, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     p_log(f"На руках {silver_count} серебра")
     return silver_count
