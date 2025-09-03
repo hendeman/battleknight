@@ -269,3 +269,11 @@ def split_args(args_text):
         args.append(''.join(current_arg).strip())
 
     return args
+
+
+def get_karma_value(soup):
+    """ Возвращает значение кармы """
+    karma_element = soup.find('span', class_='icon iconKarmaGood')
+    if karma_element:
+        karma_value = karma_element.parent.text.strip()
+        return int(karma_value)
