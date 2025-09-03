@@ -159,6 +159,14 @@ def get_name():
     return NAME
 
 
+def get_filename():
+    return filename
+
+
+def get_cookies():
+    return cookies
+
+
 def reload_cookies(env_file=None):
     """Перезагружает куки из указанного .env файла"""
     global cookies
