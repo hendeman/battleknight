@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, filename, SAVE_CASTLE, GAME_TOKEN
+from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename
 
 
 def remove_cyrillic(stroka: str):
@@ -51,6 +51,7 @@ def get_config_value(key, default=0):
     :return: когда параметр один, то возращает число, либо строку. Если несколько параметров, то возвращает словарь
     вида: {key(index): value, }
     """
+    filename = get_filename()
     config = configparser.ConfigParser()
 
     # Проверяем, переданы ли несколько ключей (в виде tuple/list)
@@ -92,6 +93,7 @@ def get_config_value(key, default=0):
 
 
 def change_config_value(section, key, new_value):
+    filename = get_filename()
     config = configparser.ConfigParser()
 
     try:
@@ -126,6 +128,7 @@ def change_config_value(section, key, new_value):
 
 
 def show_config():
+    filename = get_filename()
     config = configparser.ConfigParser()
     output_lines = []  # Список для хранения строк конфигурации
 
