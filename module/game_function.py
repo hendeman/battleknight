@@ -1,6 +1,7 @@
 import ast
 import json
 import re
+import threading
 from typing import Union, Tuple
 from time import sleep
 import time
@@ -12,9 +13,9 @@ from requests import Response
 
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
-    get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion
+    get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id, find_item_data
+    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -978,6 +979,49 @@ def all_helper(save_json=True):
     if save_json:
         save_json_file(dct_1, "", url_helper_json)
     return dct_1
+
+
+# ____________________________ Активация кармы _____________________________________________
+def activate_karma(skill, count):
+    def karma_worker():
+        try:
+            counter = count
+            type_karma = get_config_value("working_karma")
+            name_karma = karma[type_karma][skill]['name']
+            id_karma = karma[type_karma][skill]['id_karma']
+            point_karma = karma[type_karma][skill]['point']
+            time_delay = 2
+
+            while counter > 0:
+                soup = BeautifulSoup(make_request(url_karma).text, 'html.parser')
+
+                point_karma_all = get_karma_value(soup)
+                day_karma = int(point_karma_all / point_karma)
+                p_log(f"Кармы хватит на {day_karma} дней")
+
+                # проверка таймера
+                progressbar_time = progressbar_ends(soup)
+                if progressbar_time:
+                    p_log(f"Карма активна еще {format_time(progressbar_time)}")
+                    time.sleep(progressbar_time + time_delay)
+
+                payload = {'activateKarmaSkill': id_karma}
+                soup = BeautifulSoup(post_request(url_karma, payload).text, 'html.parser')
+                p_log(f"Активирована карма: {name_karma}")
+
+                # проверка таймера
+                progressbar_time = progressbar_ends(soup)
+                if progressbar_time:
+                    p_log(f"Ожидание {format_time(progressbar_time)}")
+                    time.sleep(progressbar_time + time_delay)
+                counter -= 1
+
+        except Exception as e:
+            p_log(f"Ошибка активации кармы: {e}")
+
+    # Запускаем и забываем
+    thread = threading.Thread(target=karma_worker, daemon=True)
+    thread.start()
 
 
 # ____________________________ Верификация доступа к игре __________________________________
