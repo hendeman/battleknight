@@ -2,6 +2,7 @@ import os
 import pickle
 import json
 import re
+import threading
 import time
 
 from datetime import datetime, timedelta
@@ -10,13 +11,13 @@ from requests import Response
 
 from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
-from module.data_pars import pars_gold_duel
+from module.data_pars import pars_gold_duel, get_karma_value
 from module.game_function import buy_ring, is_time_between, check_progressbar, check_time_sleep, check_health, \
-    get_silver, handle_ring_operations, get_gold_for_player, account_verification
+    get_silver, handle_ring_operations, get_gold_for_player, account_verification, progressbar_ends
 from module.group import go_group
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, world_url, url_name_json, get_name, url_group
+    url_ordermail, url_error, url_nicks, world_url, url_name_json, get_name, url_group, url_karma, karma
 
 date = datetime(2024, 9, 17, 19)
 
@@ -397,65 +398,97 @@ def orden_message(message):
     post_request(url_orden_message, payload)
 
 
-def click():
+def activate_karma(skill, count):
+    def karma_worker():
+        try:
+            counter = count
+            type_karma = get_config_value("working_karma")
+            name_karma = karma[type_karma][skill]['name']
+            id_karma = karma[type_karma][skill]['id_karma']
+            point_karma = karma[type_karma][skill]['point']
+
+            while counter > 0:
+                soup = BeautifulSoup(make_request(url_karma).text, 'html.parser')
+
+                point_karma_all = get_karma_value(soup)
+                day_karma = int(point_karma_all / point_karma)
+                p_log(f"Кармы хватит на {day_karma} дней")
+
+                # проверка таймера
+                time.sleep(progressbar_ends(soup) + 2)
+
+                payload = {'activateKarmaSkill': id_karma}
+                soup = BeautifulSoup(post_request(url_karma, payload).text, 'html.parser')
+                p_log(f"Активирована карма: {name_karma}")
+
+                # проверка таймера
+                time.sleep(progressbar_ends(soup) + 2)
+                counter -= 1
+
+        except Exception as e:
+            p_log(f"Ошибка активации кармы: {e}")
+
+    # Запускаем и забываем
+    thread = threading.Thread(target=karma_worker, daemon=True)
+    thread.start()
+
+
+def click(mission_duration, mission_name, find_karma, group=False, rubies=False):
     # ________________________ Для прохождения группы ____________________________
     check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
 
-    if is_time_between(start_hour='21:29', end_hour='21:35'):
-        go_group(60 * 30)
+    if group and is_time_between(start_hour='21:29', end_hour='21:35'):
+        go_group(get_config_value("group_wait"))
         timer_group = check_progressbar()
         if timer_group:
             p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
         time_sleep(timer_group)
     # _____________________________________________________________________________
 
-    break_outer = False
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
 
-    a_tags = soup.find_all('a', onclick=lambda
-        onclick: onclick and "chooseMission('small', 'DragonLair', 'Good', this)" in onclick)
+    search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
+    print(search_string)
+    a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
 
     if a_tags:
-        for a_tag in a_tags:
-            if 'disabledSpecialBtn' in a_tag.get('class', []):
-                buy_rubies_tags = soup.find_all('a', class_='devSmall missionBuyRubies toolTip',
-                                                onclick=lambda onclick: onclick and
-                                                                        "chooseMission('small', 'DragonLair', 'Good', '1')")
-                if buy_rubies_tags:
-                    for buy_rubies_tag in reversed(buy_rubies_tags):
-                        onclick_value = buy_rubies_tag.get('onclick')
-                        if onclick_value:
-                            parts = onclick_value.split(',')
-                            if len(parts) > 4:
-                                fifth_argument = parts[4].strip().strip("');")
-                                post_dragon(buy_rubies=fifth_argument)
-                                break_outer = True
-                                break
-                    if break_outer:
-                        break
+        if 'disabledSpecialBtn' in a_tags.get('class', []):
+            onclick_pattern = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this, '1')"
+            buy_rubies_tags = soup.find('a', class_='devSmall missionBuyRubies toolTip',
+                                        onclick=lambda onclick: onclick and onclick_pattern in onclick)
+            if buy_rubies_tags and rubies:
+                onclick_value = buy_rubies_tags.get('onclick')
+                if onclick_value:
+                    parts = onclick_value.split(',')
+                    if len(parts) > 4:
+                        fifth_argument = parts[4].strip().strip("');")
+                        post_dragon(buy_rubies=fifth_argument)
+                        return True
+            else:
+                p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
+                check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
+                check_time_sleep(start_hour='21:31', end_hour='04:00', sleep_hour='08:00')
         else:
             post_dragon()
     else:
-        p_log('Не удалось найти тег <a> с нужным атрибутом onclick.')
+        p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='warning')
+        time.sleep(600)
 
 
 if __name__ == "__main__":
-    # set_initial_gold()
-    # online_tracking_only()
-    # time_sleep()
-    # while True:
-    #     online_tracking()
-    #     time_sleep()
-    # reduce_experience()
-    # online_tracking_only()
-    # korovk_reduce_experience(name_file="/pickles_data/korov.pickle")
     setup_logging()
-    account_verification()
-    while True:
-        click()
-    # create_pickle_file()
-    # change_pickle_file(name_file=GOLD_GAMER)
-    # read_pickle_file(name_file=GOLD_GAMER)
-    # test_pars()
-    # set_initial_gold()
+    account_verification(not_token=True, helper_init=False)
+    RUBIES_LIMIT = get_config_value("rubies_limit")
+    karma_activate = get_config_value("karma_activate")
+    if karma_activate:
+        activate_karma(skill=get_config_value("karma_activate_name"), count=4)
+    while RUBIES_LIMIT != 0:
+        game_param = [
+            get_config_value("mission_duration"),
+            get_config_value("mission_name"),
+            get_config_value("working_karma").capitalize()
+        ]
+        used_rub = click(*game_param, group=True, rubies=True)
+        if used_rub and RUBIES_LIMIT > 0:
+            RUBIES_LIMIT -= 1
