@@ -8,7 +8,7 @@ from logs.logs import p_log
 from module.all_function import get_random_value
 from module.data_pars import get_csrf_token, get_title
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import headers
+from setting import headers, get_cookies
 
 csrf_token = None
 max_csrf_retries = 3
@@ -162,8 +162,7 @@ def make_request(url,
                  proxies=None):
     """GET запрос"""
     if browser_cookies is None:
-        from setting import cookies
-        browser_cookies = cookies
+        browser_cookies = get_cookies()
 
     response = make_http_request(
         request_func=requests.get,
@@ -192,8 +191,7 @@ def post_request(url,
                  proxy_manage=None):
     """POST запрос"""
     if browser_cookies is None:
-        from setting import cookies
-        browser_cookies = cookies
+        browser_cookies = get_cookies()
 
     # Добавление CSRF токена если нужно
     if csrf:
