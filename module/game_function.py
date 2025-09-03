@@ -361,10 +361,16 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
     end_time = datetime.strptime(end_hour, "%H:%M").time()
 
     # Проверяем, находится ли текущее время в заданном диапазоне
-    if start_time <= now <= end_time and sleep_hour:
-        p_log(f"Отдыхаем до {sleep_hour}...")
+    if end_time < start_time:
+        # Если интервал переходит через полночь
+        in_range = now >= start_time or now <= end_time
+    else:
+        # Обычный интервал в пределах одного дня
+        in_range = start_time <= now <= end_time
+
+    if in_range and sleep_hour:
         time_sleep(wait_until(sleep_hour))
-    if start_time <= now <= end_time and sleep_hour is None:
+    if in_range and sleep_hour is None:
         return True
 
 
