@@ -2,22 +2,23 @@ import os
 import pickle
 import json
 import re
-import threading
 import time
 
 from datetime import datetime, timedelta
+from enum import Enum, auto
+
 from bs4 import BeautifulSoup
 from requests import Response
 
 from logs.logs import p_log, setup_logging
 from module.all_function import current_time, time_sleep, get_config_value, format_time
-from module.data_pars import pars_gold_duel, get_karma_value
+from module.data_pars import pars_gold_duel
 from module.game_function import buy_ring, is_time_between, check_progressbar, check_time_sleep, check_health, \
-    get_silver, handle_ring_operations, get_gold_for_player, account_verification, progressbar_ends
+    get_silver, handle_ring_operations, get_gold_for_player, account_verification, activate_karma
 from module.group import go_group
 from module.http_requests import make_request, post_request
 from setting import status_list, waiting_time, GOLD_GAMER, NICKS_GAMER, url_compare, url_duel_name, url_orden_message, \
-    url_ordermail, url_error, url_nicks, world_url, url_name_json, get_name, url_group, url_karma, karma
+    url_ordermail, url_error, url_nicks, world_url, url_name_json, get_name, url_group
 
 date = datetime(2024, 9, 17, 19)
 
@@ -398,58 +399,42 @@ def orden_message(message):
     post_request(url_orden_message, payload)
 
 
-def activate_karma(skill, count):
-    def karma_worker():
-        try:
-            counter = count
-            type_karma = get_config_value("working_karma")
-            name_karma = karma[type_karma][skill]['name']
-            id_karma = karma[type_karma][skill]['id_karma']
-            point_karma = karma[type_karma][skill]['point']
+# ___________________________________________ Прохождение миссий нон-стоп ______________________________
 
-            while counter > 0:
-                soup = BeautifulSoup(make_request(url_karma).text, 'html.parser')
-
-                point_karma_all = get_karma_value(soup)
-                day_karma = int(point_karma_all / point_karma)
-                p_log(f"Кармы хватит на {day_karma} дней")
-
-                # проверка таймера
-                time.sleep(progressbar_ends(soup) + 2)
-
-                payload = {'activateKarmaSkill': id_karma}
-                soup = BeautifulSoup(post_request(url_karma, payload).text, 'html.parser')
-                p_log(f"Активирована карма: {name_karma}")
-
-                # проверка таймера
-                time.sleep(progressbar_ends(soup) + 2)
-                counter -= 1
-
-        except Exception as e:
-            p_log(f"Ошибка активации кармы: {e}")
-
-    # Запускаем и забываем
-    thread = threading.Thread(target=karma_worker, daemon=True)
-    thread.start()
+class ClickResult(Enum):
+    MISSION = auto()  # Обычная миссия
+    MISSION_RUBY = auto()  # Миссия с рубинами
+    NOT_MISSION = auto()  # Нет свободных миссий
 
 
-def click(mission_duration, mission_name, find_karma, group=False, rubies=False):
-    # ________________________ Для прохождения группы ____________________________
-    check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
+class RubyManager:
+    def __init__(self, total_limit, daily_limit):
+        self.total_limit = total_limit
+        self.daily_limit = daily_limit
+        self.total_used = 0
+        self.daily_used = 0
+        self.last_reset_date = datetime.now().date()
 
-    if group and is_time_between(start_hour='21:29', end_hour='21:35'):
-        go_group(get_config_value("group_wait"))
-        timer_group = check_progressbar()
-        if timer_group:
-            p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
-        time_sleep(timer_group)
-    # _____________________________________________________________________________
+    def should_use_rubies(self):
+        # Проверяем смену дня
+        if datetime.now().date() != self.last_reset_date:
+            self.daily_used = 0
+            self.last_reset_date = datetime.now().date()
+            p_log("Новый день, сбрасываем счетчик рубинов")
 
+        # Возвращаем True если можно использовать рубины
+        return self.daily_used < self.daily_limit and self.total_used < self.total_limit
+
+    def mark_ruby_used(self):
+        self.total_used += 1
+        self.daily_used += 1
+
+
+def click(mission_duration, mission_name, find_karma, rubies=False):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
 
     search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
-    print(search_string)
     a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
 
     if a_tags:
@@ -464,31 +449,62 @@ def click(mission_duration, mission_name, find_karma, group=False, rubies=False)
                     if len(parts) > 4:
                         fifth_argument = parts[4].strip().strip("');")
                         post_dragon(buy_rubies=fifth_argument)
-                        return True
-            else:
-                p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
-                check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
-                check_time_sleep(start_hour='21:31', end_hour='04:00', sleep_hour='08:00')
+                        return ClickResult.MISSION_RUBY
+            return ClickResult.NOT_MISSION
+
         else:
             post_dragon()
+            return ClickResult.MISSION
     else:
-        p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='warning')
-        time.sleep(600)
+        p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
+        raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
 
 
-if __name__ == "__main__":
-    setup_logging()
-    account_verification(not_token=True, helper_init=False)
-    RUBIES_LIMIT = get_config_value("rubies_limit")
+def main_loop_click(group=False):
+    ruby_manager = RubyManager(
+        get_config_value("rubies_limit"),
+        get_config_value("rubies_day")
+    )
     karma_activate = get_config_value("karma_activate")
     if karma_activate:
-        activate_karma(skill=get_config_value("karma_activate_name"), count=4)
-    while RUBIES_LIMIT != 0:
+        activate_karma(skill=get_config_value("karma_activate_name"),
+                       count=get_config_value("karma_activate_day"))
+    while ruby_manager.total_used < ruby_manager.total_limit:
+        # ________________________ Для прохождения группы ____________________________
+        check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
+
+        if group and is_time_between(start_hour='21:29', end_hour='21:35'):
+            go_group(get_config_value("group_wait"))
+            timer_group = check_progressbar()
+            if timer_group:
+                p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
+            time_sleep(timer_group)
+        # _____________________________________________________________________________
+        # Определяем, использовать ли рубины в этой итерации
+        use_rubies = ruby_manager.should_use_rubies()
+
         game_param = [
             get_config_value("mission_duration"),
             get_config_value("mission_name"),
             get_config_value("working_karma").capitalize()
         ]
-        used_rub = click(*game_param, group=True, rubies=True)
-        if used_rub and RUBIES_LIMIT > 0:
-            RUBIES_LIMIT -= 1
+
+        result = click(*game_param, rubies=use_rubies)
+
+        if result == ClickResult.MISSION_RUBY:
+            ruby_manager.mark_ruby_used()
+            p_log(
+                f"Дневной лимит: {ruby_manager.daily_used}/{ruby_manager.daily_limit}, "
+                f"Всего: {ruby_manager.total_used}/{ruby_manager.total_limit}")
+        if result == ClickResult.NOT_MISSION:
+            p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
+            check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
+            check_time_sleep(start_hour='21:31', end_hour='04:00', sleep_hour='08:00')
+
+    p_log("Достигнут общий лимит рубинов")
+
+
+if __name__ == "__main__":
+    setup_logging()
+    account_verification(helper_init=False)
+    main_loop_click(group=True)
