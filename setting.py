@@ -94,10 +94,24 @@ event_healer_potions = {1: {'name': "Зелье дружбы", 'price': 5000},
                         6: {'name': "Зелье природы", 'price': 5000},
                         7: {'name': "Зелье власти", 'price': 5000}}
 
+karma = {'good': {'holy': {'id_karma': 2, 'point': 50, 'name': 'Святая сила'},
+                  'ancestors': {'id_karma': 10, 'point': 50, 'name': 'Защита предков'},
+                  'regeneration': {'id_karma': 11, 'point': 75, 'name': 'Регенерация'},
+                  'angel': {'id_karma': 9, 'point': 150, 'name': 'Крылья ангела'},
+                  'shield': {'id_karma': 8, 'point': 200, 'name': 'Мистический щит'},
+                  'stronghold': {'id_karma': 12, 'point': 225, 'name': 'Мистическая цитадель'}},
+         'evil': {'unholy': {'id_karma': 1, 'point': 50, 'name': 'Темная сила'},
+                  'perdition': {'id_karma': 4, 'point': 50, 'name': 'Проклятье'},
+                  'shadow': {'id_karma': 7, 'point': 75, 'name': 'Тень тьмы'},
+                  'scream': {'id_karma': 3, 'point': 150, 'name': 'Крик смерти'},
+                  'acid': {'id_karma': 5, 'point': 150, 'name': 'Удар кислотой'},
+                  'thorns': {'id_karma': 6, 'point': 200, 'name': 'Броня с шипами'}}}
+
 # _____________________________________ Игровые ссылки _____________________________________________
 url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
 url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
 url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
+url_karma = 'https://s32-ru.battleknight.gameforge.com/user/karma/'
 world_url = 'https://s32-ru.battleknight.gameforge.com/world'
 map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
 url_compare = 'https://s32-ru.battleknight.gameforge.com/duel/compare/?enemyID='
