@@ -7,11 +7,17 @@ import re
 import os
 import time
 from datetime import datetime, timedelta
+from typing import Optional
 
 from tqdm import tqdm
 
 from logs.logs import p_log
 from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename
+
+# Глобальный кэш
+_config_cache: Optional[configparser.ConfigParser] = None
+_config_mtime = 0
+_config_filename = None
 
 
 def remove_cyrillic(stroka: str):
@@ -46,50 +52,76 @@ def wait_until(target_time_str):
 
 def get_config_value(key, default=0):
     """
-    :param key: название параметра из config.ini, либо несколько в виде key=("",)
-    :param default:
-    :return: когда параметр один, то возращает число, либо строку. Если несколько параметров, то возвращает словарь
-    вида: {key(index): value, }
+    Оптимизированная версия с кэшированием config
     """
-    filename = get_filename()
-    config = configparser.ConfigParser()
+    global _config_cache, _config_mtime, _config_filename
 
-    # Проверяем, переданы ли несколько ключей (в виде tuple/list)
+    # Получаем актуальное имя файла
+    current_filename = get_filename()
+
+    # Если файл изменился или это первый вызов
+    if (_config_cache is None or
+            _config_filename != current_filename or
+            _should_reload_config(current_filename)):
+        _load_config_cache(current_filename)
+
+    # Проверяем, переданы ли несколько ключей
     is_multi_key = isinstance(key, (tuple, list))
     keys = key if is_multi_key else [key]
 
-    try:
-        if not os.path.exists(filename):
-            print(f"Error: The file '{filename}' does not exist.")
-            return {k: default for k in keys} if is_multi_key else default
-
-        config.read(filename)
-
-        if 'DEFAULT' not in config:
-            return {k: default for k in keys} if is_multi_key else default
-
-        # Обработка значений
-        result = {}
-        for k in keys:
-            if config.has_option('DEFAULT', k):
-                val = config.get('DEFAULT', k)
-                # Проверяем, является ли значение int, float или строкой
-                if val.isdigit():
-                    result[k] = int(val)
-                else:
-                    try:
-                        result[k] = float(val)  # Пробуем преобразовать в float
-                    except ValueError:
-                        result[k] = val  # Если не число, возвращаем строку
+    # Обработка значений из кэша
+    result = {}
+    for k in keys:
+        if _config_cache.has_option('DEFAULT', k):
+            val = _config_cache.get('DEFAULT', k)
+            # Преобразование типов
+            if val.isdigit():
+                result[k] = int(val)
             else:
-                result[k] = default
+                try:
+                    result[k] = float(val)
+                except ValueError:
+                    result[k] = val
+        else:
+            result[k] = default
 
-        # Возвращаем словарь (если ключей несколько) или одно значение
-        return result if is_multi_key else result[key]
+    return result if is_multi_key else result[key]
+
+
+def _should_reload_config(filename):
+    """Проверяет, нужно ли обновить кэш"""
+    global _config_mtime
+
+    if not os.path.exists(filename):
+        return True
+
+    try:
+        current_mtime = os.path.getmtime(filename)
+        return current_mtime > _config_mtime
+    except OSError:
+        return True
+
+
+def _load_config_cache(filename):
+    """Загружает config в кэш"""
+    global _config_cache, _config_mtime, _config_filename
+
+    config = configparser.ConfigParser()
+
+    try:
+        if os.path.exists(filename):
+            config.read(filename)
+            _config_mtime = os.path.getmtime(filename)
+        else:
+            print(f"Warning: Config file '{filename}' does not exist. Using empty config.")
+            config['DEFAULT'] = {}
 
     except (configparser.Error, IOError) as e:
-        print(f"Error: Failed to read the configuration file. {e}")
-        return {k: default for k in keys} if is_multi_key else default
+        print(f"Error reading config: {e}")
+        config['DEFAULT'] = {}  # Пустой config
+
+    _config_cache = config
+    _config_filename = filename
 
 
 def change_config_value(section, key, new_value):
