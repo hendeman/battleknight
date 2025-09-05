@@ -1046,7 +1046,12 @@ def activate_karma(skill, count):
 
                 point_karma_all = get_karma_value(soup)
                 day_karma = int(point_karma_all / point_karma)
-                p_log(f"Кармы хватит на {day_karma} дней")
+
+                if day_karma > 0:
+                    p_log(f"Кармы хватит на {day_karma} дней")
+                else:
+                    p_log(f"Недостаточно кармы")
+                    break
 
                 # проверка таймера
                 progressbar_time = progressbar_ends(soup)
