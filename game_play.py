@@ -9,14 +9,13 @@ from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
     get_next_time_and_index, get_random_value
 from module.data_pars import heals
-from module.event_function import apply_christmas_bonus
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
-    init_status_players, account_verification, check_treasury_timers
+    init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
+    set_initial_gold, post_dragon
 from module.group import go_group
-from module.http_requests import post_request, make_request
+from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all
-from sliv import set_initial_gold, reduce_experience, online_tracking_only
 
 treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
 mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
@@ -26,21 +25,6 @@ work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
 travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
 point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
 user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
-
-
-@apply_christmas_bonus
-def post_dragon(buy_rubies='', mission_name='DragonLair'):
-    payload = {
-        'chooseMission': mission_name,
-        'missionArt': 'small',
-        'missionKarma': 'Good',
-        'buyRubies': buy_rubies
-    }
-
-    post_request(world_url, payload)
-    p_log(f"Атака успешна, потрачено {buy_rubies if buy_rubies else '0'} рубинов")
-
-    # time_sleep(check_progressbar())
 
 
 @use_helper("comp_mission")
@@ -198,15 +182,15 @@ def autoplay(town, mission_name, side):
                 p_log("Цикл получился более 24 часов. Уменьшите время выполнения промежуточным программ")
 
 
-def wrapper_function(func1, func2, process_name):
+def wrapper_function(func1, func2):
     try:
         func1()  # Запускаем первую функцию
-    except Exception as e:
-        p_log(f"Исключение в {func1}:", is_error=True)  # Логируем исключение с полным traceback
+    except Exception as er:
+        p_log(f"Исключение в {func1}: {er}", is_error=True)  # Логируем исключение с полным traceback
     try:
         func2()  # Запускаем вторую функцию
-    except Exception as e:
-        p_log(f"Исключение в {func2}:", is_error=True)  # Логируем исключение с полным traceback
+    except Exception as er:
+        p_log(f"Исключение в {func2}: {er}", is_error=True)  # Логируем исключение с полным traceback
 
 
 def common_actions(process_function, process_name):
@@ -219,7 +203,7 @@ def common_actions(process_function, process_name):
 
 def run_process_for_hours(target_function, hours, process_name):
     p_log(f"Запуск {process_name} процесса...")
-    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function, process_name))
+    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,))
     process.start()
     p_log(f"Ожидание {hours} часов... Работает {process_name} функция")
     time_sleep_main(hours * 60 * 60, name=process_name)  # Ожидание в часах

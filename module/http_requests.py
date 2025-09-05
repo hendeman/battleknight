@@ -1,7 +1,7 @@
 import time
 
 import requests
-from requests import Timeout, RequestException
+from requests import Timeout, RequestException, Response
 from requests.exceptions import ProxyError
 
 from logs.logs import p_log
@@ -159,7 +159,7 @@ def make_request(url,
                  http_headers=headers,
                  csrf=True,
                  proxy_manage=None,
-                 proxies=None):
+                 proxies=None) -> Response:
     """GET запрос"""
     if browser_cookies is None:
         browser_cookies = get_cookies()
@@ -188,7 +188,7 @@ def post_request(url,
                  browser_cookies=None,
                  http_headers=headers,
                  proxies=None,
-                 proxy_manage=None):
+                 proxy_manage=None) -> Response:
     """POST запрос"""
     if browser_cookies is None:
         browser_cookies = get_cookies()

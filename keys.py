@@ -9,40 +9,37 @@ from logs.logs import p_log, setup_logging
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
     get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, \
     get_silver, \
-    check_progressbar, go_auction, buy_ring, account_verification
+    check_progressbar, go_auction, buy_ring, account_verification, reduce_experience, online_tracking_only
 from module.group import go_group
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
 from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles
-from sliv import reduce_experience, online_tracking_only
 
 
 # ___________________ Выполнить миссию. Флаг cog_plata=True значит миссия для переправы __________
 
 
-def complete_mission(length_mission, current_castle, save_mission=None, cog_plata=False):
+def complete_mission(current_castle, save_mission=None, cog_plata=False):
     response = make_request(world_url)
     soup = BeautifulSoup(response.content, 'lxml')
-    name_mission = find_mission(soup, length_mission)
+    name_mission = find_mission(soup)
     if save_mission:
         element = name_mission.index(save_mission)
         name_mission = name_mission[element:]
     flag = False
     flag_cog = False
 
-
-    def process_mission_with_keys(mission, length_mission, buy_rubies=''):
+    def process_mission_with_keys(mission, buy_rubies=''):
         """
         Общая функция для обработки миссий с проверкой ключей.
 
         :param mission: Название миссии.
-        :param length_mission: Длина миссии.
         :param buy_rubies: Параметр для функции check_mission (может быть None или '1').
         :return: Кортеж (остановить_цикл, флаг_ключа).
         """
         p_log(f"Будет произведена попытка пройти {mission} миссию")
-        differences = check_mission(name_mission=mission, length_mission=length_mission, buy_rubies=buy_rubies)
+        differences = check_mission(name_mission=mission, buy_rubies=buy_rubies)
         if not differences:
             p_log(f"Миссия {mission} не открыла ключ. Идем на другую")
             return True, False  # Прерываем цикл, так как миссия не открыла ключ
@@ -77,12 +74,12 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
 
             time_sleep(check_progressbar())
             check_hit_point()
-            a_tags = check_status_mission(name_mission=mission, length_mission=length_mission)
+            a_tags = check_status_mission(name_mission=mission)
 
             if 'disabledSpecialBtn' in a_tags[0].get('class', []):
                 p_log("Закончились бесплатные миссии")
                 if get_config_value(key='mission_for_rubies'):
-                    stop_cycle, flag = process_mission_with_keys(mission, length_mission, "1")
+                    stop_cycle, flag = process_mission_with_keys(mission, "1")
                     p_log(f"stop_cycle={stop_cycle}, flag={flag}", level="debug")
                     if stop_cycle:
                         break
@@ -90,8 +87,9 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
                     silver_count = hide_silver(silver_limit=gold_limit)  # внести в казну
 
                     if silver_count > gold_limit:
-                        not_auction_timer = any([check_time_sleep(start_hour='10:45', end_hour='12:45', sleep_hour=None),
-                                                check_time_sleep(start_hour='22:45', end_hour='23:59', sleep_hour=None)])
+                        not_auction_timer = any(
+                            [check_time_sleep(start_hour='10:45', end_hour='12:45', sleep_hour=None),
+                             check_time_sleep(start_hour='22:45', end_hour='23:59', sleep_hour=None)])
                         if current_castle not in auction_castles and not not_auction_timer:
                             go_auction(out=current_castle)
                         else:
@@ -111,15 +109,12 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             else:
                 p_log("Есть доступные миссии")
                 if not cog_plata:
-                    stop_cycle, flag = process_mission_with_keys(mission, length_mission)
+                    stop_cycle, flag = process_mission_with_keys(mission)
                     p_log(f"stop_cycle={stop_cycle}, flag={flag}", level="debug")
                     if stop_cycle:
                         break
                 else:
-                    post_dragon(
-                        length_mission=length_mission,
-                        name_mission=mission
-                    )
+                    post_dragon(name_mission=mission, sleeping=False)
                     silver_count = get_silver()
                     if silver_count >= 800:
                         flag_cog = True
@@ -137,13 +132,15 @@ def complete_mission(length_mission, current_castle, save_mission=None, cog_plat
             if silver_count >= 140:
                 move_item(how='buy')  # купить ключ
             move_item(how='loot')  # переместить ключи из сундука добычи
-        except:
-            p_log("Ошибка выполнения move_item", level='warning')
+        except Exception as er:
+            p_log(f"Ошибка выполнения move_item: {er}", level='warning')
 
 
-def find_mission(soup, length_mission):
+def find_mission(soup):
     name_missions = []
-    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', 'Good', this\\);"
+    mission_karma = get_config_value("working_karma").capitalize()
+    length_mission = get_config_value("mission_duration")
+    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', '{mission_karma}', this\\);"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
     for tag in a_tags:
         onclick_value = tag['onclick']
@@ -155,7 +152,7 @@ def find_mission(soup, length_mission):
     return name_missions
 
 
-def keys_search(event, rubies, length_mission):
+def keys_search():
     time_sleep(check_progressbar())  # проверить статус
     # check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
     place, my_town = my_place()  # Джаро, VillageFour
@@ -187,14 +184,14 @@ def keys_search(event, rubies, length_mission):
         if my_town == name_max_city:
             p_log(f"Вы в городе с максимальным количеством ключей!")
             check_hit_point()  # проверка количества здоровья
-            complete_mission(length_mission=length_mission, current_castle=name_max_city, save_mission=save_mission)
+            complete_mission(current_castle=name_max_city, save_mission=save_mission)
         else:
             post_travel(out=my_town, where=name_max_city)
 
     if my_town in castles_island and name_max_city in castles:
         if my_town == 'HarbourTwo':
             if silver_count < 800:
-                complete_mission(length_mission='small', current_castle=name_max_city, cog_plata=True)
+                complete_mission(current_castle=name_max_city, cog_plata=True)
             post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
         else:
             post_travel(out=my_town, where='HarbourTwo')
@@ -202,7 +199,7 @@ def keys_search(event, rubies, length_mission):
     if my_town in castles and name_max_city in castles_island:
         if my_town == 'HarbourOne':
             if silver_count < 800:
-                complete_mission(length_mission='small', current_castle=name_max_city, cog_plata=True)
+                complete_mission(current_castle=name_max_city, cog_plata=True)
             post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
         else:
             post_travel(out=my_town, where='HarbourOne')
@@ -217,12 +214,7 @@ if __name__ == "__main__":
 
     while True:
         try:
-            keys_search(event='Ключи', rubies=False, length_mission='small')
+            keys_search()
         except ValueError as e:
             p_log(f"Ошибка: {e}")
             break
-
-
-    # # Завершение дочернего процесса логирования
-    # queue.put(None)  # Отправляем сигнал для завершения
-    # logging_process.join()  # Ждем завершения дочернего процесса
