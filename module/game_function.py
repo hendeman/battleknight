@@ -19,7 +19,6 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     current_time
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
-from module.event_function import apply_christmas_bonus
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -314,6 +313,45 @@ def post_travel(out='', where='', how='horse'):
     else:
         print_status(out, where, how, seconds_to_hhmmss(timer_travel))
         time_sleep(timer_travel)
+
+
+# __________________________________ Рождественский ивент ________________________________________
+def christmas_bonus(func=None):
+    if func is None:
+        return lambda f: christmas_bonus(f)
+
+    def wrapper(*args, **kwargs):
+        p_log("Проверка рюкзака добычи на еду")
+        bonus_items = get_item_loot('christmas')
+        if bonus_items:
+            bonus_item = random.choice(bonus_items)
+            p_log("Попытка применить рожденственский баф на миссию")
+            url_bonus = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/'
+                         f'activateQuestItem/{bonus_item}/lootbag?noCache={no_cache()}')
+            try:
+                resp = make_request(url_bonus).json()
+                p_log(resp, level='debug')
+                if resp['result']:
+                    p_log('Баф активирован')
+                else:
+                    p_log(f"Баф не был активирован: {resp['reason']}, {resp['data']}", level='warning')
+            except Exception as er:
+                p_log(f"Ошибка обработки запроса рожденственского бонуса: {er}", level='warning')
+            get_item_loot('christmas')
+        else:
+            p_log("Еды в рюкзаке добычи не обнаружено")
+        func(*args, **kwargs)
+
+    return wrapper
+
+
+def apply_christmas_bonus(func):
+    if CHRISTMAS_MODE:
+        return christmas_bonus(func)
+    return func
+
+
+# ________________________________________________________________________________________________
 
 
 @apply_christmas_bonus
