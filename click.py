@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, get_config_value, format_time
+from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
     activate_karma, post_dragon
 from module.group import go_group
@@ -120,4 +121,11 @@ def main_loop_click(group=False):
 if __name__ == "__main__":
     setup_logging()
     account_verification(helper_init=False)
-    main_loop_click(group=True)
+    parser = arg_parser()
+    args = parser.parse_args()
+    if args.group:
+        p_log(f"Запущен скрипт с прохождением группы")
+        main_loop_click(group=True)
+    else:
+        main_loop_click()
+
