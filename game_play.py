@@ -2,7 +2,6 @@ import time
 import multiprocessing
 from random import choice
 
-from bs4 import BeautifulSoup
 
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
@@ -12,7 +11,7 @@ from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
-    set_initial_gold, post_dragon
+    set_initial_gold, click, ClickResult
 from module.group import go_group
 from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all
@@ -29,7 +28,7 @@ user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
 
 @use_helper("comp_mission")
 @use_helper("horse_mission")
-def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
+def attack_mission(mission_name, mission_duration, find_karma, url=mission_url, game_mode=4):
     response = make_request(url)
     time.sleep(1)
     time_sleep(check_progressbar(response))  # проверка состояния рыцаря
@@ -37,7 +36,6 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
     while game_mode:
         # break_outer = False
         mission_name = choice(mission_name) if isinstance(mission_name, list) else mission_name
-        response = make_request(url)
         time.sleep(1)
 
         if heals(response) < 20:
@@ -45,39 +43,11 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
             use_potion()
             response = make_request(url)
 
-        soup = BeautifulSoup(response.content, 'lxml')
-        search_string = f"chooseMission('small', '{mission_name}', 'Good', this)"
-        a_tags = soup.find_all('a', onclick=lambda onclick: onclick and search_string in onclick)
+        result = click(mission_duration, mission_name, find_karma)
+        if result == ClickResult.NOT_MISSION:
+            p_log(f"Свободных миссий больше нет.")
+            break
 
-        if a_tags:
-            # Если будешь использовать перепроверь search_string для вставки в lambda
-            # for a_tag in a_tags:
-            #     if 'disabledSpecialBtn' in a_tag.get('class', []):
-            #         buy_rubies_tags = soup.find_all('a', class_='devLarge missionBuyRubies toolTip',
-            #                                         onclick=lambda onclick: onclick and (
-            #                                                 f"chooseMission('large', 'DragonLair', 'Good', this, '1')" in onclick
-            #                                                 or f"chooseMission('large', 'DragonLair', 'Good', this, '2')" in onclick
-            #                                                 or f"chooseMission('large', 'DragonLair', 'Good', this, '3')" in onclick))
-            #         if buy_rubies_tags:
-            #             for buy_rubies_tag in reversed(buy_rubies_tags):
-            #                 onclick_value = buy_rubies_tag.get('onclick')
-            #                 p_log(onclick_value)
-            #                 if onclick_value:
-            #                     parts = onclick_value.split(',')
-            #                     if len(parts) > 4:
-            #                         fifth_argument = parts[4].strip().strip("');")
-            #
-            #                         post_dragon(buy_rubies=fifth_argument)
-            #                         break_outer = True
-            #                         break
-            #             if break_outer:
-            #                 break
-            # else:
-            #     post_dragon(mission_name)
-            post_dragon(mission_name)
-            time.sleep(1)
-        else:
-            p_log('Не удалось найти тег <a> с нужным атрибутом onclick.')
         game_mode -= 1
         if not game_mode and get_config_value("contribute_to_treasury") and not check_treasury_timers():
             contribute_to_treasury()
@@ -99,6 +69,10 @@ def autoplay(town, mission_name, side):
 
     count_work, next_time = get_next_time_and_index(start_time)
     time_sleep(wait_until(next_time))
+    game_param = [
+        get_config_value("mission_duration"),
+        get_config_value("working_karma").capitalize()
+    ]
 
     while True:
         phase_offset = get_config_value("phase_offset")
@@ -108,7 +82,7 @@ def autoplay(town, mission_name, side):
             register_joust()  # регистрация на турнир
 
         time_sleep(check_progressbar())
-        attack_mission(game_mode=get_config_value("game_mode"), mission_name=mission_name)
+        attack_mission(mission_name, *game_param, game_mode=get_config_value("game_mode"))
 
         # Если в городе нет аукциона, то едем в ближайший
         place, my_town = my_place()

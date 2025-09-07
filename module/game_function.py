@@ -4,6 +4,7 @@ import os
 import pickle
 import re
 import threading
+from enum import Enum, auto
 from typing import Union, Tuple
 from time import sleep
 import time
@@ -351,7 +352,45 @@ def apply_christmas_bonus(func):
     return func
 
 
-# ________________________________________________________________________________________________
+# ______________________________________________ Прохождение миссии _____________________________________
+
+class ClickResult(Enum):
+    MISSION = auto()  # Обычная миссия
+    MISSION_RUBY = auto()  # Миссия с рубинами
+    NOT_MISSION = auto()  # Нет свободных миссий
+
+
+def click(mission_duration, mission_name, find_karma, rubies=False):
+    response = make_request(world_url)
+    soup = BeautifulSoup(response.content, 'lxml')
+
+    search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
+    a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
+
+    if a_tags:
+        if 'disabledSpecialBtn' in a_tags.get('class', []):
+            onclick_pattern = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this, '1')"
+            buy_rubies_tags = soup.find('a', class_='devSmall missionBuyRubies toolTip',
+                                        onclick=lambda onclick: onclick and onclick_pattern in onclick)
+            if buy_rubies_tags and rubies:
+                onclick_value = buy_rubies_tags.get('onclick')
+                if onclick_value:
+                    parts = onclick_value.split(',')
+                    if len(parts) > 4:
+                        fifth_argument = parts[4].strip().strip("');")
+                        post_dragon(mission_duration, mission_name, find_karma, buy_rubies=fifth_argument)
+                        return ClickResult.MISSION_RUBY
+            return ClickResult.NOT_MISSION
+
+        else:
+            post_dragon(mission_duration, mission_name, find_karma)
+            return ClickResult.MISSION
+    else:
+        p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
+        raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
+
+
+# ______________________________________________________________________________________________________________
 
 
 @apply_christmas_bonus

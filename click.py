@@ -1,22 +1,10 @@
 from datetime import datetime
-from enum import Enum, auto
-
-from bs4 import BeautifulSoup
-
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
-    activate_karma, post_dragon
+    activate_karma, click, ClickResult
 from module.group import go_group
-from module.http_requests import make_request
-from setting import world_url
-
-
-class ClickResult(Enum):
-    MISSION = auto()  # Обычная миссия
-    MISSION_RUBY = auto()  # Миссия с рубинами
-    NOT_MISSION = auto()  # Нет свободных миссий
 
 
 class RubyManager:
@@ -40,36 +28,6 @@ class RubyManager:
     def mark_ruby_used(self):
         self.total_used += 1
         self.daily_used += 1
-
-
-def click(mission_duration, mission_name, find_karma, rubies=False):
-    response = make_request(world_url)
-    soup = BeautifulSoup(response.content, 'lxml')
-
-    search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
-    a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
-
-    if a_tags:
-        if 'disabledSpecialBtn' in a_tags.get('class', []):
-            onclick_pattern = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this, '1')"
-            buy_rubies_tags = soup.find('a', class_='devSmall missionBuyRubies toolTip',
-                                        onclick=lambda onclick: onclick and onclick_pattern in onclick)
-            if buy_rubies_tags and rubies:
-                onclick_value = buy_rubies_tags.get('onclick')
-                if onclick_value:
-                    parts = onclick_value.split(',')
-                    if len(parts) > 4:
-                        fifth_argument = parts[4].strip().strip("');")
-                        post_dragon(mission_duration, mission_name, find_karma, buy_rubies=fifth_argument)
-                        return ClickResult.MISSION_RUBY
-            return ClickResult.NOT_MISSION
-
-        else:
-            post_dragon(mission_duration, mission_name, find_karma)
-            return ClickResult.MISSION
-    else:
-        p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
-        raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
 
 
 def main_loop_click(group=False):
