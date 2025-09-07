@@ -73,8 +73,8 @@ def attack_mission(url=mission_url, game_mode=4, mission_name='DragonLair'):
             #             if break_outer:
             #                 break
             # else:
-            #     post_dragon(mission_name=mission_name)
-            post_dragon(mission_name=mission_name)
+            #     post_dragon(mission_name)
+            post_dragon(mission_name)
             time.sleep(1)
         else:
             p_log('Не удалось найти тег <a> с нужным атрибутом onclick.')
