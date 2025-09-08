@@ -36,7 +36,7 @@ def attack_castle(trade_name, castle_info=None, delete_war_list=None):
         if not sec:
             castle_id = main_pars_clanwar(str(soup))
 
-    p_log(f"Таймер sec: {sec}, stop_event: {stop_event.is_set()}", level='debug')
+    p_log(f"Таймер: {format_time(sec)}, stop_event: {stop_event.is_set()}", level='debug')
 
     if not sec and not stop_event.is_set() and castle_id:
         stop_event.set()
@@ -60,10 +60,7 @@ def attack_castle(trade_name, castle_info=None, delete_war_list=None):
             resp = decorated_post_request(url_attack_castle, payload)
             save_html_file(trade_name, resp, 'answer')
     else:
-        if not castle_id:
-            p_log(f"Запрос {trade_name}. Ошибка получения castle_id")
-        else:
-            p_log(f"Запрос {trade_name} оказался холостым")
+        p_log(f"Запрос {trade_name} оказался холостым")
 
 
 def capture_castle(delete_war_list=None, castle_info=None):
