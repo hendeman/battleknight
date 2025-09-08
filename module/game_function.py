@@ -378,12 +378,12 @@ def click(mission_duration, mission_name, find_karma, rubies=False):
                     parts = onclick_value.split(',')
                     if len(parts) > 4:
                         fifth_argument = parts[4].strip().strip("');")
-                        post_dragon(mission_duration, mission_name, find_karma, buy_rubies=fifth_argument)
+                        post_dragon(mission_name, buy_rubies=fifth_argument)
                         return ClickResult.MISSION_RUBY
             return ClickResult.NOT_MISSION
 
         else:
-            post_dragon(mission_duration, mission_name, find_karma)
+            post_dragon(mission_name)
             return ClickResult.MISSION
     else:
         p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
