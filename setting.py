@@ -44,10 +44,12 @@ STAT_FILE_LOSS = 'pickles_data/loss.pickle'
 GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
+DIRECTORY_PICKLES = 'pickles_data/'
+EXTENSION_PICKLES = '.pickle'
 filename = 'config.ini'
 url_name_json = 'battle.json'
 url_helper_json = "helper.json"
-url_nicks = "nicksflower.txt"
+url_nicks = "configs/id_attack.txt"
 
 excel_file_path = f"bk\\statistic\\stat.xlsx"
 path_json = f"bk\\statistic\\"
@@ -82,7 +84,7 @@ auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPost
 status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 status_list_eng = ['Ozhidanie posle dueli', 'Ozhidanie posle missii', 'Puteshestvie', 'Rabota', 'Rynok']
 type_helper_name = ('наездник', 'компаньон')
-start_time = ['09:00', '15:25', '22:50']
+start_time = ['09:00', '15:20', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',
                'itemPotionYellowFull', 'itemPotionKarmaSwitch']
 potion_name_buy = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200']
