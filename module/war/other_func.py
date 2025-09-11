@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 from logs.logs import p_log
 from module.all_function import get_config_value, load_json_file, save_json_file
+from module.data_pars import party
 from module.game_function import progressbar_ends, seconds_to_hhmmss
 from module.http_requests import make_request
-from module.operation import party
 from module.war.settings import html_files_directory, url_clanwar, data_files_directory, members, url_members
 
 

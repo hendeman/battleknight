@@ -6,8 +6,8 @@ import time
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
+from module.data_pars import party
 from module.http_requests import post_request, make_request
-from module.operation import party
 from module.war.other_func import deco_time
 from module.war.settings import war_list, url_members, server_number, url_war_damage
 
