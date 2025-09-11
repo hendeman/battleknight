@@ -1,6 +1,5 @@
 import ast
 import json
-import os
 import pickle
 import re
 import threading
@@ -22,8 +21,6 @@ from module.data_pars import heals, get_status_helper, pars_healer_result, get_a
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
 from module.http_requests import post_request, make_request
 from setting import *
-
-date = datetime(2024, 9, 17, 19)
 
 
 def print_status(from_town, where_town, how, tt):
@@ -1419,52 +1416,6 @@ def korovk_reduce_experience(name_file=NICKS_GAMER):
                     time_sleep()
 
         p_log("Все рыцари успешно пройдены")
-
-
-def change_pickle_file(name_file=GOLD_GAMER):
-    with open(name_file, 'rb+') as f:
-        loaded_dict = pickle.load(f)
-        # delete_list = list(loaded_dict.keys())
-        # for i in delete_list:
-        #     if loaded_dict[i]['gold'] < 500:
-        #         del loaded_dict[i]
-        p_log(loaded_dict)
-        loaded_dict['984811']['time'] = datetime(2024, 9, 17, 18)
-
-        f.seek(0)  # Перемещение курсора в начало файла
-        f.truncate()  # Очистка содержимого файла
-        pickle.dump(loaded_dict, f)
-        p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
-
-
-def create_pickle_file(name_file=NICKS_GAMER):
-    if not os.path.exists(name_file):
-        with open(name_file, 'wb') as f:
-            pickle.dump({}, f)
-
-    with open(name_file, 'rb+') as f:
-        loaded_dict = pickle.load(f)
-        with open(url_nicks, 'r', encoding='utf-8') as file_nicks:
-            for i in file_nicks:
-                id_gold = i.replace("\n", "").replace(" ", "").split(":")
-                key = id_gold[0]
-                gold = 0 if len(id_gold) == 1 else id_gold[1]
-                if key not in loaded_dict:
-                    loaded_dict[key] = {"time": date, "spoil": int(gold)}
-
-        f.seek(0)  # Перемещение курсора в начало файла
-        f.truncate()  # Очистка содержимого файла
-        pickle.dump(loaded_dict, f)
-        p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
-
-
-def read_pickle_file(name_file=NICKS_GAMER):
-    with open(f"{name_file}", 'rb') as f:
-        loaded_dict = pickle.load(f)
-        # dct = {k: v for k, v in sorted(loaded_dict.items(), key=lambda item: item[1]['spoil'], reverse=True)}
-        # p_log(f"Коровки дадут {sum(x['spoil'] for x in loaded_dict.values())} серебра")
-        for key, value in loaded_dict.items():
-            p_log(f'{key}:{value}')
 
 
 def test_pars():
