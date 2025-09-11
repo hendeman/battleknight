@@ -5,7 +5,7 @@ import setting
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
-from module.all_function import remove_cyrillic, availability_id
+from module.all_function import remove_cyrillic, availability_id, digi
 
 
 def heals(resp):
@@ -277,3 +277,44 @@ def get_karma_value(soup):
     if karma_element:
         karma_value = karma_element.parent.text.strip()
         return int(karma_value)
+
+
+# _____________________________________ Парсинг последней активности игрока в ордене _________________________________
+def visit(soup) -> dict:
+    new = []
+    lst = soup.find_all('script')[-2].text.replace("\n", "").replace(" ", "").split(";")
+    for i in lst:
+        if "}" in i:
+            break
+        new.append(i)
+
+    if len(new) % 3 != 0:
+        raise "Ошибка парсинга <script> данных"
+
+    del new[2::3]
+    new_lst = dict([(str(digi(x)), digi(y)) for x, y in zip(new[::2], new[1::2])])
+    # return dict(filter(lambda item: item[1] <= 3, new_lst.items()))
+    return new_lst
+
+
+def party(soup) -> dict:
+    list_tr = {}
+    for row in soup.find('table', id='membersTable').find_all('tr')[1:]:
+        list_td = []
+        for i in row.find_all('td'):
+            if not i.get_text(strip=True):
+                continue
+            if i.get('class') and i.get('class')[0] == 'memberRank':
+                selected_option = i.find('option', selected=True)
+                list_td.append(selected_option.get('value') if selected_option else i.get_text(strip=True))
+            else:
+                list_td.append(i.get_text(strip=True))
+
+        key = row.attrs['id'].replace("recordMember", "")
+        value = {"name": remove_cyrillic(list_td[1]),
+                 "level": int(list_td[2]),
+                 "gold": int(list_td[3].replace(".", "")),
+                 "rank": list_td[0] if list_td[0].isdigit() else '1'}
+        list_tr.setdefault(key, value)
+
+    return list_tr

@@ -12,16 +12,21 @@ from typing import Optional
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename
+from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, url_nicks
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
 _config_mtime = 0
 _config_filename = None
+date = datetime(2024, 9, 17, 19)
 
 
-def remove_cyrillic(stroka: str):
-    return re.sub(r'[а-яА-Я]', '', stroka).strip()  # 'Святлейший князь Rusty' -> 'Rusty'
+def remove_cyrillic(bad_string: str):
+    return re.sub(r'[а-яА-Я]', '', bad_string).strip()  # 'Святлейший князь Rusty' -> 'Rusty'
+
+
+def digi(bad_string: str) -> int:
+    return int(re.findall(r'\b\d+\b', bad_string)[0])  # 'element.addClass('activity0'+6)' -> 6
 
 
 def day(file):
@@ -497,3 +502,63 @@ def get_name_companion(dct, id_find: int):
         for item in data_helper:
             if item.get('item_id') == str(id_find):
                 return item.get('item_fullName')
+
+
+def all_party(a: dict, b: dict) -> dict:
+    all_dct_new = {}
+    for x, y in zip(a.items(), b.items()):
+        y[1]["time"] = x[1]
+        all_dct_new.setdefault(x[0], y[1])
+    return all_dct_new
+
+
+# _____________________________ Создание, чтение, изменение pickle ____________________________________________
+def read_conf_txt(loaded_dict):
+    try:
+        with open(url_nicks, 'r', encoding='utf-8') as file_nicks:
+            for i in file_nicks:
+                id_gold = i.replace("\n", "").replace(" ", "").split(":")
+                key = id_gold[0]
+                gold = 0 if len(id_gold) == 1 else id_gold[1]
+                if key not in loaded_dict:
+                    loaded_dict[key] = {"time": date, "spoil": int(gold)}
+    except FileNotFoundError:
+        p_log(f"Файл {url_nicks} не найден")
+    except Exception as e:
+        p_log(f"Ошибка чтения {url_nicks}: {e}")
+
+    return loaded_dict
+
+
+def create_pickle_file(name_file=GOLD_GAMER):
+    loaded_dict = read_conf_txt({})
+
+    with open(name_file, 'wb') as f:
+        pickle.dump(loaded_dict, f)
+        p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
+
+
+def change_pickle_file(name_file=NICKS_GAMER):
+    if not os.path.exists(name_file):
+        with open(name_file, 'wb') as f:
+            pickle.dump({}, f)
+
+    with open(name_file, 'rb+') as f:
+        loaded_dict = read_conf_txt(pickle.load(f))
+        f.seek(0)  # Перемещение курсора в начало файла
+        f.truncate()  # Очистка содержимого файла
+        pickle.dump(loaded_dict, f)
+        p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
+
+
+def read_pickle_file(name_file=NICKS_GAMER):
+    try:
+        with open(f"{name_file}", 'rb') as f:
+            loaded_dict = pickle.load(f)
+            p_log(f"Всего {len(loaded_dict)} записей")
+            for key, value in loaded_dict.items():
+                p_log(f'{key}:{value}')
+    except FileNotFoundError:
+        p_log(f"Файл {name_file} не найден")
+    except ValueError as er:
+        p_log(f"Нарушена структура файла {name_file}. Ошибка: {er}")
