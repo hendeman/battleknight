@@ -7,6 +7,7 @@ from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
     get_next_time_and_index, get_random_value
+from module.cli import arg_parser
 from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
@@ -206,9 +207,16 @@ if __name__ == "__main__":
                   'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'],
                   'side': get_config_value("working_karma")}
     }
-
-    autoplay(**event_list.get(get_config_value("event")))
-
+    parser = arg_parser()
+    args = parser.parse_args()
+    if args.fehan:
+        p_log(f"Активирован мод Остров Фехан")
+        autoplay(**event_list.get(args.fehan))
+    if args.easter:
+        p_log(f"Активирован мод Пасхальный")
+        autoplay(**event_list.get(args.easter))
+    else:
+        autoplay(**event_list.get('not_event'))
     # Завершение дочернего процесса логирования
     queue.put(None)  # Отправляем сигнал для завершения
     logging_process.join()  # Ждем завершения дочернего процесса
