@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 from logs.logs import p_log, setup_logging
 from module.cli import arg_parser
