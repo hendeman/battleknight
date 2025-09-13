@@ -211,10 +211,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.fehan:
         p_log(f"Активирован мод Остров Фехан")
-        autoplay(**event_list.get(args.fehan))
+        autoplay(**event_list.get('fehan'))
     if args.easter:
         p_log(f"Активирован мод Пасхальный")
-        autoplay(**event_list.get(args.easter))
+        autoplay(**event_list.get('easter'))
     else:
         autoplay(**event_list.get('not_event'))
     # Завершение дочернего процесса логирования
