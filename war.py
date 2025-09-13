@@ -182,7 +182,7 @@ def capture_enemy_castle(tag_castle='cf1'):
 
 
 if __name__ == "__main__":
-    setup_logging(enable_rotation=False, log_file_path="logs/app_war.log")
+    setup_logging(enable_rotation=False, log_file_path="war")
     account_verification(helper_init=False)
     if not check_file_exists(data_files_directory, members):
         p_log(f"Файл {members} не найден. Будет создан новый")
