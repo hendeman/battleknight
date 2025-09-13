@@ -3,6 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+ENV_PATH_DEFAULT = 'configs/.env'
+
 # Определение всех возможных куки и их переменных окружения
 COOKIE_MAPPING = {
     "BattleKnight": "BATTLEKNIGHT_COOKIE",
@@ -50,7 +52,7 @@ def load_custom_env(env_file=None, required_cookies=None):
             raise FileNotFoundError(f"Env file not found: {env_file}")
         load_dotenv(env_path, override=True)
     else:
-        load_dotenv()
+        load_dotenv(ENV_PATH_DEFAULT)
 
     # Формируем словарь куки
     cookies = {
