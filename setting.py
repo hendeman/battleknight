@@ -44,11 +44,13 @@ STAT_FILE_LOSS = 'pickles_data/loss.pickle'
 GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
+LOG_DIR = 'logs'
 DIRECTORY_PICKLES = 'pickles_data/'
 EXTENSION_PICKLES = '.pickle'
-filename = 'config.ini'
-url_name_json = 'battle.json'
-url_helper_json = "helper.json"
+# Configs files
+filename = 'configs/config.ini'
+url_name_json = 'configs/battle.json'
+url_helper_json = "configs/helper.json"
 url_nicks = "configs/id_attack.txt"
 
 excel_file_path = f"bk\\statistic\\stat.xlsx"
@@ -169,10 +171,11 @@ def get_cookies():
     return cookies
 
 
-def reload_cookies(env_file=None):
+def reload_cookies(env_file):
     """Перезагружает куки из указанного .env файла"""
     global cookies
-    cookies = load_custom_env(env_file)
+    file_name = env_file + '.env'
+    cookies = load_custom_env(file_name)
     return cookies
 
 
