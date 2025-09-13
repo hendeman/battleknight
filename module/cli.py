@@ -54,7 +54,7 @@ class FilteredHelpParser(argparse.ArgumentParser):
         if filter_group == 'pickle':
             self._print_message("  python main.py -rp nicks\n", file)
             self._print_message("  python main.py -cp nicks\n", file)
-            self._print_message("  python main.py -up nicks\n", file)
+            self._print_message("  python main.py -chp nicks\n", file)
 
         elif filter_group == 'statistic':
             self._print_message("  python main.py -wf\n", file)
@@ -62,6 +62,10 @@ class FilteredHelpParser(argparse.ArgumentParser):
 
         elif filter_group == 'group':
             self._print_message("  python main.py -gr\n", file)
+
+        elif filter_group == 'game_play':
+            self._print_message("  python main.py -fehan\n", file)
+            self._print_message("  python main.py -easter\n", file)
 
         elif filter_group is None:
             # Полная справка - показываем все примеры
@@ -74,6 +78,14 @@ def arg_parser():
     """Настройка парсера аргументов."""
     parser = FilteredHelpParser(description='Выбор программы', add_help=False)
 
+    parser.add_argument('-fehan',
+                        action='store_true',
+                        help='Мод Фехан',
+                        filter_group="game_play")
+    parser.add_argument('-easter',
+                        action='store_true',
+                        help='Мод пасхальный',
+                        filter_group="game_play")
     parser.add_argument('-gr',
                         '--group',
                         action='store_true',
