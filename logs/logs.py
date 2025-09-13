@@ -1,10 +1,13 @@
 import logging
 import sys
 import threading
+from pathlib import Path
 
 import colorlog
 from logging.handlers import TimedRotatingFileHandler, QueueHandler
 import os
+
+from setting import LOG_DIR
 
 
 def p_log(*args, is_error=False, level='info'):
@@ -24,7 +27,8 @@ def p_log(*args, is_error=False, level='info'):
             logging.info(message)
 
 
-def setup_logging(queue=None, enable_rotation=True, log_file_path="logs/app.log"):
+def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
+    log_path = Path(LOG_DIR) / log_file_path / "app.log"
     logger = logging.getLogger()
 
     # Удаление всех существующих обработчиков
@@ -50,12 +54,12 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="logs/app.log"
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
 
-    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     if enable_rotation:
-        file_handler = TimedRotatingFileHandler(log_file_path, when="midnight", interval=1, backupCount=10)
+        file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10)
     else:
-        file_handler = logging.FileHandler(log_file_path)
+        file_handler = logging.FileHandler(log_path)
 
     file_handler.setFormatter(file_formatter)
 
