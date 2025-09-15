@@ -12,7 +12,7 @@ from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
-    set_initial_gold, click, ClickResult
+    set_initial_gold, click, Namespace
 from module.group import go_group
 from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all
@@ -45,7 +45,7 @@ def attack_mission(mission_name, mission_duration, find_karma, url=mission_url, 
             response = make_request(url)
 
         result = click(mission_duration, mission_name, find_karma)
-        if result == ClickResult.NOT_MISSION:
+        if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет.")
             break
 

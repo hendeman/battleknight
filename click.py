@@ -3,7 +3,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
-    activate_karma, click, ClickResult
+    activate_karma, click, Namespace
 from module.group import go_group
 
 
@@ -63,12 +63,12 @@ def main_loop_click(group=False):
 
         result = click(*game_param, rubies=use_rubies)
 
-        if result == ClickResult.MISSION_RUBY:
+        if result == Namespace.MISSION_RUBY:
             ruby_manager.mark_ruby_used()
             p_log(
                 f"Дневной лимит: {ruby_manager.daily_used}/{ruby_manager.daily_limit}, "
                 f"Всего: {ruby_manager.total_used}/{ruby_manager.total_limit}")
-        if result == ClickResult.NOT_MISSION:
+        if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
             check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
             check_time_sleep(start_hour='21:31', end_hour='04:00', sleep_hour='08:00')

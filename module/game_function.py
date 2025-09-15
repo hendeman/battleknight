@@ -351,10 +351,11 @@ def apply_christmas_bonus(func):
 
 # ______________________________________________ Прохождение миссии _____________________________________
 
-class ClickResult(Enum):
+class Namespace(Enum):
     MISSION = auto()  # Обычная миссия
     MISSION_RUBY = auto()  # Миссия с рубинами
     NOT_MISSION = auto()  # Нет свободных миссий
+    NOT_SLEEP = auto()  # Без задержки
 
 
 def click(mission_duration, mission_name, find_karma, rubies=False):
@@ -376,12 +377,12 @@ def click(mission_duration, mission_name, find_karma, rubies=False):
                     if len(parts) > 4:
                         fifth_argument = parts[4].strip().strip("');")
                         post_dragon(mission_name, buy_rubies=fifth_argument)
-                        return ClickResult.MISSION_RUBY
-            return ClickResult.NOT_MISSION
+                        return Namespace.MISSION_RUBY
+            return Namespace.NOT_MISSION
 
         else:
             post_dragon(mission_name)
-            return ClickResult.MISSION
+            return Namespace.MISSION
     else:
         p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
         raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
@@ -1131,7 +1132,7 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
 
     while status_duel in status_list:
         p_log(f"{get_name()} status: {status_duel}")
-        time_sleep()
+        time_sleep(check_progressbar())
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
         if resp.url == url_error:
@@ -1291,14 +1292,14 @@ def online_tracking():
                         pickle.dump(dict_gamer, file)
                     if isinstance(resp, Response):
                         time_sleep()
-                    return "sleep"
+                    return Namespace.NOT_SLEEP
         return True
 
 
 def online_tracking_only(reduce_flag=False):
     while True:
         status_sleep = online_tracking()
-        if status_sleep == "sleep":
+        if status_sleep == Namespace.NOT_SLEEP:
             continue
         if status_sleep and not reduce_flag:
             time_sleep()
