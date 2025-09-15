@@ -7,7 +7,9 @@ import re
 import os
 import time
 from datetime import datetime, timedelta
+from functools import wraps
 from typing import Optional
+from inspect import signature
 
 from tqdm import tqdm
 
@@ -562,3 +564,28 @@ def read_pickle_file(name_file=NICKS_GAMER):
         p_log(f"Файл {name_file} не найден")
     except ValueError as er:
         p_log(f"Нарушена структура файла {name_file}. Ошибка: {er}")
+
+
+# __________________________________________ Декоратор ленивой загрузки параметров ______________________________
+def call_parameters(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        sig = signature(func)
+        bound = sig.bind(*args, **kwargs)
+        bound.apply_defaults()
+
+        # Обрабатываем каждый параметр
+        for param_name in bound.arguments:
+            param_value = bound.arguments[param_name]
+
+            # Если параметр callable и его нужно выполнить
+            if callable(param_value):
+                result = param_value()
+
+                # Заменяем callable на результат выполнения
+                bound.arguments[param_name] = result
+
+        # Вызываем с обновленными аргументами
+        return func(*bound.args, **bound.kwargs)
+
+    return wrapper

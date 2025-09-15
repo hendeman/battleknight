@@ -1,11 +1,12 @@
 import time
+from functools import partial
 
 from bs4 import BeautifulSoup
 import re
 
 from logs.logs import p_log
 
-from module.all_function import no_cache, format_time, get_config_value, time_sleep
+from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
 
@@ -119,7 +120,8 @@ def get_mercenary():
         return s
 
 
-def go_group(time_wait=get_config_value(key='group_wait')):
+@call_parameters
+def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
     if create_group():
         if time_wait:
             p_log(f"Ожидание игроков для группы {format_time(time_wait)} ...")
