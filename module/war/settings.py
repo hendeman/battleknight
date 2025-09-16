@@ -1,11 +1,11 @@
-server_number = 32
+SERVER = 'https://s32-ru.battleknight.gameforge.com'
 
-url_clanwar = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwar/battle'
-url_attack_castle = f'https://s{server_number}-ru.battleknight.gameforge.com:443/clanwar/declareWar'
-url_status_war = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwar'
-url_members = f'https://s{server_number}-ru.battleknight.gameforge.com/clan/members'
-url_war_damage = f'https://s{server_number}-ru.battleknight.gameforge.com/clanwar/getDamageData'
-url_clan_leave = f'https://s{server_number}-ru.battleknight.gameforge.com/clan/resign'
+url_clanwar = f'{SERVER}/clanwar/battle'
+url_attack_castle = f'{SERVER}/clanwar/declareWar'
+url_status_war = f'{SERVER}/clanwar'
+url_members = f'{SERVER}/clan/members'
+url_war_damage = f'{SERVER}/clanwar/getDamageData'
+url_clan_leave = f'{SERVER}/clan/resign'
 
 html_files_directory = 'module/war/war_file'
 data_files_directory = 'module/war/data_files'
