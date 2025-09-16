@@ -9,17 +9,14 @@ from logs.logs import p_log
 from module.data_pars import party
 from module.http_requests import post_request, make_request
 from module.war.other_func import deco_time
-from module.war.settings import war_list, url_members, server_number, url_war_damage
+from module.war.settings import war_list, url_members, SERVER, url_war_damage
 
 
 @deco_time
 def post_remove_member(id_name):
     current_thread_name = threading.current_thread().name
     p_log(f"Попытка отправить запрос на удаление {current_thread_name}")
-    url_remove_member = (
-        f"https://s{server_number}-ru.battleknight.gameforge.com"
-        f"/ajax/clan/removeMember/?knightID={id_name}"
-    )
+    url_remove_member = f"{SERVER}/ajax/clan/removeMember/?knightID={id_name}"
     payload = {'knightID': id_name}
     try:
         resp = post_request(url_remove_member, payload).json()
