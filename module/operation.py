@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from logs.logs import p_log
 from module.all_function import all_party
 from module.data_pars import visit, party
-from setting import exclusion_list, url_members, url_name, FILE_NAME, deco_func, url_gold
+from setting import exclusion_list, url_members, clan_html_file, FILE_NAME, deco_func, url_gold, SERVER
 
 from module.all_function import day, syntax_day, create_folder
 from module.data_pars import pars_player
@@ -116,11 +116,11 @@ KZ - соотношение между внесенным в казну золо
 
 def get_statistic_clan(write_flag):
     resp = make_request(url_members)
-    os.makedirs(os.path.dirname(url_name), exist_ok=True)
-    with open(url_name, 'w', encoding='utf-8') as file:
+    os.makedirs(os.path.dirname(clan_html_file), exist_ok=True)
+    with open(clan_html_file, 'w', encoding='utf-8') as file:
         file.write(resp.text)
 
-    with open(url_name, 'r', encoding='utf-8') as file:
+    with open(clan_html_file, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'lxml')
 
         time_visit_number, party_gold = visit(soup), party(soup)
@@ -187,7 +187,7 @@ def dict_values_difference(pars_dct: dict) -> list:
             if pars_dct[key1]['gold'] - loaded_dict[key1]['gold'] > 1000 or pars_dct[key1]['victory'] - \
                     loaded_dict[key1]['victory'] > 10:
                 print("*", end="")
-                url = f'https://s32-ru.battleknight.gameforge.com/common/profile/{key1}/Scores/Player'
+                url = f'{SERVER}/common/profile/{key1}/Scores/Player'
                 resp = make_request(url, game_sleep=False)
                 with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w', encoding='utf-8') as file2:
                     file2.write(resp.text)

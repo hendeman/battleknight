@@ -2,7 +2,6 @@ import time
 import multiprocessing
 from random import choice
 
-
 from logs.logger_process import logger_process
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
@@ -15,21 +14,12 @@ from module.game_function import check_progressbar, contribute_to_treasury, use_
     set_initial_gold, click, Namespace
 from module.group import go_group
 from module.http_requests import make_request
-from setting import start_game, start_time, auction_castles, castles_all
-
-treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
-mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
-deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
-world_url = 'https://s32-ru.battleknight.gameforge.com/world'
-work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
-travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
-point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
-user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
+from setting import start_game, start_time, auction_castles, castles_all, url_mission
 
 
 @use_helper("comp_mission")
 @use_helper("horse_mission")
-def attack_mission(mission_name, mission_duration, find_karma, url=mission_url, game_mode=4):
+def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, game_mode=4):
     response = make_request(url)
     time.sleep(1)
     time_sleep(check_progressbar(response))  # проверка состояния рыцаря

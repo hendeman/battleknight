@@ -9,6 +9,7 @@ from logs.logs import p_log
 from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
+from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members
 
 # Регулярное выражение для поиска
 pattern = re.compile(r'acquireMerc\d+npc')
@@ -26,13 +27,6 @@ def calculate_sum(num_list):
             # Преобразуем строку в число и добавляем к сумме
             total += int(item)
     return total
-
-
-url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group'
-url_group_members = 'https://s32-ru.battleknight.gameforge.com/groupmission/groupMembers'
-url_group_pas = 'https://s32-ru.battleknight.gameforge.com/groupmission/dice'
-url_group_delete = 'https://s32-ru.battleknight.gameforge.com/groupmission/deleteGroup'
-url_greate_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/foundGroup/'
 
 
 def create_group():
@@ -63,8 +57,7 @@ def create_group():
 
 
 def hire_mercenary(id_mercenary):
-    resp = make_request(
-        f"https://s32-ru.battleknight.gameforge.com/groupmission/addNPC/{id_mercenary}?noCache={no_cache()}")
+    resp = make_request(f"{SERVER}/groupmission/addNPC/{id_mercenary}?noCache={no_cache()}")
     try:
         if resp.json()['result']:
             p_log("Наёмник успешно нанят")

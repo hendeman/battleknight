@@ -14,7 +14,7 @@ from inspect import signature
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, url_nicks
+from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
@@ -517,7 +517,7 @@ def all_party(a: dict, b: dict) -> dict:
 # _____________________________ Создание, чтение, изменение pickle ____________________________________________
 def read_conf_txt(loaded_dict):
     try:
-        with open(url_nicks, 'r', encoding='utf-8') as file_nicks:
+        with open(attack_ids_path, 'r', encoding='utf-8') as file_nicks:
             for i in file_nicks:
                 id_gold = i.replace("\n", "").replace(" ", "").split(":")
                 key = id_gold[0]
@@ -525,9 +525,9 @@ def read_conf_txt(loaded_dict):
                 if key not in loaded_dict:
                     loaded_dict[key] = {"time": date, "spoil": int(gold)}
     except FileNotFoundError:
-        p_log(f"Файл {url_nicks} не найден")
+        p_log(f"Файл {attack_ids_path} не найден")
     except Exception as e:
-        p_log(f"Ошибка чтения {url_nicks}: {e}")
+        p_log(f"Ошибка чтения {attack_ids_path}: {e}")
 
     return loaded_dict
 

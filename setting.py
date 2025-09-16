@@ -6,6 +6,8 @@ today = date.today()
 
 CHRISTMAS_MODE = False
 
+SERVER = 'https://s32-ru.battleknight.gameforge.com'
+LANG = 'ru'
 NAME = None
 GAME_TOKEN = 'ODcyMTYx'
 GOLD_DAY = 25090
@@ -49,9 +51,9 @@ DIRECTORY_PICKLES = 'pickles_data/'
 EXTENSION_PICKLES = '.pickle'
 # Configs files
 filename = 'configs/config.ini'
-url_name_json = 'configs/battle.json'
-url_helper_json = "configs/helper.json"
-url_nicks = "configs/id_attack.txt"
+attack_ids_gamers = 'configs/battle.json'
+helpers_info = "configs/helper.json"
+attack_ids_path = "configs/id_attack.txt"
 
 excel_file_path = f"bk\\statistic\\stat.xlsx"
 path_json = f"bk\\statistic\\"
@@ -111,38 +113,41 @@ karma = {'good': {'holy': {'id_karma': 2, 'point': 50, 'name': 'Святая с�
                   'acid': {'id_karma': 5, 'point': 150, 'name': 'Удар кислотой'},
                   'thorns': {'id_karma': 6, 'point': 200, 'name': 'Броня с шипами'}}}
 
-# _____________________________________ Игровые ссылки _____________________________________________
-url_members = 'https://s32-ru.battleknight.gameforge.com/clan/members'
-url_gold = 'https://s32-ru.battleknight.gameforge.com/clan/upgrades'
-url_stat = 'https://s32-ru.battleknight.gameforge.com:443/highscore/'
-url_karma = 'https://s32-ru.battleknight.gameforge.com/user/karma/'
-world_url = 'https://s32-ru.battleknight.gameforge.com/world'
-map_url = 'https://s32-ru.battleknight.gameforge.com/world/map'
-url_compare = 'https://s32-ru.battleknight.gameforge.com/duel/compare/?enemyID='
-url_duel_name = "https://s32-ru.battleknight.gameforge.com/duel/duel/?enemyID="
-url_group = 'https://s32-ru.battleknight.gameforge.com/groupmission/group/'
-url_orden_message = "https://s32-ru.battleknight.gameforge.com/ajax/board/sendmessage"
-url_ordermail = "https://s32-ru.battleknight.gameforge.com/mail/ordermail"
-url_error = "https://s32-ru.battleknight.gameforge.com:443/common/error"
-travel_url = 'https://s32-ru.battleknight.gameforge.com:443/world/startTravel'
-mission_url = 'https://s32-ru.battleknight.gameforge.com/world/location'
-post_url = 'https://s32-ru.battleknight.gameforge.com/world/location/'
-url_world = 'https://s32-ru.battleknight.gameforge.com/world/travel'
-healer_url = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/buyAndUsePotion/'
-url_market = 'https://s32-ru.battleknight.gameforge.com/market/merchant/artefacts'
-url_loot = 'https://s32-ru.battleknight.gameforge.com/user/loot/'
-work_url = 'https://s32-ru.battleknight.gameforge.com:443/market/work'
-treasury_url = 'https://s32-ru.battleknight.gameforge.com/treasury'
-deposit_url = 'https://s32-ru.battleknight.gameforge.com/treasury/deposit'
-user_url = 'https://s32-ru.battleknight.gameforge.com/user/'
-point_url = 'https://s32-ru.battleknight.gameforge.com/user/getPotionBar'
-url_auctioneer = 'https://s32-ru.battleknight.gameforge.com/market/auctioneer'
-url_payout = 'https://s32-ru.battleknight.gameforge.com/treasury/payout'
-duel_url = 'https://s32-ru.battleknight.gameforge.com/duel/'
-url_joust_sign = 'https://s32-ru.battleknight.gameforge.com/joust/signUp'
-url_joust = 'https://s32-ru.battleknight.gameforge.com/joust'
-url_alchemist = 'https://s32-ru.battleknight.gameforge.com/market/merchant/alchemist'
-url_zany_healer = 'https://s32-ru.battleknight.gameforge.com/zanyhealer/'
+# _____________________________________ Игровые префиксы _____________________________________________
+url_members = '/clan/members'
+url_gold = '/clan/upgrades'
+url_stat = '/highscore/'
+url_karma = '/user/karma/'
+url_world = '/world'
+url_map = '/world/map'
+url_compare = '/duel/compare/?enemyID='
+url_duel_name = "/duel/duel/?enemyID="
+url_group = '/groupmission/group/'
+url_group_members = '/groupmission/groupMembers'
+url_group_pas = '/groupmission/dice'
+url_group_delete = '/groupmission/deleteGroup'
+url_greate_group = '/groupmission/foundGroup/'
+url_orden_message = "/ajax/board/sendmessage"
+url_ordermail = "/mail/ordermail"
+url_error = "/common/error"
+url_start_travel = '/world/startTravel'
+url_mission = '/world/location'
+url_travel = '/world/travel'
+url_market = '/market/merchant/artefacts'
+url_loot = '/user/loot/'
+url_work = '/market/work'
+url_treasury = '/treasury'
+url_deposit = '/treasury/deposit'
+url_user = '/user/'
+url_point = '/user/getPotionBar'
+url_auctioneer = '/market/auctioneer'
+url_payout = '/treasury/payout'
+url_duel = '/duel/'
+url_joust_sign = '/joust/signUp'
+url_joust = '/joust'
+url_alchemist = '/market/merchant/alchemist'
+url_healer = '/zanyhealer/buyAndUsePotion/'
+url_zany_healer = '/zanyhealer/'
 
 months = {
     1: "январь", 2: "февраль", 3: "март",
@@ -151,8 +156,8 @@ months = {
     10: "октябрь", 11: "ноябрь", 12: "декабрь"
 }
 
-url_name = (f"bk\\clan\\{today.year}\\{months.get(today.month)}"
-            f"\\BattleKnight_{today.day:02d}_{today.month:02d}.html")
+clan_html_file = (f"bk\\clan\\{today.year}\\{months.get(today.month)}"
+                  f"\\BattleKnight_{today.day:02d}_{today.month:02d}.html")
 folder_name = (f"bk\\statistic\\{today.year}\\{months.get(today.month)}"
                f"\\statistic_{today.day:02d}_{today.month:02d}")
 folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)}"
@@ -183,3 +188,12 @@ def reload_config(name_config):
     global filename
     filename = name_config + '.ini'
     return filename
+
+
+def add_server_prefix():
+    for var_name in list(globals().keys()):
+        if var_name.startswith('url_'):
+            globals()[var_name] = SERVER + globals()[var_name]
+
+
+add_server_prefix()

@@ -14,14 +14,14 @@ from module.group import go_group
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
-from setting import castles_all, castles_island, castles, world_url, map_url, auction_castles
+from setting import castles_all, castles_island, castles, url_world, url_map, auction_castles
 
 
 # ___________________ Выполнить миссию. Флаг cog_plata=True значит миссия для переправы __________
 
 
 def complete_mission(current_castle, save_mission=None, cog_plata=False):
-    response = make_request(world_url)
+    response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'lxml')
     name_mission = find_mission(soup)
     if save_mission:
@@ -171,7 +171,7 @@ def keys_search():
             p_log(group_castles, level="debug")
             raise ValueError("Все ключи открыты")
 
-    response = make_request(map_url)
+    response = make_request(url_map)
     soup = BeautifulSoup(response.text, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     if not name_max_city:

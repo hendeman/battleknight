@@ -32,7 +32,7 @@ def print_status(from_town, where_town, how, tt):
 
 
 def check_timer():
-    response = make_request(mission_url)
+    response = make_request(url_mission)
     soup = BeautifulSoup(response.text, 'lxml')
     response = soup.find('h1').text.strip()
     if response in status_list:
@@ -65,7 +65,7 @@ def convert_to_minutes(time_str):
 # _________________________________ Найти ближайший замок с аукционами ________________________________
 
 def get_castle_min_time():
-    soup = BeautifulSoup(make_request(url_world).text, 'lxml')
+    soup = BeautifulSoup(make_request(url_travel).text, 'lxml')
 
     # Словарь для хранения результатов
     travel_times = {}
@@ -112,7 +112,7 @@ def go_auction(out, going_back=True, tariff_travel=0):
 # _____________________ Проверка состояния check_progressbar, проверка на работу progressbar_ends
 def check_progressbar(resp=None):
     if resp is None:
-        resp = make_request(mission_url)
+        resp = make_request(url_mission)
     # heals(resp)
     soup = BeautifulSoup(resp.text, 'lxml')
     element = soup.find('h1').text.strip()
@@ -140,7 +140,7 @@ def progressbar_ends(soup):
 # __________ Использовать зелье use_potion, получить данные о зельях_________________________
 
 def check_health(heals_point=False):
-    resp = make_request(duel_url)
+    resp = make_request(url_duel)
     life_count = heals(resp)
     if life_count < 10:
         if heals_point:
@@ -157,12 +157,12 @@ def check_health(heals_point=False):
                 time_sleep(600)
 
             use_potion()
-            resp = make_request(duel_url)
+            resp = make_request(url_duel)
             return heals(resp)
         else:
             p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
             time_sleep()
-            resp = make_request(duel_url)
+            resp = make_request(url_duel)
             return heals(resp)
     return life_count
 
@@ -173,8 +173,7 @@ def use_potion():
         p_log(f"Будет использовано зелье на {last_item_value} HP")
         sleep(get_random_value())
         use_url = (
-            f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/usePotion?noCache={no_cache()}&id={last_item_id}'
-            '&merchant=false&table=user')
+            f'{SERVER}/ajax/ajax/usePotion?noCache={no_cache()}&id={last_item_id}&merchant=false&table=user')
         make_request(use_url)
         sleep(get_random_value())
         # Получить новый список зелья
@@ -188,7 +187,7 @@ def get_potion_bar():
     payload = {
         'noCache': f'{int(time.time() * 1000)}'
     }
-    data = post_request(point_url, payload).json()
+    data = post_request(url_point, payload).json()
     result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
     p_log(result)
     last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
@@ -198,7 +197,7 @@ def get_potion_bar():
 # ________________________ Проверить казну _____________________________________________
 
 def check_treasury_timers():
-    soup = BeautifulSoup(make_request(treasury_url).text, 'lxml')
+    soup = BeautifulSoup(make_request(url_treasury).text, 'lxml')
     element = soup.find(class_='scrollLongTall')
 
     # Проверяем наличие класса hidden. Если есть hidden, то доступна казна
@@ -212,12 +211,12 @@ def contribute_to_treasury():
     gold_all = put_gold(status="before")
     payload = {'silvertoDeposit': int(gold_all * CURRENT_TAX) - 100}
     p_log(payload, level='debug')
-    post_request(deposit_url, payload)
+    post_request(url_deposit, payload)
     return put_gold(status="after")
 
 
 def put_gold(status="before"):
-    soup = BeautifulSoup(make_request(treasury_url).text, 'lxml')
+    soup = BeautifulSoup(make_request(url_treasury).text, 'lxml')
     gold_count_element = int(soup.find(id="silverCount").text.split()[0])
     p_log(
         f"Количество золота на руках: {gold_count_element}" if status == "before"
@@ -240,7 +239,7 @@ def use_helper(config_name, restore=True, direct_call=False):
             available_helpers = {}
             validate_helper = None
             try:
-                available_helpers = load_json_file("", url_helper_json)
+                available_helpers = load_json_file("", helpers_info)
                 validate_helper = check_name_companion(available_helpers, name_companion)
             except Exception as er:
                 p_log(f'Ошибка получения помощника {er}', level='warning')
@@ -249,9 +248,9 @@ def use_helper(config_name, restore=True, direct_call=False):
                 id_helper = validate_helper.get('item_id')
                 type_helper = validate_helper.get('type_helper')
                 num_inventory = validate_helper.get('number_bag')
-                url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+                url_helper = (f'{SERVER}/ajax/ajax/getInventory/?noCache={no_cache()}'
                               f'&inventory={num_inventory}&loc=character')
-                response = make_request(user_url)
+                response = make_request(url_user)
                 make_request(url_helper)
                 helper = get_status_helper(response, type_helper)
                 if helper and helper != id_helper:
@@ -266,7 +265,7 @@ def use_helper(config_name, restore=True, direct_call=False):
 
                 if helper != id_helper:
                     resp = make_request(
-                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                        f"{SERVER}/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
                         name_helper = get_name_companion(available_helpers, resp.json()['data']['id'])
@@ -277,7 +276,7 @@ def use_helper(config_name, restore=True, direct_call=False):
 
                 if restore and get_config_value("ignor_mount"):
                     resp = make_request(
-                        f"https://s32-ru.battleknight.gameforge.com/ajax/ajax/wearItem/?noCache={no_cache()}"
+                        f"{SERVER}/ajax/ajax/wearItem/?noCache={no_cache()}"
                         f"&id={id_helper_start}&type=normal&invID={num_inventory}&loc=character")
                     if resp.json()['result']:
                         name_helper = get_name_companion(available_helpers, resp.json()['data']['id'])
@@ -303,8 +302,8 @@ def post_travel(out='', where='', how='horse'):
         'travelpremium': 0
     }
     p_log(payload, level='debug')
-    make_request(url_world)
-    resp = post_request(travel_url, payload)
+    make_request(url_travel)
+    resp = post_request(url_start_travel, payload)
     timer_travel = check_progressbar(resp)
     if not timer_travel:
         p_log("Рыцарь не уехал в другой город!", level='warning', is_error=True)
@@ -324,8 +323,7 @@ def christmas_bonus(func=None):
         if bonus_items:
             bonus_item = random.choice(bonus_items)
             p_log("Попытка применить рожденственский баф на миссию")
-            url_bonus = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/'
-                         f'activateQuestItem/{bonus_item}/lootbag?noCache={no_cache()}')
+            url_bonus = f'{SERVER}/ajax/ajax/activateQuestItem/{bonus_item}/lootbag?noCache={no_cache()}'
             try:
                 resp = make_request(url_bonus).json()
                 p_log(resp, level='debug')
@@ -359,7 +357,7 @@ class Namespace(Enum):
 
 
 def click(mission_duration, mission_name, find_karma, rubies=False):
-    response = make_request(world_url)
+    response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'lxml')
 
     search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
@@ -400,7 +398,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True):
         'buyRubies': buy_rubies
     }
 
-    resp = post_request(post_url, payload)
+    resp = post_request(url_mission, payload)
     p_log(f"С миссии <{name_mission}> получено {pars_gold_duel(resp, gold_info=True)} серебра")
     if buy_rubies:
         p_log(f"Потрачен {buy_rubies} рубин")
@@ -411,7 +409,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True):
 
 def check_hit_point():
     while True:
-        response = make_request(map_url)
+        response = make_request(url_map)
         if heals(response) < 20:
             p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
             time_sleep(610)
@@ -420,7 +418,7 @@ def check_hit_point():
 
 
 def my_place():
-    response = make_request(mission_url)
+    response = make_request(url_mission)
     soup = BeautifulSoup(response.text, 'lxml')
     place = soup.find('h1').text.strip()
     for key, value in castles_all.items():
@@ -459,7 +457,7 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
 
 
 def hide_silver(silver_limit):
-    soup = BeautifulSoup(make_request(world_url).text, 'lxml')
+    soup = BeautifulSoup(make_request(url_world).text, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     if silver_count > silver_limit and check_treasury_timers() is None:
         return contribute_to_treasury()
@@ -470,14 +468,14 @@ def get_silver(resp: Union[bool, Response] = False):
     if isinstance(resp, Response):
         soup = BeautifulSoup(resp.text, 'lxml')
     else:
-        soup = BeautifulSoup(make_request(world_url).text, 'lxml')
+        soup = BeautifulSoup(make_request(url_world).text, 'lxml')
     silver_count = int(soup.find(id='silverCount').text)
     p_log(f"На руках {silver_count} серебра")
     return silver_count
 
 
 def get_gold_for_player(gamer) -> int:
-    url_gamer = f'https://s32-ru.battleknight.gameforge.com/common/profile/{gamer}/Scores/Player'
+    url_gamer = f'{SERVER}/common/profile/{gamer}/Scores/Player'
     resp = make_request(url_gamer)
     time.sleep(0.5)
     soup = BeautifulSoup(resp.text, 'lxml')
@@ -486,7 +484,7 @@ def get_gold_for_player(gamer) -> int:
 
 
 def check_status_mission(name_mission):
-    response = make_request(world_url)
+    response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'html.parser')
     length_mission = get_config_value("mission_duration")
     karma_mission = get_config_value("working_karma")
@@ -513,8 +511,7 @@ def get_all_items(item, num_inv: Union[int, Tuple[int, int]] = None):
         inventories = range(1, 5)  # По умолчанию, если num_inv не задан
 
     for i in inventories:
-        url = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
-               f'&inventory={i}&loc=character')
+        url = f'{SERVER}/ajax/ajax/getInventory/?noCache={no_cache()}&inventory={i}&loc=character'
         resp = make_request(url)
 
         try:
@@ -547,7 +544,7 @@ def check_mission(name_mission, buy_rubies=''):
         karma_mission=get_config_value("working_karma"),
         buy_rubies=buy_rubies
     )
-    make_request(mission_url)  # Запрос в миссии для обновления ключей
+    make_request(url_mission)  # Запрос в миссии для обновления ключей
     dct2 = get_group_castles(get_all_items("key"))
     p_log(dct2, level='debug')
     differences = set(dict_to_tuple(dct1)) ^ set(dict_to_tuple(dct2))
@@ -574,7 +571,7 @@ def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
     name_potion = event_healer_potions[potion_number]['name']
     p_log(f"Запрос на покупку <{name_potion}>")
-    resp = post_request(healer_url, payload)
+    resp = post_request(url_healer, payload)
     try:
         dct = resp.json()
         p_log(dct, level='debug')
@@ -628,8 +625,7 @@ def get_inventory_slots(num_inv):
 
     item_key_list = {}
     for i in inventories:
-        url_inventory = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
-                         f'&inventory={i}&loc=character')
+        url_inventory = f'{SERVER}/ajax/ajax/getInventory/?noCache={no_cache()}&inventory={i}&loc=character'
         resp = make_request(url_inventory)
 
         try:
@@ -719,12 +715,12 @@ def move_item(how='buy', name='key', rand=True):
                 p_log(f"Попытка переместить {name} {item} в сумку {inv}, ячейка {coor}")
                 if how == 'buy':
                     url_buy_item = (
-                        f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={item}'
+                        f'{SERVER}/ajax/ajax/buyItem/?noCache={no_cache()}&id={item}'
                         f'&inventory={inv}&width={coor[1]}&depth={coor[0]}')
                     make_request(url_buy_item)
                 elif how == 'loot':
                     url_loot_item = (
-                        f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/placeItem/?noCache={no_cache()}&id={item}'
+                        f'{SERVER}/ajax/ajax/placeItem/?noCache={no_cache()}&id={item}'
                         f'&inventory={inv}&width={coor[1]}&depth={coor[0]}&type=tmp')
                     make_request(url_loot_item)
             else:
@@ -736,7 +732,7 @@ def move_item(how='buy', name='key', rand=True):
 
 def place_bet(id_item, bet):
     payload = {'noCache': no_cache()}
-    resp = post_request(f'https://s32-ru.battleknight.gameforge.com/ajax/market/bid/{id_item}/{bet}', payload)
+    resp = post_request(f'{SERVER}/ajax/market/bid/{id_item}/{bet}', payload)
     try:
         if resp.json()['result']:
             p_log("Ставка выполнена успешно")
@@ -895,7 +891,7 @@ def buy_potion(need_point):
                 inv, coor = next(iter(free_coord_one.items()))
                 p_log(f"Попытка купить баночку на {min_value}ХП в сумку {inv}, ячейка {coor}")
                 url_potion_buy = (
-                    f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/buyItem/?noCache={no_cache()}&id={min_key}'
+                    f'{SERVER}/ajax/ajax/buyItem/?noCache={no_cache()}&id={min_key}'
                     f'&inventory={inv}&width={coor[1]}&depth={coor[0]}')
                 make_request(url_potion_buy)
                 need_point -= 1
@@ -934,17 +930,17 @@ def work(working_hours, side='good'):
         'hours': working_hours,
         'side': side
     }
-    make_request(work_url)
+    make_request(url_work)
     time.sleep(1)
-    post_request(work_url, payload)
+    post_request(url_work, payload)
     p_log(f"Работаем {working_hours} часов...")
 
 
 def get_reward():
-    make_request(work_url)
+    make_request(url_work)
     payload = {'paycheck': 'encash'}
 
-    post_request(work_url, payload)
+    post_request(url_work, payload)
     p_log(f"Награда за работу принята")
 
 
@@ -952,7 +948,7 @@ def get_reward():
 
 def init_status_players():
     try:
-        with open(url_name_json, 'r', encoding='utf-8') as file:
+        with open(attack_ids_gamers, 'r', encoding='utf-8') as file:
             list_of_players = json.load(file)
             for player, values in list_of_players.items():
                 current_loot = get_gold_for_player(player)
@@ -970,19 +966,19 @@ def init_status_players():
                 list_of_players[player]['loot_per_day'] = loot_per_day
                 list_of_players[player]['loot'] = current_loot
 
-        with open(url_name_json, 'w') as file_gamer:
+        with open(attack_ids_gamers, 'w') as file_gamer:
             json.dump(list_of_players, file_gamer, indent=4)
-            p_log(f"Файл {url_name_json} обновлен", level='debug')
+            p_log(f"Файл {attack_ids_gamers} обновлен", level='debug')
 
     except json.decoder.JSONDecodeError as er:
-        print(f"Ошибка в структуре файла {url_name_json}: {er}")
+        print(f"Ошибка в структуре файла {attack_ids_gamers}: {er}")
 
 
 # _____________________________ Получение компаньонов и наездников __________________________
 
 
 def get_use_helper():
-    response = make_request(user_url)
+    response = make_request(url_user)
     soup = BeautifulSoup(response.text, 'html.parser')
 
     dct = {}
@@ -1006,7 +1002,7 @@ def get_use_helper():
 
 def get_helper_bag(bag_num=None):
     def data_parsing(helper_type, num_bag, dct):
-        url_helper = (f'https://s32-ru.battleknight.gameforge.com/ajax/ajax/getInventory/?noCache={no_cache()}'
+        url_helper = (f'{SERVER}/ajax/ajax/getInventory/?noCache={no_cache()}'
                       f'&inventory={num_bag}&loc=character')
         resp = make_request(url_helper)
         resp_json = resp.json()
@@ -1063,7 +1059,7 @@ def all_helper(save_json=True):
         dct_1['horse'].extend(dct_2['horse'])  # Добавляем надетого наездника
 
     if save_json:
-        save_json_file(dct_1, "", url_helper_json)
+        save_json_file(dct_1, "", helpers_info)
     return dct_1
 
 
@@ -1218,7 +1214,7 @@ def update_players_gold(dict_gamer, list_of_players):
 
 
 def set_initial_gold():
-    with open(url_name_json, 'r', encoding='utf-8') as file:
+    with open(attack_ids_gamers, 'r', encoding='utf-8') as file:
         list_of_players = json.load(file)
 
         if get_config_value(key='exclude_allow_attack'):
@@ -1437,7 +1433,7 @@ def orden_message(message):
 
 # ____________________________ Верификация доступа к игре __________________________________
 def account_verification(not_token=False, helper_init=True):
-    response = make_request(user_url)
+    response = make_request(url_user)
     set_name(response)
     get_id(response, not_token)
     # инициализация компаньонов и наездников
