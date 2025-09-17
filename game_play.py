@@ -37,6 +37,8 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
         result = click(mission_duration, mission_name, find_karma)
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет.")
+            if get_config_value("contribute_to_treasury") and not check_treasury_timers():
+                contribute_to_treasury()
             break
 
         game_mode -= 1
