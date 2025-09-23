@@ -116,6 +116,7 @@ KZ - соотношение между внесенным в казну золо
 
 def get_statistic_clan(write_flag):
     resp = make_request(url_members)
+    get_gold_day()  # Обновить переменную содержание замка в день
     os.makedirs(os.path.dirname(clan_html_file), exist_ok=True)
     with open(clan_html_file, 'w', encoding='utf-8') as file:
         file.write(resp.text)
