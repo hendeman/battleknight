@@ -1,12 +1,62 @@
+import copy
 import logging
-from .logs import setup_logging
+import pickle
+
+from logs.logs import setup_logging
+from module.all_function import get_config_value
+from module.translator.translator import process_text, restore_string_from_asterisks
+
+LANG = get_config_value("translate")
+DICTIONARY = 'module/translator/files/dictionary.pickle'
+DICTIONARY_NOT_WORLDS = 'module/translator/files/dictionary_not_worlds.pickle'
 
 
 def logger_process(queue):
     setup_logging()  # Настройка логирования в отдельном процессе
 
+    # ЗАГРУЖАЕМ существующий словарь при запуске
+    try:
+        with open(DICTIONARY_NOT_WORLDS, 'rb') as f:
+            buffer_translate = pickle.load(f)
+    except (FileNotFoundError, EOFError):
+        buffer_translate = {}  # Если файла нет или он пустой
+
+    with open(DICTIONARY, 'rb') as f:
+        loaded_dict = pickle.load(f)
+
     while True:
         record = queue.get()
         if record is None:  # Завершение процесса
             break
-        logging.getLogger().handle(record)  # Обработка записи
+
+        file_record = copy.copy(record)
+        if record.levelno == logging.INFO:
+            original_message = record.getMessage()
+            try:
+                modified_text, word_list = process_text(original_message)
+                translate_text = loaded_dict[LANG].get(modified_text)
+                if translate_text is not None:
+                    try:
+                        restore_string = restore_string_from_asterisks(translate_text, word_list)
+                    except AttributeError as er:
+                        if original_message not in buffer_translate:
+                            buffer_translate[original_message] = modified_text
+                            with open(DICTIONARY_NOT_WORLDS, 'wb') as f:
+                                pickle.dump(buffer_translate, f)
+                        restore_string = original_message
+                else:
+                    # Если перевод не найден
+                    restore_string = original_message
+            except Exception as e:
+                logging.warning(f"Ошибка при обработке сообщения '{original_message}': {e}")
+                restore_string = original_message  # использовать оригинальное сообщение
+            record.msg = restore_string
+        # 1. Сначала файл (оригинальный текст)
+        file_handler = logging.getLogger().handlers[1]  # Предполагаем, что file_handler второй
+        file_handler.handle(file_record)
+
+        # 2. Потом консоль (переведенный текст)
+        console_handler = logging.getLogger().handlers[0]  # Предполагаем, что console_handler первый
+        console_handler.handle(record)
+        # time.sleep(5)
+        # logging.getLogger().handle(record)  # Обработка записи
