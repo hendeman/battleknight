@@ -20,7 +20,7 @@ def setup_logging_system(enable_rotation=True, log_file_path="app"):
 
     if translate:
         queue = multiprocessing.Queue()
-        logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
+        logging_process = multiprocessing.Process(target=logger_process, args=(queue, enable_rotation, log_file_path))
         logging_process.start()
         setup_main_logging(queue=queue, enable_rotation=enable_rotation, log_file_path=log_file_path)
     else:

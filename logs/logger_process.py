@@ -11,8 +11,8 @@ DICTIONARY = 'module/translator/files/dictionary.pickle'
 DICTIONARY_NOT_WORLDS = 'module/translator/files/dictionary_not_worlds.pickle'
 
 
-def logger_process(queue):
-    setup_logging()  # Настройка логирования в отдельном процессе
+def logger_process(queue, enable_rotation, log_file_path):
+    setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
     # ЗАГРУЖАЕМ существующий словарь при запуске
     try:
