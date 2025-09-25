@@ -5,6 +5,7 @@ import pickle
 import random
 import re
 import os
+import sys
 import time
 from datetime import datetime, timedelta
 from functools import wraps
@@ -242,11 +243,11 @@ def get_random_value(a=0.1, b=0.5):
 
 def time_sleep(seconds=0):
     if seconds:
-        for i in tqdm(range(int(seconds)), desc="Осталось времени", unit="sec"):
+        for i in tqdm(range(int(seconds)), desc="Осталось времени", unit="sec", file=sys.stdout, dynamic_ncols=True):
             time.sleep(1)
     if seconds == 0:
         seconds = random.randint(waiting_time + 60, waiting_time + 120)
-        for i in tqdm(range(seconds), desc="Осталось времени", unit="sec"):
+        for i in tqdm(range(seconds), desc="Осталось времени", unit="sec", file=sys.stdout, dynamic_ncols=True):
             time.sleep(1)
         p_log("Готов к атаке")
 
