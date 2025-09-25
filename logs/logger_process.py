@@ -35,18 +35,15 @@ def logger_process(queue):
             try:
                 modified_text, word_list = process_text(original_message)
                 translate_text = loaded_dict[LANG].get(modified_text)
-                if translate_text is not None:
-                    try:
-                        restore_string = restore_string_from_asterisks(translate_text, word_list)
-                    except AttributeError as er:
-                        if original_message not in buffer_translate:
-                            buffer_translate[original_message] = modified_text
-                            with open(DICTIONARY_NOT_WORLDS, 'wb') as f:
-                                pickle.dump(buffer_translate, f)
-                        restore_string = original_message
-                else:
-                    # Если перевод не найден
+                try:
+                    restore_string = restore_string_from_asterisks(translate_text, word_list)
+                except AttributeError as er:
+                    if original_message not in buffer_translate:
+                        buffer_translate[original_message] = modified_text
+                        with open(DICTIONARY_NOT_WORLDS, 'wb') as f:
+                            pickle.dump(buffer_translate, f)
                     restore_string = original_message
+
             except Exception as e:
                 logging.warning(f"Ошибка при обработке сообщения '{original_message}': {e}")
                 restore_string = original_message  # использовать оригинальное сообщение
