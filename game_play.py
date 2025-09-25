@@ -2,7 +2,7 @@ import time
 import multiprocessing
 from random import choice
 
-from logs.logger_process import logger_process
+from logs.logging_config import cleanup_logging_system, setup_logging_system
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
     get_next_time_and_index, get_random_value
@@ -150,6 +150,7 @@ def autoplay(town, mission_name, side):
 
 
 def wrapper_function(func1, func2):
+    setup_logging(queue=queue)
     try:
         func1()  # Запускаем первую функцию
     except Exception as er:
@@ -182,10 +183,7 @@ def run_process_for_hours(target_function, hours, process_name):
 
 
 if __name__ == "__main__":
-    queue = multiprocessing.Queue()
-    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
-    logging_process.start()
-    setup_logging(queue)  # Настраиваем логирование с использованием очереди
+    queue, logging_process, translate = setup_logging_system()
     account_verification()
 
     event_list = {
@@ -209,6 +207,4 @@ if __name__ == "__main__":
         autoplay(**event_list.get('easter'))
     else:
         autoplay(**event_list.get('not_event'))
-    # Завершение дочернего процесса логирования
-    queue.put(None)  # Отправляем сигнал для завершения
-    logging_process.join()  # Ждем завершения дочернего процесса
+    cleanup_logging_system(queue, logging_process, translate)
