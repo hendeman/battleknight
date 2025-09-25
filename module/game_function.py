@@ -218,9 +218,10 @@ def contribute_to_treasury():
 def put_gold(status="before"):
     soup = BeautifulSoup(make_request(url_treasury).text, 'lxml')
     gold_count_element = int(soup.find(id="silverCount").text.split()[0])
-    p_log(
-        f"Количество золота на руках: {gold_count_element}" if status == "before"
-        else f"Осталось золота после казны: {gold_count_element}")
+    if status == "before":
+        p_log(f"Количество золота на руках: {gold_count_element}")
+    else:
+        p_log(f"Осталось золота после казны: {gold_count_element}")
     return gold_count_element
 
 
@@ -879,7 +880,7 @@ def buy_potion(need_point):
                 merch_id = ''.join(re.findall(r'\d+', merch_item))
                 potion_dct[merch_id] = list(item_potion)[0]
         if potion_dct:
-            p_log(f"В продаже есть {potion_dct}")
+            p_log(f"В продаже есть {potion_dct}", level='debug')
             min_key = min(potion_dct, key=lambda k: conv_name_potion(potion_dct[k]))
             min_value = conv_name_potion(potion_dct[min_key])
             p_log(min_key)
