@@ -3,13 +3,14 @@ import re
 from pathlib import Path
 
 
-LANG = 'ru-eng'
+LANG = 'eng'
 
 DIRECTORIES = ["../../dragon.py", "../../click.py", "../../game_play.py", "../../keys.py", "../../main.py",
                "../../online.py", "../../stats_server.py", "../../war.py", "../../robusta.py", ".."]
 FILE_NAME_RU = 'files/ru_phrases.txt'
 FILE_NAME_ENG = 'files/eng_phrases.txt'
-DICTIONARY = 'files/dictionary.pickle'
+DICTIONARY = f'files/dictionary_{LANG}.pickle'
+DICTIONARY_NOT_WORLDS = 'files/dictionary_not_worlds.pickle'
 
 
 def save_txt(filename, messages):
@@ -34,27 +35,24 @@ def read_txt(filename):
 
 
 def process_text(text):
-    """
-    Обрабатывает текст: заменяет не-кириллические слова и содержимое скобок (включая скобки) на *,
-    возвращает модифицированную строку и список замененных слов и скобочных выражений в порядке появления.
-    """
-    # Шаблоны
-    brackets_pattern = r'[\[\{\(][^\]\}\)]*[\]\}\)]'
-    word_pattern = r'\b[^\sа-яёА-ЯЁ\-]+\b'
+    # Паттерн: только парные скобки, без вложенности
+    brackets_pattern = r'(\((?:[^\(\)]*)\))|(\[(?:[^\[\]]*)\])|(\{(?:[^{}]*)\})'
+    cyrillic_word_with_hyphen = r'\b[а-яёА-ЯЁ]+(?:-[а-яёА-ЯЁ]+)*\b'
+    latin_or_digit_word = r'\S*[a-zA-Z0-9]\S*'
 
-    # Находим все совпадения
     matches = []
 
     for match in re.finditer(brackets_pattern, text):
         matches.append((match.start(), match.end(), match.group()))
 
-    for match in re.finditer(word_pattern, text):
-        matches.append((match.start(), match.end(), match.group()))
+    for match in re.finditer(latin_or_digit_word, text):
+        word = match.group()
+        if not re.fullmatch(cyrillic_word_with_hyphen, word):
+            matches.append((match.start(), match.end(), word))
 
-    # Сортируем по позиции
     matches.sort(key=lambda x: x[0])
 
-    # Убираем пересекающиеся совпадения: если один match полностью входит в другой — исключаем его
+    # Убираем пересекающиеся
     filtered_matches = []
     last_end = -1
     for start, end, group in matches:
@@ -64,7 +62,7 @@ def process_text(text):
 
     ordered_replaced = [item[2] for item in filtered_matches]
 
-    # Теперь заменяем по порядку, справа налево, чтобы позиции не сбивались
+    # Заменяем
     result = text
     for start, end, group in reversed(filtered_matches):
         result = result[:start] + '*' + result[end:]
@@ -219,12 +217,12 @@ def extract_cyrillic_messages_from_files(file_paths):
 
 
 def create_dictionary(original_path_txt, translation_path_txt):
-    dictionary = {LANG: {}}
+    dictionary = {}
     original_lst = read_txt(original_path_txt)
     translation_lst = read_txt(translation_path_txt)
     if len(original_lst) == len(translation_lst):
         for original, translation in zip(original_lst, translation_lst):
-            dictionary[LANG][original] = translation
+            dictionary[original] = translation
         with open(DICTIONARY, 'wb') as f:
             pickle.dump(dictionary, f)
             print(f"Данные успешно обновлены в файл.")
@@ -256,6 +254,6 @@ if __name__ == "__main__":
     # create_dictionary(FILE_NAME_RU, FILE_NAME_ENG)
     # read_dictionary()
     # add_read_dictionary('компаньон Черепашка надет', 'Turtle companion is on')
-    for mes, val in read_dictionary(file='files/dictionary.pickle')[LANG].items():
-        print(f"{mes}: {val}")
-    # print(process_text("Будет куплено кольцо с id=900959106"))
+    # for mes, val in read_dictionary(file=DICTIONARY_NOT_WORLDS).items():
+    #     print(f"{mes}: {val}")
+    print(process_text("Будет куплено кольцо с id=900959106"))
