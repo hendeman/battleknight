@@ -7,22 +7,27 @@ from module.all_function import get_config_value
 from module.translator.translator import process_text, restore_string_from_asterisks
 
 LANG = get_config_value("translate")
-DICTIONARY = 'module/translator/files/dictionary.pickle'
+DICTIONARY = f'module/translator/files/dictionary_{LANG}.pickle'
 DICTIONARY_NOT_WORLDS = 'module/translator/files/dictionary_not_worlds.pickle'
 
 
 def logger_process(queue, enable_rotation, log_file_path):
     setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
-    # ЗАГРУЖАЕМ существующий словарь при запуске
+    # ЗАГРУЖАЕМ буферный словарь для непереведенных слов
     try:
         with open(DICTIONARY_NOT_WORLDS, 'rb') as f:
             buffer_translate = pickle.load(f)
     except (FileNotFoundError, EOFError):
         buffer_translate = {}  # Если файла нет или он пустой
 
-    with open(DICTIONARY, 'rb') as f:
-        loaded_dict = pickle.load(f)
+    # ЗАГРУЖАЕМ существующий словарь при запуске
+    try:
+        with open(DICTIONARY, 'rb') as f:
+            loaded_dict = pickle.load(f)
+    except (FileNotFoundError, EOFError):
+        logging.warning(f"File not found: {DICTIONARY}")
+        loaded_dict = {}
 
     while True:
         record = queue.get()
@@ -34,7 +39,7 @@ def logger_process(queue, enable_rotation, log_file_path):
             original_message = record.getMessage()
             try:
                 modified_text, word_list = process_text(original_message)
-                translate_text = loaded_dict[LANG].get(modified_text)
+                translate_text = loaded_dict.get(modified_text)
                 try:
                     restore_string = restore_string_from_asterisks(translate_text, word_list)
                 except AttributeError as er:
@@ -45,7 +50,7 @@ def logger_process(queue, enable_rotation, log_file_path):
                     restore_string = original_message
 
             except Exception as e:
-                logging.warning(f"Ошибка при обработке сообщения '{original_message}': {e}")
+                logging.warning(f"Error processing message '{original_message}': {e}")
                 restore_string = original_message  # использовать оригинальное сообщение
             record.msg = restore_string
         # 1. Сначала файл (оригинальный текст)

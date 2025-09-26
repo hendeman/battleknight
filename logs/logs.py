@@ -53,7 +53,6 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
     # Настройка хендлеров
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
-    # console_handler.setLevel(logging.INFO)  # ← ТОЛЬКО ИНФО И ВЫШЕ В ТЕРМИНАЛ
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
@@ -63,9 +62,13 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
         file_handler = logging.FileHandler(log_path)
 
     file_handler.setFormatter(file_formatter)
-    # file_handler.setLevel(logging.DEBUG)  # ← ВСЕ УРОВНИ В ФАЙЛ
 
-    logger.setLevel(logging.DEBUG)  # Общая настройка для двух хендлеров
+    from module.all_function import get_config_value
+    if get_config_value("translate"):
+        console_handler.setLevel(logging.INFO)  # ← ТОЛЬКО ИНФО И ВЫШЕ В ТЕРМИНАЛ
+        file_handler.setLevel(logging.DEBUG)  # ← ВСЕ УРОВНИ В ФАЙЛ
+    else:
+        logger.setLevel(logging.DEBUG)  # Общая настройка для двух хендлеров
 
     # Добавляем обработчики только в основном процессе
     if queue is None:
