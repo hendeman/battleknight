@@ -67,6 +67,7 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
     if get_config_value("translate"):
         console_handler.setLevel(logging.INFO)  # ← ТОЛЬКО ИНФО И ВЫШЕ В ТЕРМИНАЛ
         file_handler.setLevel(logging.DEBUG)  # ← ВСЕ УРОВНИ В ФАЙЛ
+        logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.DEBUG)  # Общая настройка для двух хендлеров
 

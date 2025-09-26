@@ -53,12 +53,13 @@ def logger_process(queue, enable_rotation, log_file_path):
                 logging.warning(f"Error processing message '{original_message}': {e}")
                 restore_string = original_message  # использовать оригинальное сообщение
             record.msg = restore_string
-        # 1. Сначала файл (оригинальный текст)
-        file_handler = logging.getLogger().handlers[1]  # Предполагаем, что file_handler второй
-        file_handler.handle(file_record)
 
-        # 2. Потом консоль (переведенный текст)
-        console_handler = logging.getLogger().handlers[0]  # Предполагаем, что console_handler первый
-        console_handler.handle(record)
-        # time.sleep(5)
-        # logging.getLogger().handle(record)  # Обработка записи
+        # 1. Сначала файл (оригинальный текст) - уровень DEBUG
+        file_handler = logging.getLogger().handlers[1]
+        if file_handler.level <= file_record.levelno:
+            file_handler.handle(file_record)
+
+        # 2. Потом консоль (переведенный текст) - уровень INFO
+        console_handler = logging.getLogger().handlers[0]
+        if console_handler.level <= record.levelno:
+            console_handler.handle(record)
