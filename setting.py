@@ -47,6 +47,7 @@ GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
 LOG_DIR = 'logs'
+LOG_ERROR_HTML = f'logs\\error_html\\'
 DIRECTORY_PICKLES = 'pickles_data/'
 EXTENSION_PICKLES = '.pickle'
 # Configs files

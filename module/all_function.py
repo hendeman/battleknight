@@ -15,7 +15,8 @@ from inspect import signature
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path
+from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
+    LOG_ERROR_HTML, get_name
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
@@ -602,3 +603,16 @@ def call_parameters(func):
         return func(*bound.args, **bound.kwargs)
 
     return wrapper
+
+
+def save_error_html(response):
+    try:
+        os.makedirs(LOG_ERROR_HTML, exist_ok=True)
+        to_day = date.today()
+        error_html = (f"{LOG_ERROR_HTML}/{get_name()}_{to_day.day:02d}_{to_day.month:02d}_"
+                      f"{to_day.hour:02d}_{to_day.minute:02d}.html")
+        filepath = os.path.join(error_html)
+        with open(filepath, 'w', encoding='utf-8') as file:
+            file.write(response.text)
+    except Exception as er:
+        p_log(f"Error saving HTML file in {LOG_ERROR_HTML}. Error: {er}", level='debug')

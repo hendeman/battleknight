@@ -25,7 +25,6 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
     time_sleep(check_progressbar(response))  # проверка состояния рыцаря
     time.sleep(1)
     while game_mode:
-        # break_outer = False
         mission_name = choice(mission_name) if isinstance(mission_name, list) else mission_name
         time.sleep(1)
 

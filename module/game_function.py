@@ -16,7 +16,7 @@ from requests import Response
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
-    current_time
+    current_time, save_error_html
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
 from module.http_requests import post_request, make_request
@@ -377,6 +377,7 @@ def click(mission_duration, mission_name, find_karma, rubies=False):
                         fifth_argument = parts[4].strip().strip("');")
                         post_dragon(mission_name, buy_rubies=fifth_argument)
                         return Namespace.MISSION_RUBY
+            save_error_html(response)
             return Namespace.NOT_MISSION
 
         else:
