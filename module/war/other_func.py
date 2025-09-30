@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 from datetime import datetime, timedelta
 
@@ -81,16 +82,24 @@ def get_current_time():
 
 
 def time_sleep(seconds):
-    for _ in tqdm(range(seconds // 60), desc="Осталось времени", unit="мин"):
+    for _ in tqdm(range(seconds // 60),
+                  desc="Осталось времени",
+                  unit="мин",
+                  file=sys.stdout,
+                  dynamic_ncols=True,
+                  position=0,
+                  leave=False,
+                  delay=1
+                  ):
         time.sleep(60)
 
 
 def deco_time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        p_log(f"Текущее время {get_current_time()}")
+        p_log(f"Текущее время {get_current_time()}", level='debug')
         result = func(*args, **kwargs)
-        p_log(f"Время запроса: {round(time.time() - start_time, 3)} сек")
+        p_log(f"Время запроса: {round(time.time() - start_time, 2)} сек", level='debug')
         return result
 
     return wrapper

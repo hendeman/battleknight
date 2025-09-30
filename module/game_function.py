@@ -147,7 +147,7 @@ def check_health(heals_point=False):
 
             # проверка на перезарядку зелья
             try:
-                p_log('Проверка на перезарядку зелья')
+                p_log('Проверка на перезарядку зелья', level='debug')
                 cooldown_timer = check_cooldown_poit(resp)
                 if cooldown_timer:
                     p_log(f"Нельзя использовать зелье. Перезарядка {cooldown_timer} секунд")
@@ -189,7 +189,7 @@ def get_potion_bar():
     }
     data = post_request(url_point, payload).json()
     result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
-    p_log(result)
+    p_log(result, level='debug')
     last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
     return last_item_id, last_item_value
 
@@ -1343,7 +1343,6 @@ def reduce_experience(name_file=NICKS_GAMER, tracking=True):
                     with open(name_file, 'wb') as file:
                         pickle.dump(loaded_dict, file)
                     if isinstance(resp, Response):
-                        p_log("Ожидание 10 мин перед следующей атакой...")
                         time_sleep()
                         attack_flag = True
                     else:

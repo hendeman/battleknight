@@ -250,17 +250,20 @@ def time_sleep(seconds=0):
                       file=sys.stdout,
                       dynamic_ncols=True,
                       position=0,
-                      leave=False):
+                      leave=False,
+                      delay=1):
             time.sleep(1)
     if seconds == 0:
         seconds = random.randint(waiting_time + 60, waiting_time + 120)
+        p_log(f"Ожидание {seconds} сек перед следующей атакой...")
         for i in tqdm(range(seconds),
                       desc="Осталось времени",
                       unit="sec",
                       file=sys.stdout,
                       dynamic_ncols=True,
                       position=0,
-                      leave=False):
+                      leave=False,
+                      delay=1):
             time.sleep(1)
         p_log("Готов к атаке")
 
