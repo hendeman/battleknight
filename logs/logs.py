@@ -1,7 +1,9 @@
 import logging
 import sys
 import threading
+import time
 from pathlib import Path
+from datetime import datetime, timedelta
 
 import colorlog
 from logging.handlers import TimedRotatingFileHandler, QueueHandler
@@ -27,15 +29,23 @@ def p_log(*args, is_error=False, level='info'):
             logging.info(message)
 
 
+def schedule_rollover(handler):
+    """Функция, которая вызывает ротацию в полночь"""
+    while True:
+        now = datetime.now()
+        next_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        seconds_until_midnight = (next_midnight - now).total_seconds()
+        time.sleep(seconds_until_midnight)
+        handler.doRollover()
+
+
 def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
     log_path = Path(LOG_DIR) / log_file_path / "app.log"
     logger = logging.getLogger()
 
-    # Удаление всех существующих обработчиков
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    # Настройка форматтеров
     console_formatter = colorlog.ColoredFormatter(
         "%(log_color)s%(asctime)s %(message)s",
         datefmt='%H:%M:%S',
@@ -58,6 +68,10 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
 
     if enable_rotation:
         file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10)
+
+        # Запускаем поток, который будет вызывать ротацию в полночь
+        rollover_thread = threading.Thread(target=schedule_rollover, args=(file_handler,), daemon=True)
+        rollover_thread.start()
     else:
         file_handler = logging.FileHandler(log_path)
 
@@ -99,7 +113,6 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
 
     sys.excepthook = handle_uncaught_exception
     threading.excepthook = handle_thread_exception
-
 
 if __name__ == "__main__":
     setup_logging(enable_rotation=True)  # Настраиваем логирование с ротацией

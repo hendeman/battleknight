@@ -124,7 +124,7 @@ def register_handlers(bot):
                 current_time = datetime.now()
 
                 # Если наступило время для сброса last_position (например, в 7 утра)
-                if current_time.hour == 9 and current_time.minute <= 10:
+                if current_time.hour == 0 and current_time.minute <= 10:
                     # Сбрасываем last_position только в случае команды "run"
                     if command == 'run':
                         last_positions[command] = 0
