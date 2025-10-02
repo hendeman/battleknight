@@ -70,8 +70,8 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
         file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10)
 
         # Запускаем поток, который будет вызывать ротацию в полночь
-        rollover_thread = threading.Thread(target=schedule_rollover, args=(file_handler,), daemon=True)
-        rollover_thread.start()
+        # rollover_thread = threading.Thread(target=schedule_rollover, args=(file_handler,), daemon=True)
+        # rollover_thread.start()
     else:
         file_handler = logging.FileHandler(log_path)
 
