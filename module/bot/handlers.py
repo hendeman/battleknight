@@ -117,18 +117,33 @@ def register_handlers(bot):
 
     def process_logs(log_file, message, command, is_running):
         global warning_list
+        file_inode = None
 
         while is_running:
             try:
-                # Переоткрываем файл, если наступила полночь
-                current_time = datetime.now()
+                # # Переоткрываем файл, если наступила полночь
+                # current_time = datetime.now()
+                # # Если наступило время для сброса last_position (например, в 7 утра)
+                # if current_time.hour == 7 and current_time.minute <= 10:
+                #     if command == 'run':
+                #         last_positions[command] = 0
+                #     warning_list = []
 
-                # Если наступило время для сброса last_position (например, в 7 утра)
-                if current_time.hour == 0 and current_time.minute <= 10:
-                    # Сбрасываем last_position только в случае команды "run"
-                    if command == 'run':
-                        last_positions[command] = 0
-                    warning_list = []
+                # Проверяем, не изменился ли файл (например, после ротации)
+                try:
+                    current_inode = os.stat(log_file).st_ino
+                except FileNotFoundError:
+                    logging.error(f"Файл {log_file} не найден.")
+                    time.sleep(60)
+                    continue
+
+                # Если inode изменился — файл был переименован или создан заново
+                if file_inode is not None and file_inode != current_inode:
+                    # Сбрасываем last_position, чтобы начать с начала нового файла
+                    last_positions[command] = 0
+                    logging.info(f"Файл {log_file} был ротирован. last_position сброшен.")
+
+                file_inode = current_inode
 
                 with open(log_file, 'r', encoding='utf-8') as f:
                     # Если нужно сбросить позицию, устанавливаем курсор в конец
