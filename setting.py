@@ -73,15 +73,15 @@ headers = {
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
 cookies = load_custom_env()
 
-castles_island = {'VillageFour': 'Djaro', 'FortressTwo': "Segur", 'HarbourTwo': "Alvan",
-                  'TradingPostFour': 'Miley', 'FogIsland': 'Fehan'}
-castles = {'CityOne': "Alcran", 'CoastalFortressOne': "Asgal", 'CoastalFortressTwo': "Gastein",
-           'FortressOne': "Tulgar",
-           'GhostTown': "Talfour",
-           'HarbourOne': "Vale", 'HarbourThree': "Sedwich",
-           'CapitalCity': "Endaline",
-           'TradingPostOne': "Grand", 'TradingPostTwo': "Talmet", 'TradingPostThree': "Brent",
-           'VillageOne': "Terent", 'VillageTwo': "Hatwig", 'VillageThree': "Rumstill"}
+castles_island = {'VillageFour': 'Джаро', 'FortressTwo': "Сёгур", 'HarbourTwo': "Альван",
+                  'TradingPostFour': 'Милей', 'FogIsland': 'Фехан'}
+castles = {'CityOne': "Алкран", 'CoastalFortressOne': "Асгал", 'CoastalFortressTwo': "Гастайн",
+           'FortressOne': "Тулгар",
+           'GhostTown': "Талфур",
+           'HarbourOne': "Вейл", 'HarbourThree': "Седвич",
+           'CapitalCity': "Эндалайн",
+           'TradingPostOne': "Гранд", 'TradingPostTwo': "Талмет", 'TradingPostThree': "Брент",
+           'VillageOne': "Терент", 'VillageTwo': "Хатвиг", 'VillageThree': "Рамстилл"}
 castles_all = {**castles, **castles_island}
 auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPostTwo',
                    'HarbourOne', 'TradingPostThree', 'VillageThree', 'CityOne',
