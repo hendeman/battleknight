@@ -155,6 +155,7 @@ def get_statistic() -> dict:
     p_log("Прогресс: ....")
 
     for i in range(0, 2000, 100):
+        p_log(f"Обработка диапазона {i + 1}-{i + 100}")
         param = {
             'highscoreOffset': str(i),  # выберите нужное значение
             'sort': 'loot',
@@ -187,7 +188,6 @@ def dict_values_difference(pars_dct: dict) -> list:
         for key1 in pars_dct.keys() & loaded_dict.keys():
             if pars_dct[key1]['gold'] - loaded_dict[key1]['gold'] > 1000 or pars_dct[key1]['victory'] - \
                     loaded_dict[key1]['victory'] > 10:
-                print("*", end="")
                 url = f'{SERVER}/common/profile/{key1}/Scores/Player'
                 resp = make_request(url, game_sleep=False)
                 with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w', encoding='utf-8') as file2:
@@ -212,7 +212,6 @@ def dict_values_difference(pars_dct: dict) -> list:
                                     value1['defeats'] - value2['defeats']
                                     ])
                 sleep(3)
-        print()
         p_log("Сканирование завершено")
         return [nested_list, dc]
 

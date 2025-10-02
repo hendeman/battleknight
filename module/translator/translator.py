@@ -239,7 +239,7 @@ def read_dictionary(file=DICTIONARY):
 
 def add_read_dictionary(original_text, translation_text):
     loaded_dict = read_dictionary()
-    loaded_dict['ru'][original_text] = translation_text
+    loaded_dict[original_text] = translation_text
     with open(DICTIONARY, 'wb') as f:
         pickle.dump(loaded_dict, f)
         print(f"Данные успешно обновлены в файл.")

@@ -130,7 +130,7 @@ def progressbar_ends(soup):
         hours, minutes, seconds = map(int, timer.split(':'))
         total_seconds = hours * 3600 + minutes * 60 + seconds + 2
     except AttributeError:
-        if soup.find('h1').text.strip() == 'Работа':
+        if soup.find('h1').text.strip() == work_status:
             get_reward()
         total_seconds = 0
 
@@ -355,6 +355,7 @@ class Namespace(Enum):
     MISSION_RUBY = auto()  # Миссия с рубинами
     NOT_MISSION = auto()  # Нет свободных миссий
     NOT_SLEEP = auto()  # Без задержки
+    NOT_DATA = auto()
 
 
 def click(mission_duration, mission_name, find_karma, rubies=False):
@@ -842,9 +843,9 @@ def register_joust():
             try:
                 joust = soup.find(id="btnApply").text
             except AttributeError:
-                joust = "Не найден"
+                joust = Namespace.NOT_DATA
             silver = int(soup.find(id="silverCount").text)
-            if joust == "Регистрация":
+            if joust == joust_status:
                 contribution = int(soup.find('div', class_='formField').text)
                 if silver < contribution:
                     payout(contribution - silver)
@@ -884,7 +885,7 @@ def buy_potion(need_point):
             p_log(f"В продаже есть {potion_dct}", level='debug')
             min_key = min(potion_dct, key=lambda k: conv_name_potion(potion_dct[k]))
             min_value = conv_name_potion(potion_dct[min_key])
-            p_log(min_key)
+            p_log(f"id минимальной баночки {min_key}", level='debug')
             if silver > min_value * 2:
                 # Получение свободных ячеек в 1 инвентаре
                 inventory = get_inventory_slots(1)
@@ -973,7 +974,7 @@ def init_status_players():
             p_log(f"Файл {attack_ids_gamers} обновлен", level='debug')
 
     except json.decoder.JSONDecodeError as er:
-        print(f"Ошибка в структуре файла {attack_ids_gamers}: {er}")
+        p_log(f"Ошибка в структуре файла {attack_ids_gamers}: {er}", level='warning')
 
 
 # _____________________________ Получение компаньонов и наездников __________________________
@@ -1106,7 +1107,7 @@ def activate_karma(skill, count):
                 counter -= 1
 
         except Exception as e:
-            p_log(f"Ошибка активации кармы: {e}")
+            p_log(f"Ошибка активации кармы: {e}", level='warning')
 
     # Запускаем и забываем
     thread = threading.Thread(target=karma_worker, daemon=True)
