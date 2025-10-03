@@ -119,7 +119,7 @@ def main_pars_clanwar(soup, save=True):
             output_free = [value['castleID'] for key, value in castles_dict.items() if
                            value['clanName'] == 'свободный замок'
                            and not value['tip']]
-            p_log("Свободные замки:", *output_free)
+            p_log(f"Свободные замки {output_free}")
 
             if attack_castle_num in output_free:
                 return attack_castle_num
