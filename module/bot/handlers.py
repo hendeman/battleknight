@@ -2,7 +2,7 @@ import pickle
 import re
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import logging
 
@@ -32,8 +32,8 @@ def register_handlers(bot):
                 "/users - Разрешенные пользователи\n"
                 "/leave - Перестать получать сообщения\n"
                 "/log - Показать последние 15 записей из лог-файла.\n"
-                "/run - Запуск отслеживания логов\n"   
-                "/wm - Запуск отслеживания логов войны\n" 
+                "/run - Запуск отслеживания логов\n"
+                "/wm - Запуск отслеживания логов войны\n"
                 "/unrun - Остановка процесса отслеживания логов\n"
                 "/unwm - Остановка процесса отслеживания war_логов\n"
                 "/war - Вывести WARNING сообщения\n"
@@ -148,12 +148,17 @@ def register_handlers(bot):
                 with open(log_file, 'r', encoding='utf-8') as f:
                     # Если нужно сбросить позицию, устанавливаем курсор в конец
                     if last_positions[command] == 0:
-                        f.seek(0, 2)  # Устанавливаем в конец файла
-                        last_positions[command] = f.tell()  # Обновляем позицию на конец файла
+                        # meta_change проверка, что прошло не более часа с момента создания лог-файла
+                        meta_change = (datetime.now() - datetime.fromtimestamp(
+                            os.path.getctime(log_file))) <= timedelta(hours=1)
+                        if meta_change:
+                            lines = f.readlines()
+                            f.seek(0, 2)  # Устанавливаем в конец файла
+
                     else:
                         f.seek(last_positions[command])  # Продолжаем с текущей позиции
+                        lines = f.readlines()
 
-                    lines = f.readlines()
                     last_positions[command] = f.tell()  # Обновляем позицию
 
                     filtered_lines = []
