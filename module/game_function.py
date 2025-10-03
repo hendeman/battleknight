@@ -26,7 +26,7 @@ from setting import *
 def print_status(from_town, where_town, how, tt):
     p_log(
         f"{'Едем' if how == 'horse' else 'Плывем'} "
-        f"из {castles_all[from_town]} в {castles_all[where_town]}. "
+        f"из {castles_all.get(from_town, 'not defined')} в {castles_all[where_town]}. "
         f"Ожидание {tt}"
     )
 
@@ -423,11 +423,15 @@ def check_hit_point():
 def my_place():
     response = make_request(url_mission)
     soup = BeautifulSoup(response.text, 'lxml')
-    place = soup.find('h1').text.strip()
-    for key, value in castles_all.items():
-        if value == place:
-            return value, key
-    return place, None
+    element = soup.find(id="mainContent")
+    if element:
+        class_value = element.get('class')  # Получаем список классов
+        p_log(f"Значение class={class_value} в my_place()", level='debug')
+        if class_value and len(class_value) == 2:
+            second_class = class_value[1]  # Второе слово
+            rel = castles_symbol.get(second_class)
+            return castles_all.get(rel), rel
+    return "not defined", None
 
 
 def is_time_between(start_hour: str, end_hour: str):
