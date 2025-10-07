@@ -54,6 +54,8 @@ def load_custom_env(env_file=None, required_cookies=None):
     else:
         load_dotenv(ENV_PATH_DEFAULT)
 
+    header = os.getenv('USER_AGENT')
+
     # Формируем словарь куки
     cookies = {
         cookie_name: os.getenv(env_var)
@@ -66,4 +68,4 @@ def load_custom_env(env_file=None, required_cookies=None):
     missing = [name for name in required if name not in cookies]
     if missing:
         raise ValueError(f"Missing required cookies: {missing}")
-    return cookies
+    return cookies, header

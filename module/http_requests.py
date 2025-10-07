@@ -8,7 +8,7 @@ from logs.logs import p_log
 from module.all_function import get_random_value
 from module.data_pars import get_csrf_token, get_title
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import headers, get_cookies
+from setting import get_cookies, get_header
 
 csrf_token = None
 max_csrf_retries = 3
@@ -22,7 +22,7 @@ class LazyProxyManager:
 
     def __new__(cls, custom_proxy=None):
         if custom_proxy:
-            # Создаем временный менеджер с кастомным прокси
+            # Создаем временный менеджер с индивидуальным прокси
             return cls.create_custom_manager(custom_proxy)
 
         if cls._force_enabled and cls._instance is None:
@@ -156,13 +156,15 @@ def make_request(url,
                  timeout=10,
                  game_sleep=True,
                  browser_cookies=None,
-                 http_headers=headers,
+                 http_headers=None,
                  csrf=True,
                  proxy_manage=None,
                  proxies=None) -> Response:
     """GET запрос"""
     if browser_cookies is None:
         browser_cookies = get_cookies()
+    if http_headers is None:
+        http_headers = get_header()
 
     response = make_http_request(
         request_func=requests.get,
@@ -186,12 +188,14 @@ def post_request(url,
                  timeout=10,
                  csrf=True,
                  browser_cookies=None,
-                 http_headers=headers,
+                 http_headers=None,
                  proxies=None,
                  proxy_manage=None) -> Response:
     """POST запрос"""
     if browser_cookies is None:
         browser_cookies = get_cookies()
+    if http_headers is None:
+        http_headers = get_header()
 
     # Добавление CSRF токена если нужно
     if csrf:

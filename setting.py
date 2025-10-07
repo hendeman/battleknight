@@ -64,14 +64,9 @@ statistic_new_dir = f"bk\\statistic\\statistic_new\\"
 name_file_old = 'data.json'
 name_file_new = 'data_new.json'
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 '
-                  'Safari/537.36',
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Accept-Encoding': 'gzip, deflate, br'
-}
+cookies, _user_agent = load_custom_env()
+
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
-cookies = load_custom_env()
 
 castles_island = {'VillageFour': 'Djaro', 'FortressTwo': 'Segur', 'HarbourTwo': 'Alvan',
                   'TradingPostFour': 'Miley', 'FogIsland': 'Fehan'}
@@ -135,6 +130,7 @@ url_group_pas = '/groupmission/dice'
 url_group_delete = '/groupmission/deleteGroup'
 url_greate_group = '/groupmission/foundGroup/'
 url_orden_message = "/ajax/board/sendmessage"
+url_private_message = "/ajax/mail/sendMail"
 url_ordermail = "/mail/ordermail"
 url_error = "/common/error"
 url_start_travel = '/world/startTravel'
@@ -183,12 +179,21 @@ def get_cookies():
     return cookies
 
 
+def get_header():
+    headers = {
+        'User-Agent': _user_agent,
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br'
+    }
+    return headers
+
+
 def reload_cookies(env_file):
     """Перезагружает куки из указанного .env файла"""
-    global cookies
+    global cookies, _user_agent
     file_name = env_file + '.env'
-    cookies = load_custom_env(file_name)
-    return cookies
+    cookies, _user_agent = load_custom_env(file_name)
+    return cookies, _user_agent
 
 
 def reload_config(name_config):
