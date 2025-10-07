@@ -152,9 +152,9 @@ def check_status_war():
                                 capture_castle(delete_war_list)
                                 break
             else:
-
-                thread = threading.Thread(target=accept_into_order, daemon=True)
-                thread.start()
+                if get_config_value("accept_into_order"):
+                    thread = threading.Thread(target=accept_into_order, daemon=True)
+                    thread.start()
 
                 p_log("Раунды еще не начались")
                 p_log("Ожидание 1 день 4 часа...")
