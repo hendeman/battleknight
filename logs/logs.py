@@ -78,7 +78,7 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
     file_handler.setFormatter(file_formatter)
 
     from module.all_function import get_config_value
-    if get_config_value("translate"):
+    if not get_config_value("message_debug_console"):
         console_handler.setLevel(logging.INFO)  # ← ТОЛЬКО ИНФО И ВЫШЕ В ТЕРМИНАЛ
         file_handler.setLevel(logging.DEBUG)  # ← ВСЕ УРОВНИ В ФАЙЛ
         logger.setLevel(logging.DEBUG)
