@@ -134,7 +134,7 @@ def check_proxies_from_file(file_path, max_workers=10):
     :param max_workers: количество потоков для параллельной проверки
     :return: список словарей с результатами проверки
     """
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8-sig') as f:
         proxies = [line.strip() for line in f if line.strip()]
 
     working_proxies = []
@@ -168,7 +168,7 @@ def check_proxies_from_file(file_path, max_workers=10):
 def save_proxy_txt(results):
     try:
         # Сохраняем результаты в файл
-        with open(FILE_PATH_RESULT, 'w') as f:
+        with open(FILE_PATH_RESULT, 'w', encoding='utf-8-sig') as f:
             for res in results:
                 status = "WORKING" if res.get('works') else "FAILED"
                 anonymity = ""
