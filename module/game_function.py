@@ -4,6 +4,7 @@ import pickle
 import re
 import threading
 from enum import Enum, auto
+from json import JSONDecodeError
 from typing import Union, Tuple
 from time import sleep
 import time
@@ -1435,6 +1436,23 @@ def orden_message(message):
         'subject': message
     }
     post_request(url_orden_message, payload)
+
+
+def private_message(name, title="", message=""):
+    payload = {
+        'recipient': name,
+        'subject': title,
+        'text': message
+    }
+    response = post_request(url_private_message, payload)
+    try:
+        resp_json = response.json()
+        if resp_json.get('result'):
+            p_log(f"Сообщение для {name} отправлено успешно")
+        else:
+            p_log(f"Ошибка отправки сообщения для {name}. Причина: {resp_json.get('reason')}", level='warning')
+    except JSONDecodeError as er:
+        p_log(f'Ошибка json в private_message {er}', level='warning')
 
 
 # ____________________________ Верификация доступа к игре __________________________________
