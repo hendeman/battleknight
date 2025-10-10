@@ -25,6 +25,17 @@ _config_filename = None
 date = datetime(2024, 9, 17, 19)
 
 
+def check_last_word(url):
+    """ Функция проверки последнего слова в url на наличие заглавной буквы"""
+    url = url.rstrip('/')
+    last_word = url.split('/')[-1]
+
+    for char in last_word:
+        if char.isupper():
+            return False
+    return True
+
+
 def remove_cyrillic(bad_string: str):
     return re.sub(r'[а-яА-Я]', '', bad_string).strip()  # 'Святлейший князь Rusty' -> 'Rusty'
 
