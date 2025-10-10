@@ -24,11 +24,8 @@ class FilteredHelpParser(argparse.ArgumentParser):
 
     def print_help(self, filter_group: Optional[str] = None, file: Any = None) -> None:
 
-        # Выводим основные разделы
-        self._print_message("Утилита для работы с pickle-файлами\n\n", file)
-
         # Выводим доступные команды с фильтрацией
-        self._print_message("\nДоступные команды:\n", file)
+        self._print_message("\nAvailable commands:\n", file)
 
         for action in self._actions:
 
@@ -50,22 +47,26 @@ class FilteredHelpParser(argparse.ArgumentParser):
                 self._print_message(f"  {options:<25} {action.help or ''}\n", file)
 
         # Выводим примеры использования
-        self._print_message("\nПримеры:\n", file)
+        self._print_message("\nExamples:\n", file)
         if filter_group == 'pickle':
             self._print_message("  python main.py -rp nicks\n", file)
             self._print_message("  python main.py -cp nicks\n", file)
             self._print_message("  python main.py -chp nicks\n", file)
 
         elif filter_group == 'statistic':
-            self._print_message("  python main.py -wf\n", file)
-            self._print_message("  python main.py -ps -wf\n", file)
+            self._print_message("  python statistic.py -wf\n", file)
+            self._print_message("  python statistic.py -ps -wf\n", file)
 
         elif filter_group == 'group':
-            self._print_message("  python main.py -gr\n", file)
+            self._print_message("  python group.py -gr\n", file)
 
         elif filter_group == 'game_play':
-            self._print_message("  python main.py -fehan\n", file)
-            self._print_message("  python main.py -easter\n", file)
+            self._print_message("  python game_play.py -fehan\n", file)
+            self._print_message("  python game_play.py -easter\n", file)
+
+        elif filter_group == 'event':
+            self._print_message("  python dragon.py -dn, --dragon\n", file)
+            self._print_message("  python dragon.py -hr, --healer\n", file)
 
         elif filter_group is None:
             # Полная справка - показываем все примеры
@@ -86,6 +87,16 @@ def arg_parser():
                         action='store_true',
                         help='Мод пасхальный',
                         filter_group="game_play")
+    parser.add_argument('-dn',
+                        '--dragon',
+                        action='store_true',
+                        help='Мод Охота на Драконов',
+                        filter_group="event")
+    parser.add_argument('-hr',
+                        '--healer',
+                        action='store_true',
+                        help='Мод Охота на Лекаря',
+                        filter_group="event")
     parser.add_argument('-gr',
                         '--group',
                         action='store_true',
