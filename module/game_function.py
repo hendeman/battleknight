@@ -956,7 +956,7 @@ def get_reward():
 
 def init_status_players():
     try:
-        with open(attack_ids_gamers, 'r', encoding='utf-8') as file:
+        with open(attack_ids_gamers, 'r', encoding='utf-8-sig') as file:
             list_of_players = json.load(file)
             for player, values in list_of_players.items():
                 current_loot = get_gold_for_player(player)
@@ -1222,7 +1222,7 @@ def update_players_gold(dict_gamer, list_of_players):
 
 
 def set_initial_gold():
-    with open(attack_ids_gamers, 'r', encoding='utf-8') as file:
+    with open(attack_ids_gamers, 'r', encoding='utf-8-sig') as file:
         list_of_players = json.load(file)
 
         if get_config_value(key='exclude_allow_attack'):
