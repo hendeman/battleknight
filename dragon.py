@@ -6,9 +6,10 @@ from functools import partial
 
 from bs4 import BeautifulSoup
 
-from logs.logger_process import logger_process
-from logs.logs import p_log, setup_logging
+from logs.logging_config import setup_logging_system, cleanup_logging_system
+from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
+from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
     go_auction, account_verification, online_tracking_only
@@ -20,6 +21,11 @@ from setting import castles_all, castles_island, castles, url_world, url_map, ur
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
     'healer': {'icon': 'ZanyHealerIcon', 'name': ''}
+}
+kwargs = {
+    'event': 'dragon',
+    'rubies': False,
+    'length_mission': 'small'
 }
 
 
@@ -184,10 +190,11 @@ def event_search(event, rubies, length_mission):
         try:
             dragon_town = soup.find(id=event_list[event]['icon']).get('class')[0]
         except AttributeError:
-            raise f"{event} нет на карте"
+            raise AttributeError(f"{event} нет на карте")
         p_log(f"{event} находится в {castles_all[dragon_town]}")
 
-        if (my_town in castles_island and dragon_town in castles_island) or (my_town in castles and dragon_town in castles):
+        if (my_town in castles_island and dragon_town in castles_island) or (
+                my_town in castles and dragon_town in castles):
             if my_town == dragon_town:
                 p_log(f"Вы в городе с {event}!")
                 check_hit_point()  # проверка количества здоровья
@@ -225,21 +232,7 @@ def wrapper_function(func1):
         p_log(f"Исключение в {func1}: {e}", level='warning')
 
 
-if __name__ == "__main__":
-    queue = multiprocessing.Queue()
-    logging_process = multiprocessing.Process(target=logger_process, args=(queue,))
-    logging_process.start()
-
-    setup_logging(queue)  # Настраиваем логирование с использованием очереди
-    account_verification()
-
-    check_timer()
-    kwargs = {
-        'event': 'dragon',
-        'rubies': False,
-        'length_mission': 'small'
-    }
-    partial_event_search = partial(event_search, **kwargs)
+def autoplay(partial_event_search):
     while True:
         if not check_time_sleep(start_hour='19:31', end_hour='21:29'):
             p_log(f"Запуск {kwargs.get('event')} процесса...")
@@ -261,3 +254,26 @@ if __name__ == "__main__":
         if timer_group:
             p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
             time_sleep(timer_group)
+
+
+if __name__ == "__main__":
+    queue, logging_process, translate = setup_logging_system()
+
+    parser = arg_parser()
+    args = parser.parse_args()
+    if args.dragon or args.healer:  # или другое условие для лекаря
+        account_verification()
+        check_timer()
+
+        if args.dragon:
+            p_log(f"Активирован мод Охота на драконов")
+            kwargs['event'] = 'dragon'
+        else:  # args.healer
+            p_log(f"Активирован мод Лекарь")
+            kwargs['event'] = 'healer'
+
+        autoplay(partial(event_search, **kwargs))
+    else:
+        parser.print_help(filter_group='event')
+
+    cleanup_logging_system(queue, logging_process, translate)
