@@ -64,7 +64,11 @@ statistic_new_dir = f"bk\\statistic\\statistic_new\\"
 name_file_old = 'data.json'
 name_file_new = 'data_new.json'
 
-cookies, _user_agent = load_custom_env()
+cookies, header = load_custom_env()
+
+header_post = {'Sec-fetch-dest': 'empty', 'Sec-fetch-mode': 'cors'}
+header_get = {'Sec-fetch-dest': 'document', 'Sec-fetch-mode': 'navigate',
+              'Sec-fetch-user': '?1', 'Upgrade-insecure-requests': '1'}
 
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
 
@@ -181,19 +185,24 @@ def get_cookies():
 
 def get_header():
     headers = {
-        'User-Agent': _user_agent,
+        'User-Agent': header.get('_user_agent'),
+        'Sec-ch-ua': header.get('_client_hints'),
         'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br'
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Sec-ch-ua-mobile': "?0",
+        'Sec-ch-ua-platform': "Windows",
+        'Sec-fetch-site': 'same-origin',
+        'Connection': 'keep-alive'
     }
     return headers
 
 
 def reload_cookies(env_file):
     """Перезагружает куки из указанного .env файла"""
-    global cookies, _user_agent
+    global cookies, header
     file_name = env_file + '.env'
-    cookies, _user_agent = load_custom_env(file_name)
-    return cookies, _user_agent
+    cookies, header = load_custom_env(file_name)
+    return cookies, header
 
 
 def reload_config(name_config):
