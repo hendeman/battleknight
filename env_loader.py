@@ -27,6 +27,7 @@ REQUIRED_COOKIES = ["BattleKnight", "BattleKnightSession"]
 
 
 def load_custom_env(env_file=None, required_cookies=None):
+    header = {}
     """
     Загружает .env файл и возвращает только определенные куки
 
@@ -54,7 +55,8 @@ def load_custom_env(env_file=None, required_cookies=None):
     else:
         load_dotenv(ENV_PATH_DEFAULT)
 
-    header = os.getenv('USER_AGENT')
+    header['_user_agent'] = os.getenv('USER_AGENT')
+    header['_client_hints'] = os.getenv('CLIENT_HINTS')
 
     # Формируем словарь куки
     cookies = {
