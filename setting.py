@@ -74,14 +74,15 @@ csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
 
 castles_island = {'VillageFour': 'Djaro', 'FortressTwo': 'Segur', 'HarbourTwo': 'Alvan',
                   'TradingPostFour': 'Miley', 'FogIsland': 'Fehan'}
-castles = {'CityOne': "Alcran", 'CoastalFortressOne': "Asgal", 'CoastalFortressTwo': "Gastein",
-           'FortressOne': "Tulgar",
-           'GhostTown': "Talfour",
-           'HarbourOne': "Vale", 'HarbourThree': "Sedwich",
+castles = {'CoastalFortressOne': "Asgal",
+           'HarbourThree': "Sedwich",
            'CapitalCity': "Endaline",
-           'TradingPostOne': "Grand", 'TradingPostTwo': "Talmet", 'TradingPostThree': "Brent",
-           'VillageOne': "Terent", 'VillageTwo': "Hatwig", 'VillageThree': "Rumstill"}
-castles_all = {**castles, **castles_island}
+           'TradingPostOne': "Grand", 'TradingPostTwo': "Talmet",
+           'VillageOne': "Terent", 'VillageTwo': "Hatwig"}
+brent_region = {'TradingPostThree': "Brent", 'FortressOne': "Tulgar", 'VillageThree': "Rumstill", 'HarbourOne': "Vale"}
+alcran_region = {'CityOne': "Alcran", 'CoastalFortressTwo': "Gastein", 'GhostTown': "Talfour"}
+castles_continent = {**castles, **brent_region, **alcran_region}
+castles_all = {**castles_continent, **castles_island, **brent_region, **alcran_region}
 auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPostTwo',
                    'HarbourOne', 'TradingPostThree', 'VillageThree', 'CityOne',
                    'HarbourTwo', 'TradingPostFour')
