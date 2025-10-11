@@ -1,18 +1,20 @@
 import time
+from pprint import pprint
 
 import requests
 from requests import Timeout, RequestException, Response
 from requests.exceptions import ProxyError
 
 from logs.logs import p_log
-from module.all_function import get_random_value
+from module.all_function import get_random_value, check_last_word
 from module.data_pars import get_csrf_token, get_title
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import get_cookies, get_header
+from setting import get_cookies, get_header, header_get, header_post, SERVER
 
 csrf_token = None
 max_csrf_retries = 3
 max_retries = 3
+referer = SERVER
 
 
 class LazyProxyManager:
@@ -82,12 +84,26 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
         proxy_manager: менеджер прокси
         **kwargs: дополнительные параметры для запроса
     """
-    global csrf_token
+    global csrf_token, referer
     csrf_retries = 0
     request_retries = 0
 
     # Извлекаем параметры, которые не нужны для requests
     csrf_enabled = kwargs.pop('csrf', True)  # Удаляем csrf из kwargs
+
+    # Добавляем заголовок Referer во все запросы
+    if kwargs['headers'] is None:
+        kwargs['headers'] = get_header().copy()
+        kwargs['headers'].setdefault('Referer', referer)
+        if 'ajax' not in url and check_last_word(url):
+            referer = url
+        if request_func == requests.get:
+            kwargs['headers'].update(header_get)
+        else:
+            kwargs['headers'].update(header_post)
+
+    if kwargs['cookies'] is None:
+        kwargs['cookies'] = get_cookies()
 
     if isinstance(proxy_manager, str):
         proxy_manager = LazyProxyManager(custom_proxy=proxy_manager)
@@ -161,10 +177,12 @@ def make_request(url,
                  proxy_manage=None,
                  proxies=None) -> Response:
     """GET запрос"""
-    if browser_cookies is None:
-        browser_cookies = get_cookies()
-    if http_headers is None:
-        http_headers = get_header()
+    # if browser_cookies is None:
+    #     browser_cookies = get_cookies()
+    # if http_headers is None:
+    #     http_headers = get_header()
+    #     http_headers = http_headers.copy()
+    #     http_headers.update(header_get)
 
     response = make_http_request(
         request_func=requests.get,
@@ -192,10 +210,12 @@ def post_request(url,
                  proxies=None,
                  proxy_manage=None) -> Response:
     """POST запрос"""
-    if browser_cookies is None:
-        browser_cookies = get_cookies()
-    if http_headers is None:
-        http_headers = get_header()
+    # if browser_cookies is None:
+    #     browser_cookies = get_cookies()
+    # if http_headers is None:
+    #     http_headers = get_header()
+    #     http_headers = http_headers.copy()
+    #     http_headers.update(header_post)
 
     # Добавление CSRF токена если нужно
     if csrf:
