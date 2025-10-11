@@ -8,15 +8,15 @@ from bs4 import BeautifulSoup
 
 from logs.logging_config import setup_logging_system, cleanup_logging_system
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value
+from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, load_json_file, \
+    get_zone
 from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
     go_auction, account_verification, online_tracking_only
 from module.group import go_group
 from module.http_requests import make_request
-from setting import castles_all, castles_island, castles, url_world, url_map, url_zany_healer, event_healer_potions, \
-    auction_castles
+from setting import castles_all, url_world, url_map, url_zany_healer, event_healer_potions, auction_castles
 
 event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
@@ -27,6 +27,7 @@ kwargs = {
     'rubies': False,
     'length_mission': 'small'
 }
+ZONE_GATEWAYS = load_json_file('configs', 'zone_gateways.json')
 
 
 def find_mission(soup, length_mission, name_mission):
@@ -53,7 +54,9 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
             # пока миссий нету, запускаем процесс атак на коровок
             hours = 1
             online_tracking = partial(online_tracking_only)
-            process_online_tracking = multiprocessing.Process(target=wrapper_function, args=(online_tracking,))
+            process_online_tracking = multiprocessing.Process(target=wrapper_function,
+                                                              args=(online_tracking,),
+                                                              daemon=True)
             process_online_tracking.start()
             p_log(f"Ожидание {hours} часов... Работает online_tracking функция")
             time_sleep_main(hours * 60 * 60)  # Ожидание в часах
@@ -75,10 +78,7 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
                 dragon_bar = soup.find('div', id='dragonLiveBar')['style']
                 p_log(f"У дракона осталось {dragon_bar.split()[1]} здоровья")
 
-            post_dragon(
-                length_mission=length_mission,
-                name_mission=name_mission
-            )
+            post_dragon(name_mission=name_mission)
 
             response = make_request(url_world)
             soup = BeautifulSoup(response.content, 'lxml')
@@ -153,11 +153,7 @@ def process_page(event, rubies, length_mission, name_mission, my_town):
                             if len(parts) > 4:
                                 fifth_argument = parts[4].strip().strip("');")
 
-                                post_dragon(
-                                    length_mission=length_mission,
-                                    name_mission=name_mission,
-                                    buy_rubies=fifth_argument
-                                )
+                                post_dragon(name_mission=name_mission, buy_rubies=fifth_argument)
                                 break_outer = True
                                 break
                     if break_outer:
@@ -193,36 +189,88 @@ def event_search(event, rubies, length_mission):
             raise AttributeError(f"{event} нет на карте")
         p_log(f"{event} находится в {castles_all[dragon_town]}")
 
-        if (my_town in castles_island and dragon_town in castles_island) or (
-                my_town in castles and dragon_town in castles):
+        my_zone = get_zone(my_town)
+        dragon_zone = get_zone(dragon_town)
+
+        # Случай 1: в одной зоне
+        if my_zone == dragon_zone:
             if my_town == dragon_town:
                 p_log(f"Вы в городе с {event}!")
-                check_hit_point()  # проверка количества здоровья
+                check_hit_point()
                 process_page(
                     event=event,
                     rubies=rubies,
                     length_mission=length_mission,
                     name_mission=event_list[event]['name'],
                     my_town=my_town
-                )  # атака на дракона
+                )
             else:
                 post_travel(out=my_town, where=dragon_town)
 
-        if my_town in castles_island and dragon_town in castles:
-            if my_town == 'HarbourTwo':
-                if silver_count < 800:
-                    travel_mission(length_mission=length_mission)
-                post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
-            else:
-                post_travel(out=my_town, where='HarbourTwo')
+        # Случай 2: в разных зонах — ищем маршрут
+        else:
+            route_key = f"{my_zone}->{dragon_zone}"
+            if route_key not in ZONE_GATEWAYS:
+                raise RuntimeError(f"Нет маршрута из {my_zone} в {dragon_zone}")
 
-        if my_town in castles and dragon_town in castles_island:
-            if my_town == 'HarbourOne':
+            gateway = ZONE_GATEWAYS[route_key]
+            from_gate = gateway['from_gate']
+            to_gate = gateway['to_gate']
+            transport = gateway.get('transport')  # может быть None
+
+            if my_town == from_gate:
                 if silver_count < 800:
                     travel_mission(length_mission=length_mission)
-                post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
+                post_travel(out=from_gate, where=to_gate, how=transport)
             else:
-                post_travel(out=my_town, where='HarbourOne')
+                post_travel(out=my_town, where=from_gate)
+
+        # if my_town in brent_region and dragon_town in alcran_region:
+        #     if my_town == 'TradingPostThree':
+        #         if silver_count < 800:
+        #             travel_mission(length_mission=length_mission)
+        #         post_travel(out='TradingPostThree', where='CityOne', how='cog')
+        #     else:
+        #         post_travel(out=my_town, where='CityOne')
+        #
+        # if my_town in alcran_region and dragon_town in brent_region:
+        #     if my_town == 'CityOne':
+        #         if silver_count < 800:
+        #             travel_mission(length_mission=length_mission)
+        #         post_travel(out='CityOne', where='TradingPostThree', how='cog')
+        #     else:
+        #         post_travel(out=my_town, where='TradingPostThree')
+        #
+        # if (my_town in castles_island and dragon_town in castles_island) or (
+        #         my_town in castles_continent and dragon_town in castles_continent):
+        #     if my_town == dragon_town:
+        #         p_log(f"Вы в городе с {event}!")
+        #         check_hit_point()  # проверка количества здоровья
+        #         process_page(
+        #             event=event,
+        #             rubies=rubies,
+        #             length_mission=length_mission,
+        #             name_mission=event_list[event]['name'],
+        #             my_town=my_town
+        #         )  # атака на дракона
+        #     else:
+        #         post_travel(out=my_town, where=dragon_town)
+        #
+        # if my_town in castles_island and dragon_town in castles_continent:
+        #     if my_town == 'HarbourTwo':
+        #         if silver_count < 800:
+        #             travel_mission(length_mission=length_mission)
+        #         post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
+        #     else:
+        #         post_travel(out=my_town, where='HarbourTwo')
+        #
+        # if my_town in castles_continent and dragon_town in castles_island:
+        #     if my_town == 'HarbourOne':
+        #         if silver_count < 800:
+        #             travel_mission(length_mission=length_mission)
+        #         post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
+        #     else:
+        #         post_travel(out=my_town, where='HarbourOne')
 
 
 def wrapper_function(func1):
@@ -238,14 +286,14 @@ def autoplay(partial_event_search):
             p_log(f"Запуск {kwargs.get('event')} процесса...")
             process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
             process.start()
-            p_log(f"Процесс {kwargs.get('event')} будет работать до 19:30...")
-            time_sleep_main(wait_until('19:20'), interval=1800)
+            p_log(f"Процесс {kwargs.get('event')} будет работать до 19:40...")
+            time_sleep_main(wait_until('19:40'), interval=1800)
             p_log(f"Остановка {kwargs.get('event')} процесса...")
             process.terminate()
             process.join()
         check_timer()
-        # Ожидание до 21:30 для синхронизации. 2 часа должно быть достаточно в большинстве случаев
-        time_begin = wait_until("21:00")
+        # Ожидание до 21:20 для синхронизации. 2 часа должно быть достаточно в большинстве случаев
+        time_begin = wait_until("21:20")
         p_log(f"До начала группы осталось {format_time(time_begin)}. Ожидаем...")
         time_sleep(time_begin)
         # Создаем группу
