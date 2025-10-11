@@ -14,7 +14,7 @@ from module.group import go_group
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
     get_config_value, time_sleep_main
-from setting import castles_all, castles_island, castles, url_world, url_map, auction_castles
+from setting import castles_all, castles_island, castles_continent, url_world, url_map, auction_castles
 
 
 # ___________________ Выполнить миссию. Флаг cog_plata=True значит миссия для переправы __________
@@ -180,7 +180,7 @@ def keys_search():
           f"{castles_all[name_max_city]}, {group_castles.get(name_max_city, {}).get('count', 0)} ключей")
 
     if (my_town in castles_island and name_max_city in castles_island) or (
-            my_town in castles and name_max_city in castles):
+            my_town in castles_continent and name_max_city in castles_continent):
         if my_town == name_max_city:
             p_log(f"Вы в городе с максимальным количеством ключей!")
             check_hit_point()  # проверка количества здоровья
@@ -188,7 +188,7 @@ def keys_search():
         else:
             post_travel(out=my_town, where=name_max_city)
 
-    if my_town in castles_island and name_max_city in castles:
+    if my_town in castles_island and name_max_city in castles_continent:
         if my_town == 'HarbourTwo':
             if silver_count < 800:
                 complete_mission(current_castle=name_max_city, cog_plata=True)
@@ -196,7 +196,7 @@ def keys_search():
         else:
             post_travel(out=my_town, where='HarbourTwo')
 
-    if my_town in castles and name_max_city in castles_island:
+    if my_town in castles_continent and name_max_city in castles_island:
         if my_town == 'HarbourOne':
             if silver_count < 800:
                 complete_mission(current_castle=name_max_city, cog_plata=True)
