@@ -1,4 +1,5 @@
 import os
+from itertools import chain
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -21,13 +22,14 @@ COOKIE_MAPPING = {
     "OAID": "OAID",
     "OXLCA": "OXLCA"
 }
+HEADER_MAPPING = {'Sec-Ch-Ua': 'CLIENT_HINTS',
+                  'User-Agent': 'USER_AGENT'}
 
 # Обязательные куки (вызовут ошибку если не определены)
 REQUIRED_COOKIES = ["BattleKnight", "BattleKnightSession"]
 
 
 def load_custom_env(env_file=None, required_cookies=None):
-    header = {}
     """
     Загружает .env файл и возвращает только определенные куки
 
@@ -42,12 +44,13 @@ def load_custom_env(env_file=None, required_cookies=None):
         FileNotFoundError: Если указанный .env файл не существует
         ValueError: Если отсутствуют обязательные куки
     """
-    # Загрузка .env файла
-    for env_var in COOKIE_MAPPING.values():
-        os.environ.pop(env_var, None)  # Удаляем, если существует
 
     # Загружаем новый .env
     if env_file:
+        # Удаляем все значения COOKIE_MAPPING и HEADER_MAPPING из env окружения перед новой загрузкой
+        for env_var in chain(HEADER_MAPPING.values(), COOKIE_MAPPING.values()):
+            os.environ.pop(env_var, None)
+
         env_path = Path(env_file)
         if not env_path.exists():
             raise FileNotFoundError(f"Env file not found: {env_file}")
@@ -55,8 +58,12 @@ def load_custom_env(env_file=None, required_cookies=None):
     else:
         load_dotenv(ENV_PATH_DEFAULT)
 
-    header['_user_agent'] = os.getenv('USER_AGENT')
-    header['_client_hints'] = os.getenv('CLIENT_HINTS')
+    # Формируем словарь заголовков
+    header = {
+        header_name: os.getenv(env_var)
+        for header_name, env_var in HEADER_MAPPING.items()
+        if os.getenv(env_var) is not None
+    }
 
     # Формируем словарь куки
     cookies = {
