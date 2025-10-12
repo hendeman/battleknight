@@ -308,7 +308,8 @@ def post_travel(out='', where='', how='horse'):
     resp = post_request(url_start_travel, payload)
     timer_travel = check_progressbar(resp)
     if not timer_travel:
-        p_log("Рыцарь не уехал в другой город!", level='warning', is_error=True)
+        p_log("Рыцарь не уехал в другой город!", is_error=True)
+        raise TypeError("The knight did not leave for another city!")
     else:
         print_status(out, where, how, seconds_to_hhmmss(timer_travel))
         time_sleep(timer_travel)
@@ -359,9 +360,27 @@ class Namespace(Enum):
     NOT_DATA = auto()
 
 
-def click(mission_duration, mission_name, find_karma, rubies=False):
+def find_mission(soup, length_mission, name_mission):
+    name_missions = []
+    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', 'Good', this\\);"
+    a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
+    for tag in a_tags:
+        onclick_value = tag['onclick']
+        match = re.search(st_pattern, onclick_value)
+        if match:
+            nm = match.group(1)  # Извлекаем значение name_mission
+            name_missions.append(nm)  # Добавляем в список
+
+    name_mission = random.choice(name_missions) if not name_mission else name_mission
+    return name_mission, a_tags
+
+
+def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
     response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'lxml')
+
+    if mission_search:
+        mission_name, a_tags = find_mission(soup, mission_duration, mission_name)
 
     search_string = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this)"
     a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
@@ -394,10 +413,10 @@ def click(mission_duration, mission_name, find_karma, rubies=False):
 
 
 @apply_christmas_bonus
-def post_dragon(name_mission, buy_rubies='', sleeping=True):
+def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None):
     payload = {
         'chooseMission': name_mission,
-        'missionArt': get_config_value("mission_duration"),
+        'missionArt': f'{get_config_value("mission_duration") if not length_mission else length_mission}',
         'missionKarma': get_config_value("working_karma"),
         'buyRubies': buy_rubies
     }
