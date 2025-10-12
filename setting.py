@@ -186,8 +186,6 @@ def get_cookies():
 
 def get_header():
     headers = {
-        'User-Agent': header.get('_user_agent'),
-        'Sec-ch-ua': header.get('_client_hints'),
         'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
         'Accept-Encoding': 'gzip, deflate, br',
         'Sec-ch-ua-mobile': "?0",
@@ -195,7 +193,7 @@ def get_header():
         'Sec-fetch-site': 'same-origin',
         'Connection': 'keep-alive'
     }
-    return headers
+    return dict(**headers, **header)
 
 
 def reload_cookies(env_file):
