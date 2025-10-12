@@ -1,6 +1,4 @@
 import multiprocessing
-import random
-import re
 
 from functools import partial
 
@@ -8,12 +6,13 @@ from bs4 import BeautifulSoup
 
 from logs.logging_config import setup_logging_system, cleanup_logging_system
 from logs.logs import p_log
-from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, load_json_file, \
-    get_zone
+from module.ruby_manager import ruby_manager
+from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
+    load_json_file, get_zone
 from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
-    go_auction, account_verification, online_tracking_only
+    go_auction, account_verification, online_tracking_only, find_mission
 from module.group import go_group
 from module.http_requests import make_request
 from setting import castles_all, url_world, url_map, url_zany_healer, event_healer_potions, auction_castles
@@ -22,27 +21,14 @@ event_list = {
     'dragon': {'icon': 'DragonIcon', 'name': 'DragonEventGreatDragon'},
     'healer': {'icon': 'ZanyHealerIcon', 'name': ''}
 }
-kwargs = {
-    'event': 'dragon',
-    'rubies': False,
-    'length_mission': 'small'
-}
+EVENT_NAME = None
 ZONE_GATEWAYS = load_json_file('configs', 'zone_gateways.json')
-
-
-def find_mission(soup, length_mission, name_mission):
-    name_missions = []
-    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', 'Good', this\\);"
-    a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
-    for tag in a_tags:
-        onclick_value = tag['onclick']
-        match = re.search(st_pattern, onclick_value)
-        if match:
-            nm = match.group(1)  # Извлекаем значение name_mission
-            name_missions.append(nm)  # Добавляем в список
-
-    name_mission = random.choice(name_missions) if not name_mission else name_mission
-    return name_mission, a_tags
+MACRO_ZONE = {
+    'brent': 'continent',
+    'alcran': 'continent',
+    'continent': 'continent',
+    'island': 'island'
+}
 
 
 def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=False):
@@ -114,14 +100,15 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
                 p_log(f"Необходимо 800 серебра. На руках {silver_count}")
 
 
-def process_page(event, rubies, length_mission, name_mission, my_town):
+def process_page(event, length_mission, name_mission, my_town):
+    karma = get_config_value("working_karma").capitalize()
     break_outer = False
     response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'lxml')
     a_tags = []
 
     if event == 'dragon':
-        st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
+        st = f"chooseMission('{length_mission}', '{name_mission}', '{karma}', this)"
         a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
         p_log(a_tags, level='debug')
 
@@ -138,12 +125,16 @@ def process_page(event, rubies, length_mission, name_mission, my_town):
 
     if a_tags:
         for a_tag in a_tags:
+            rubies = ruby_manager.total_used < ruby_manager.total_limit and ruby_manager.should_use_rubies()
             if rubies and 'disabledSpecialBtn' in a_tag.get('class', []):
+                onclick_pattern_1 = f"chooseMission('{length_mission}', '{name_mission}', '{karma}', this, '1')"
+                onclick_pattern_2 = f"chooseMission('{length_mission}', '{name_mission}', '{karma}', this, '2')"
+                onclick_pattern_3 = f"chooseMission('{length_mission}', '{name_mission}', '{karma}', this, '3')"
                 buy_rubies_tags = soup.find_all('a', class_='devLarge missionBuyRubies toolTip',
                                                 onclick=lambda onclick: onclick and (
-                                                        "chooseMission('large', 'DragonEventGreatDragon', 'Good', this, '1')" in onclick
-                                                        or "chooseMission('large', 'DragonEventGreatDragon', 'Good', this, '2')" in onclick
-                                                        or "chooseMission('large', 'DragonEventGreatDragon', 'Good', this, '3')" in onclick))
+                                                        onclick_pattern_1 in onclick
+                                                        or onclick_pattern_2 in onclick
+                                                        or onclick_pattern_3 in onclick))
                 if buy_rubies_tags:
                     for buy_rubies_tag in reversed(buy_rubies_tags):
                         onclick_value = buy_rubies_tag.get('onclick')
@@ -154,6 +145,10 @@ def process_page(event, rubies, length_mission, name_mission, my_town):
                                 fifth_argument = parts[4].strip().strip("');")
 
                                 post_dragon(name_mission=name_mission, buy_rubies=fifth_argument)
+                                ruby_manager.mark_ruby_used()
+                                p_log(
+                                    f"Дневной лимит: {ruby_manager.daily_used}/{ruby_manager.daily_limit}, "
+                                    f"Всего: {ruby_manager.total_used}/{ruby_manager.total_limit}")
                                 break_outer = True
                                 break
                     if break_outer:
@@ -172,9 +167,24 @@ def travel_mission(length_mission='small'):
     complete_mission(soup, length_mission, name_mission=None, my_town=None, cog_plata=True)
 
 
-def event_search(event, rubies, length_mission):
+def get_directions(macro_route_key, my_town, silver_count, length_mission):
+    gateway = ZONE_GATEWAYS[macro_route_key]
+    from_gate = gateway['from_gate']
+    to_gate = gateway['to_gate']
+    transport = gateway.get('transport')
+
+    if my_town == from_gate:
+        if silver_count < 800:
+            travel_mission(length_mission=length_mission)
+        post_travel(out=from_gate, where=to_gate, how=transport)
+    else:
+        post_travel(out=my_town, where=from_gate)
+
+
+def event_search(event):
     check_timer()
     while True:
+        length_mission = get_config_value("mission_duration")
         check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
         move_item(how='loot', name='ring', rand=False)
 
@@ -192,38 +202,41 @@ def event_search(event, rubies, length_mission):
         my_zone = get_zone(my_town)
         dragon_zone = get_zone(dragon_town)
 
-        # Случай 1: в одной зоне
+        # Случай 1: один и тот же город
         if my_zone == dragon_zone:
             if my_town == dragon_town:
                 p_log(f"Вы в городе с {event}!")
                 check_hit_point()
                 process_page(
                     event=event,
-                    rubies=rubies,
                     length_mission=length_mission,
                     name_mission=event_list[event]['name'],
                     my_town=my_town
                 )
             else:
                 post_travel(out=my_town, where=dragon_town)
+            continue
 
-        # Случай 2: в разных зонах — ищем маршрут
+        # Случай 2: явно заданный маршрут (например, brent <-> alcran)
+        route_key = f"{my_zone}->{dragon_zone}"
+        if route_key in ZONE_GATEWAYS:
+            get_directions(route_key, my_town, silver_count, length_mission)
+            continue
+
+        # Случай 3: обобщённые макрозоны (continent <-> island)
+        my_macro = MACRO_ZONE[my_zone]
+        dragon_macro = MACRO_ZONE[dragon_zone]
+
+        if my_macro == dragon_macro:
+            # В одной макрозоне, но нет явного маршрута → прямой переход
+            post_travel(out=my_town, where=dragon_town)
         else:
-            route_key = f"{my_zone}->{dragon_zone}"
-            if route_key not in ZONE_GATEWAYS:
-                raise RuntimeError(f"Нет маршрута из {my_zone} в {dragon_zone}")
+            # Разные макрозоны → используем обобщённый маршрут
+            macro_route_key = f"{my_macro}->{dragon_macro}"
+            if macro_route_key not in ZONE_GATEWAYS:
+                raise RuntimeError(f"Нет маршрута из {my_macro} в {dragon_macro}")
 
-            gateway = ZONE_GATEWAYS[route_key]
-            from_gate = gateway['from_gate']
-            to_gate = gateway['to_gate']
-            transport = gateway.get('transport')  # может быть None
-
-            if my_town == from_gate:
-                if silver_count < 800:
-                    travel_mission(length_mission=length_mission)
-                post_travel(out=from_gate, where=to_gate, how=transport)
-            else:
-                post_travel(out=my_town, where=from_gate)
+            get_directions(macro_route_key, my_town, silver_count, length_mission)
 
         # if my_town in brent_region and dragon_town in alcran_region:
         #     if my_town == 'TradingPostThree':
@@ -283,12 +296,12 @@ def wrapper_function(func1):
 def autoplay(partial_event_search):
     while True:
         if not check_time_sleep(start_hour='19:31', end_hour='21:29'):
-            p_log(f"Запуск {kwargs.get('event')} процесса...")
+            p_log(f"Запуск {EVENT_NAME} процесса...")
             process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
             process.start()
-            p_log(f"Процесс {kwargs.get('event')} будет работать до 19:40...")
+            p_log(f"Процесс {EVENT_NAME} будет работать до 19:40...")
             time_sleep_main(wait_until('19:40'), interval=1800)
-            p_log(f"Остановка {kwargs.get('event')} процесса...")
+            p_log(f"Остановка {EVENT_NAME} процесса...")
             process.terminate()
             process.join()
         check_timer()
@@ -315,12 +328,12 @@ if __name__ == "__main__":
 
         if args.dragon:
             p_log(f"Активирован мод Охота на драконов")
-            kwargs['event'] = 'dragon'
+            EVENT_NAME = 'dragon'
         else:  # args.healer
             p_log(f"Активирован мод Лекарь")
-            kwargs['event'] = 'healer'
+            EVENT_NAME = 'healer'
 
-        autoplay(partial(event_search, **kwargs))
+        autoplay(partial(event_search, EVENT_NAME))
     else:
         parser.print_help(filter_group='event')
 
