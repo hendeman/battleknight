@@ -1,40 +1,13 @@
-from datetime import datetime
 from logs.logs import p_log, setup_logging
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
     activate_karma, click, Namespace
 from module.group import go_group
-
-
-class RubyManager:
-    def __init__(self, total_limit, daily_limit):
-        self.total_limit = total_limit
-        self.daily_limit = daily_limit
-        self.total_used = 0
-        self.daily_used = 0
-        self.last_reset_date = datetime.now().date()
-
-    def should_use_rubies(self):
-        # Проверяем смену дня
-        if datetime.now().date() != self.last_reset_date:
-            self.daily_used = 0
-            self.last_reset_date = datetime.now().date()
-            p_log("Новый день, сбрасываем счетчик рубинов")
-
-        # Возвращаем True если можно использовать рубины
-        return self.daily_used < self.daily_limit and self.total_used < self.total_limit
-
-    def mark_ruby_used(self):
-        self.total_used += 1
-        self.daily_used += 1
+from module.ruby_manager import ruby_manager
 
 
 def main_loop_click(group=False):
-    ruby_manager = RubyManager(
-        get_config_value("rubies_limit"),
-        get_config_value("rubies_day")
-    )
     karma_activate = get_config_value("karma_activate")
     if karma_activate:
         activate_karma(skill=get_config_value("karma_activate_name"),
