@@ -121,14 +121,6 @@ def register_handlers(bot):
 
         while is_running:
             try:
-                # # Переоткрываем файл, если наступила полночь
-                # current_time = datetime.now()
-                # # Если наступило время для сброса last_position (например, в 7 утра)
-                # if current_time.hour == 7 and current_time.minute <= 10:
-                #     if command == 'run':
-                #         last_positions[command] = 0
-                #     warning_list = []
-
                 # Проверяем, не изменился ли файл (например, после ротации)
                 try:
                     current_inode = os.stat(log_file).st_ino
@@ -142,6 +134,7 @@ def register_handlers(bot):
                     # Сбрасываем last_position, чтобы начать с начала нового файла
                     last_positions[command] = 0
                     logging.info(f"Файл {log_file} был ротирован. last_position сброшен.")
+                    warning_list = []
 
                 file_inode = current_inode
 
@@ -182,7 +175,8 @@ def register_handlers(bot):
                             else:
                                 capture_error = False
                         else:
-                            filtered_lines.append(line)
+                            # filtered_lines.append(line)
+                            pass
 
                     processed_lines = [
                         re.sub(r'^\d{2}:\d{2}:\d{2}\s+\d*\s*', '', line).strip()
