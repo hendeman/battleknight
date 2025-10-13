@@ -334,6 +334,8 @@ def christmas_bonus(func=None):
                     p_log('Баф активирован')
                 else:
                     p_log(f"Баф не был активирован: {resp['reason']}, {resp['data']}", level='warning')
+            except JSONDecodeError as er:
+                p_log(f"Error json christmas_bonus: {er}", level='warning')
             except Exception as er:
                 p_log(f"Ошибка обработки запроса рожденственского бонуса: {er}", level='warning')
             get_item_loot('christmas')
@@ -604,8 +606,10 @@ def post_healer(potion_number):
         p_log(dct, level='debug')
         description_html = dct.get('description', '')
         pars_healer_result(description_html)
-    except Exception as er:
-        p_log(f'Ошибка json покупки <{name_potion}>: {er}', level='debug')
+    except JSONDecodeError as er:
+        p_log(f'Error json buy <{name_potion}>: {er} | Status-code: {resp.status_code}', level='debug')
+        if resp.text.strip().startswith('<!DOCTYPE') or resp.text.strip().startswith('<html'):
+            p_log(f'Received HTML instead of JSON (length: {len(resp.text)} letter)', level='debug')
 
 
 def do_matrix_inventory(data, size):
@@ -878,6 +882,8 @@ def register_joust():
                 p_log("Вы зарегистрированы на турнир")
             else:
                 p_log("Вы уже участвуете в турнире")
+        except JSONDecodeError as er:
+            p_log(f'Error json <register_joust>: {er}', level='warning')
         except Exception as err:
             p_log(f"Ошибка регистрации на турнир: {err}", level='warning')
 
