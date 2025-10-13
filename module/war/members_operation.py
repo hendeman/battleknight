@@ -79,6 +79,8 @@ def remove_members(mode='var', delete_war_list=None):
         for id_name in remove_member_list]
     for thread in threads:
         thread.start()
+        if mode == 'be_var':
+            time.sleep(0.5)
     # for thread in threads:
     #     thread.join()
     if mode == 'be_var':
