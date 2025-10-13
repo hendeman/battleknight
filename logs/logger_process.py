@@ -1,5 +1,6 @@
 import copy
 import logging
+import os
 import pickle
 
 from logs.logs import setup_logging
@@ -11,23 +12,27 @@ DICTIONARY = f'module/translator/files/dictionary_{LANG}.pickle'
 DICTIONARY_NOT_WORLDS = 'module/translator/files/dictionary_not_worlds.pickle'
 
 
+def get_dictionary(name_file):
+    try:
+        with open(name_file, 'rb') as f:
+            dct = pickle.load(f)
+    except (FileNotFoundError, EOFError):
+        logging.debug(f"File not found: {name_file}")
+        dct = {}  # Если файла нет или он пустой
+    return dct
+
+
 def logger_process(queue, enable_rotation, log_file_path):
     setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
+    file_inode = None
+    current_inode = None
+
     # ЗАГРУЖАЕМ буферный словарь для непереведенных слов
-    try:
-        with open(DICTIONARY_NOT_WORLDS, 'rb') as f:
-            buffer_translate = pickle.load(f)
-    except (FileNotFoundError, EOFError):
-        buffer_translate = {}  # Если файла нет или он пустой
+    buffer_translate = get_dictionary(DICTIONARY_NOT_WORLDS)
 
     # ЗАГРУЖАЕМ существующий словарь при запуске
-    try:
-        with open(DICTIONARY, 'rb') as f:
-            loaded_dict = pickle.load(f)
-    except (FileNotFoundError, EOFError):
-        logging.warning(f"File not found: {DICTIONARY}")
-        loaded_dict = {}
+    loaded_dict = get_dictionary(DICTIONARY)
 
     while True:
         record = queue.get()
@@ -38,6 +43,16 @@ def logger_process(queue, enable_rotation, log_file_path):
         if record.levelno == logging.INFO:
             original_message = record.getMessage()
             try:
+                try:
+                    current_inode = os.stat(DICTIONARY).st_ino
+                except FileNotFoundError:
+                    logging.warning(f"File not found: {DICTIONARY}")
+
+                # Если inode изменился — файл был переименован или создан заново
+                if file_inode is not None and file_inode != current_inode:
+                    loaded_dict = get_dictionary(DICTIONARY)
+                file_inode = current_inode
+
                 modified_text, word_list = process_text(original_message)
                 translate_text = loaded_dict.get(modified_text)
                 try:
