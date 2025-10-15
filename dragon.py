@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 from logs.logging_config import setup_logging_system, cleanup_logging_system
 from logs.logs import p_log
+from module.data_pars import get_point_mission
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
     load_json_file, get_zone
@@ -35,6 +36,7 @@ MACRO_ZONE = {
 
 def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=False):
     name_mission, a_tags = find_mission(soup, length_mission, name_mission)
+    p_log(f"name_mission={name_mission}", level='debug')
     while True:
         if 'disabledSpecialBtn' in a_tags[0].get('class', []):
             p_log("Миссий нет. Ждем час...")
@@ -73,9 +75,10 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
             st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
             a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
             silver_count = int(soup.find(id='silverCount').text)
+            p_log(f"Свободные очки миссий: {get_point_mission(soup)}")
 
             # Купить кольцо на аукционе, либо положить в казну
-            if silver_count > get_config_value("gold_limit"):
+            if name_mission == "DragonEventGreatDragon" and silver_count > get_config_value("gold_limit"):
                 if get_config_value("buy_ring"):
                     not_auction_timer = any([check_time_sleep(start_hour='10:45', end_hour='12:45', sleep_hour=None),
                                              check_time_sleep(start_hour='22:45', end_hour='23:59', sleep_hour=None)])
@@ -188,7 +191,8 @@ def event_search(event):
     while True:
         length_mission = get_config_value("mission_duration")
         check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
-        move_item(how='loot', name='ring', rand=False)
+        if event == 'dragon':
+            move_item(how='loot', name='ring', rand=False)
 
         place, my_town = my_place()  # Джаро, VillageFour
         p_log(f"Я нахожусь в {place}")
