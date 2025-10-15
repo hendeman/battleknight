@@ -1,4 +1,5 @@
 import base64
+import binascii
 import configparser
 import json
 import pickle
@@ -15,7 +16,7 @@ from inspect import signature
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import waiting_time, SAVE_CASTLE, GAME_TOKEN, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
+from setting import waiting_time, SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
     LOG_ERROR_HTML, get_name, brent_region, alcran_region, castles_island, castles_continent
 
 # Глобальный кэш
@@ -32,8 +33,8 @@ def check_last_word(url):
 
     for char in last_word:
         if char.isupper():
-            return False
-    return True
+            return True
+    return False
 
 
 def remove_cyrillic(bad_string: str):
@@ -406,10 +407,22 @@ def availability_id(user_id, not_token=False):
     if not_token:
         p_log(f"user_id: {user_id}", level='debug')
         return not_token
-    decoded_bytes = base64.b64decode(GAME_TOKEN).decode('utf-8')
-    p_log(f"decoded_bytes: {decoded_bytes}", level='debug')
+
     p_log(f"user_id: {user_id}", level='debug')
-    return user_id == decoded_bytes
+    token_list = str(get_config_value("access_granted")).split(',')
+
+    for token in token_list:
+        try:
+            decoded_bytes = base64.b64decode(token.strip()).decode('utf-8')
+            p_log(f"decoded_bytes: {decoded_bytes}", level='debug')
+            if user_id == decoded_bytes:
+                return True
+
+        except (UnicodeDecodeError, binascii.Error) as er:
+            p_log(f'Error decode access_granted={token.strip()}: {er}', level='debug')
+            continue
+
+    return False
 
 
 # _____________________ создание, загрузка и копия файла JSON __________________________________________
