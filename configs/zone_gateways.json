@@ -1,0 +1,42 @@
+{
+    "brent->alcran": {
+        "from_gate": "TradingPostThree",
+        "to_gate": "CityOne",
+        "transport": "longBoat"
+    },
+    "alcran->brent": {
+        "from_gate": "CityOne",
+        "to_gate": "TradingPostThree",
+        "transport": "longBoat"
+    },
+    "hatwig->alcran": {
+        "from_gate": "VillageTwo",
+        "to_gate": "CityOne",
+        "transport": "longBoat"
+    },
+    "alcran->hatwig": {
+        "from_gate": "CityOne",
+        "to_gate": "VillageTwo",
+        "transport": "longBoat"
+    },
+    "endaline->alcran": {
+        "from_gate": "CapitalCity",
+        "to_gate": "CityOne",
+        "transport": "longBoat"
+    },
+    "alcran->endaline": {
+        "from_gate": "CityOne",
+        "to_gate": "CapitalCity",
+        "transport": "longBoat"
+    },
+    "island->continent": {
+        "from_gate": "HarbourTwo",
+        "to_gate": "HarbourOne",
+        "transport": "cog"
+    },
+    "continent->island": {
+        "from_gate": "HarbourOne",
+        "to_gate": "HarbourTwo",
+        "transport": "cog"
+    }
+}
