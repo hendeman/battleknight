@@ -279,6 +279,13 @@ def get_karma_value(soup):
         return int(karma_value)
 
 
+def get_point_mission(soup):
+    point_mission = soup.find('span', id='zoneChangeCosts')
+    if point_mission:
+        return point_mission.text.strip()
+    p_log(f"Ошибка получения данных очков миссий", level='warning')
+
+
 # _____________________________________ Парсинг последней активности игрока в ордене _________________________________
 def visit(soup) -> dict:
     new = []
