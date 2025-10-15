@@ -26,6 +26,8 @@ ZONE_GATEWAYS = load_json_file('configs', 'zone_gateways.json')
 MACRO_ZONE = {
     'brent': 'continent',
     'alcran': 'continent',
+    'hatwig': 'continent',
+    'endaline': 'continent',
     'continent': 'continent',
     'island': 'island'
 }
@@ -238,53 +240,6 @@ def event_search(event):
 
             get_directions(macro_route_key, my_town, silver_count, length_mission)
 
-        # if my_town in brent_region and dragon_town in alcran_region:
-        #     if my_town == 'TradingPostThree':
-        #         if silver_count < 800:
-        #             travel_mission(length_mission=length_mission)
-        #         post_travel(out='TradingPostThree', where='CityOne', how='cog')
-        #     else:
-        #         post_travel(out=my_town, where='CityOne')
-        #
-        # if my_town in alcran_region and dragon_town in brent_region:
-        #     if my_town == 'CityOne':
-        #         if silver_count < 800:
-        #             travel_mission(length_mission=length_mission)
-        #         post_travel(out='CityOne', where='TradingPostThree', how='cog')
-        #     else:
-        #         post_travel(out=my_town, where='TradingPostThree')
-        #
-        # if (my_town in castles_island and dragon_town in castles_island) or (
-        #         my_town in castles_continent and dragon_town in castles_continent):
-        #     if my_town == dragon_town:
-        #         p_log(f"Вы в городе с {event}!")
-        #         check_hit_point()  # проверка количества здоровья
-        #         process_page(
-        #             event=event,
-        #             rubies=rubies,
-        #             length_mission=length_mission,
-        #             name_mission=event_list[event]['name'],
-        #             my_town=my_town
-        #         )  # атака на дракона
-        #     else:
-        #         post_travel(out=my_town, where=dragon_town)
-        #
-        # if my_town in castles_island and dragon_town in castles_continent:
-        #     if my_town == 'HarbourTwo':
-        #         if silver_count < 800:
-        #             travel_mission(length_mission=length_mission)
-        #         post_travel(out='HarbourTwo', where='HarbourOne', how='cog')
-        #     else:
-        #         post_travel(out=my_town, where='HarbourTwo')
-        #
-        # if my_town in castles_continent and dragon_town in castles_island:
-        #     if my_town == 'HarbourOne':
-        #         if silver_count < 800:
-        #             travel_mission(length_mission=length_mission)
-        #         post_travel(out='HarbourOne', where='HarbourTwo', how='cog')
-        #     else:
-        #         post_travel(out=my_town, where='HarbourOne')
-
 
 def wrapper_function(func1):
     try:
@@ -295,12 +250,12 @@ def wrapper_function(func1):
 
 def autoplay(partial_event_search):
     while True:
-        if not check_time_sleep(start_hour='19:31', end_hour='21:29'):
+        if not check_time_sleep(start_hour='19:31', end_hour='21:21'):
             p_log(f"Запуск {EVENT_NAME} процесса...")
             process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
             process.start()
             p_log(f"Процесс {EVENT_NAME} будет работать до 19:40...")
-            time_sleep_main(wait_until('19:40'), interval=1800)
+            time_sleep_main(wait_until('19:40'), interval=5000, name='Healer search program. Remaining:')
             p_log(f"Остановка {EVENT_NAME} процесса...")
             process.terminate()
             process.join()

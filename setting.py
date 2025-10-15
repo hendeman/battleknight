@@ -7,11 +7,7 @@ today = date.today()
 CHRISTMAS_MODE = False
 
 SERVER = 'https://s32-ru.battleknight.gameforge.com'
-LANG = 'ru'
 NAME = None
-GAME_TOKEN = 'ODcyMTYx'
-GOLD_DAY = 25090
-GOLD_LIMIT = 7000
 CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "09:00"
@@ -72,17 +68,17 @@ header_get = {'Sec-fetch-dest': 'document', 'Sec-fetch-mode': 'navigate',
 
 csrf_token = '50fe90e9454b748e58b3dd49951dc0d07da3000d426b531a530c1745ef299298'
 
-castles_island = {'VillageFour': 'Djaro', 'FortressTwo': 'Segur', 'HarbourTwo': 'Alvan',
-                  'TradingPostFour': 'Miley', 'FogIsland': 'Fehan'}
-castles = {'CoastalFortressOne': "Asgal",
-           'HarbourThree': "Sedwich",
-           'CapitalCity': "Endaline",
-           'TradingPostOne': "Grand", 'TradingPostTwo': "Talmet",
-           'VillageOne': "Terent", 'VillageTwo': "Hatwig"}
+grand_region = {'HarbourThree': "Sedwich", 'TradingPostOne': "Grand", 'VillageOne': "Terent"}
 brent_region = {'TradingPostThree': "Brent", 'FortressOne': "Tulgar", 'VillageThree': "Rumstill", 'HarbourOne': "Vale"}
 alcran_region = {'CityOne': "Alcran", 'CoastalFortressTwo': "Gastein", 'GhostTown': "Talfour"}
-castles_continent = {**castles, **brent_region, **alcran_region}
-castles_all = {**castles_continent, **castles_island, **brent_region, **alcran_region}
+hatwig_region = {'VillageTwo': "Hatwig", 'TradingPostTwo': "Talmet"}
+endaline_region = {'CapitalCity': "Endaline", 'CoastalFortressOne': "Asgal"}
+
+castles_continent = {**grand_region, **brent_region, **alcran_region, **hatwig_region, **endaline_region}
+castles_island = {'VillageFour': 'Djaro', 'FortressTwo': 'Segur', 'HarbourTwo': 'Alvan',
+                  'TradingPostFour': 'Miley', 'FogIsland': 'Fehan'}
+castles_all = {**castles_continent, **castles_island}
+
 auction_castles = ('HarbourThree', 'TradingPostOne', 'CapitalCity', 'TradingPostTwo',
                    'HarbourOne', 'TradingPostThree', 'VillageThree', 'CityOne',
                    'HarbourTwo', 'TradingPostFour')

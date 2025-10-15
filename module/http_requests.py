@@ -1,5 +1,4 @@
 import time
-from pprint import pprint
 
 import requests
 from requests import Timeout, RequestException, Response
@@ -95,7 +94,7 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
     if kwargs['headers'] is None:
         kwargs['headers'] = get_header().copy()
         kwargs['headers'].setdefault('Referer', referer)
-        if 'ajax' not in url and check_last_word(url):
+        if all(sub not in url for sub in ('ajax', 'error')) and not check_last_word(url):
             referer = url
         if request_func == requests.get:
             kwargs['headers'].update(header_get)
@@ -177,12 +176,6 @@ def make_request(url,
                  proxy_manage=None,
                  proxies=None) -> Response:
     """GET запрос"""
-    # if browser_cookies is None:
-    #     browser_cookies = get_cookies()
-    # if http_headers is None:
-    #     http_headers = get_header()
-    #     http_headers = http_headers.copy()
-    #     http_headers.update(header_get)
 
     response = make_http_request(
         request_func=requests.get,
@@ -210,14 +203,6 @@ def post_request(url,
                  proxies=None,
                  proxy_manage=None) -> Response:
     """POST запрос"""
-    # if browser_cookies is None:
-    #     browser_cookies = get_cookies()
-    # if http_headers is None:
-    #     http_headers = get_header()
-    #     http_headers = http_headers.copy()
-    #     http_headers.update(header_post)
-
-    # Добавление CSRF токена если нужно
     if csrf:
         data['csrf_token'] = csrf_token
 
