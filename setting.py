@@ -169,6 +169,8 @@ folder_name_loss = (f"bk\\statistic_loss\\{today.year}\\{months.get(today.month)
 
 
 def get_name():
+    if NAME is None:
+        raise AttributeError('Доступ запрещен')
     return NAME
 
 

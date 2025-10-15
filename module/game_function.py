@@ -117,9 +117,12 @@ def check_progressbar(resp=None):
     # heals(resp)
     soup = BeautifulSoup(resp.text, 'lxml')
     element = soup.find('h1').text.strip()
+    progressbar_element = soup.find('div', id='progressbarEnds')
+    p_log(f"element h1: {element}, "
+          f"progressbar_element={progressbar_element.text.strip() if progressbar_element else None}", level='debug')
     p_log("Проверка состояния")
 
-    if element in status_list:
+    if progressbar_element or element == work_status:
         p_log(f"{get_name()} status <{element}>")
         return progressbar_ends(soup)
     p_log(f"{get_name()} свободен")
