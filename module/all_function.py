@@ -13,6 +13,7 @@ from functools import wraps
 from typing import Optional
 from inspect import signature
 
+import psutil
 from tqdm import tqdm
 
 from logs.logs import p_log
@@ -655,3 +656,41 @@ def get_zone(town):
     if town in castles_continent:
         return 'continent'
     raise ValueError(f"Town {town} не принадлежит ни одной известной зоне")
+
+
+# __________________________ Функция для завершения процесса со всеми вложенными процессами ___________________
+def kill_process_hierarchy(pid):
+    """Убивает процесс и всю его иерархию потомков"""
+    try:
+        processes = psutil.Process(pid)
+
+        # Получаем всех потомков (рекурсивно)
+        children = processes.children(recursive=True)
+        p_log(f"Найдено потомков: {len(children)}", level='debug')
+
+        # Сначала убиваем всех потомков
+        for child in children:
+            try:
+                p_log(f"Завершаем потомка: {child.pid}", level='debug')
+                child.terminate()
+            except psutil.NoSuchProcess:
+                pass
+        children = processes.children(recursive=True)
+        p_log(f"Обновление потомков. Найдено: {len(children)}", level='debug')
+        # Ждем завершения потомков
+        if children:
+            gone, alive = psutil.wait_procs(children, timeout=2)
+            for child in alive:
+                try:
+                    p_log(f"Принудительно убиваем: {child.pid}", level='debug')
+                    child.kill()
+                except psutil.NoSuchProcess:
+                    pass
+
+        # Затем убиваем родительский процесс
+        p_log(f"Завершаем родительский процесс: {processes.pid}", level='debug')
+        processes.terminate()
+        processes.wait(timeout=2)
+
+    except psutil.NoSuchProcess:
+        p_log(f"Процесс {pid} не найден", level='warning')

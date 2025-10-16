@@ -9,7 +9,7 @@ from logs.logs import p_log
 from module.data_pars import get_point_mission
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
-    load_json_file, get_zone
+    load_json_file, get_zone, kill_process_hierarchy
 from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
@@ -45,10 +45,10 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
             hours = 1
             online_tracking = partial(online_tracking_only)
             process_online_tracking = multiprocessing.Process(target=wrapper_function,
-                                                              args=(online_tracking,),
-                                                              daemon=True)
+                                                              args=(online_tracking,))
             process_online_tracking.start()
             p_log(f"Ожидание {hours} часов... Работает online_tracking функция")
+            p_log(f"processPID={process_online_tracking.pid}", level='debug')
             time_sleep_main(hours * 60 * 60)  # Ожидание в часах
             p_log(f"Остановка online_tracking процесса...")
             process_online_tracking.terminate()
@@ -190,7 +190,7 @@ def event_search(event):
     check_timer()
     while True:
         length_mission = get_config_value("mission_duration")
-        check_time_sleep(start_hour='00:00', end_hour='02:00', sleep_hour='07:00')
+        check_time_sleep(start_hour='23:55', end_hour='01:45', sleep_hour='07:00')
         if event == 'dragon':
             move_item(how='loot', name='ring', rand=False)
 
@@ -254,14 +254,15 @@ def wrapper_function(func1):
 
 def autoplay(partial_event_search):
     while True:
-        if not check_time_sleep(start_hour='19:31', end_hour='21:21'):
+        if not check_time_sleep(start_hour='19:51', end_hour='21:21'):
             p_log(f"Запуск {EVENT_NAME} процесса...")
             process = multiprocessing.Process(target=wrapper_function, args=(partial_event_search,))
             process.start()
-            p_log(f"Процесс {EVENT_NAME} будет работать до 19:40...")
-            time_sleep_main(wait_until('19:40'), interval=5000, name='Healer search program. Remaining:')
+            p_log(f"Процесс {EVENT_NAME} будет работать до 20:00...")
+            p_log(f"processPID={process.pid}", level='debug')
+            time_sleep_main(wait_until('20:00'), interval=5000, name='Healer search program. Remaining:')
             p_log(f"Остановка {EVENT_NAME} процесса...")
-            process.terminate()
+            kill_process_hierarchy(process.pid)
             process.join()
         check_timer()
         # Ожидание до 21:20 для синхронизации. 2 часа должно быть достаточно в большинстве случаев
