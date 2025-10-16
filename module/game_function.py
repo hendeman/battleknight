@@ -1483,6 +1483,31 @@ def private_message(name, title="", message=""):
         p_log(f'Ошибка json в private_message {er}', level='warning')
 
 
+# ____________________________ Функция получения названия региона ____________________________
+
+
+def get_zone(town):
+    """
+    Работает в связке с zone_gateways.json. При добавлении новой связки, обязательно необходимо добавить в
+    функцию новое возвращаемое значение
+    :param town:  Название города
+    :return: Название региона
+    """
+    if town in brent_region:
+        return 'brent'
+    if town in alcran_region:
+        return 'alcran'
+    if town in hatwig_region:
+        return 'hatwig'
+    if town in endaline_region:
+        return 'endaline'
+    if town in castles_island:
+        return 'island'
+    if town in castles_continent:
+        return 'continent'
+    raise ValueError(f"Town {town} не принадлежит ни одной известной зоне")
+
+
 # ____________________________ Верификация доступа к игре __________________________________
 def account_verification(not_token=False, helper_init=True):
     response = make_request(url_user)

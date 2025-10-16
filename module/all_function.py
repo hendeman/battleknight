@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from logs.logs import p_log
 from setting import waiting_time, SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
-    LOG_ERROR_HTML, get_name, brent_region, alcran_region, castles_island, castles_continent
+    LOG_ERROR_HTML, get_name
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
@@ -644,18 +644,6 @@ def save_error_html(response):
             file.write(response.text)
     except Exception as er:
         p_log(f"Error saving HTML file in {LOG_ERROR_HTML}. Error: {er}", level='debug')
-
-
-def get_zone(town):
-    if town in brent_region:
-        return 'brent'
-    if town in alcran_region:
-        return 'alcran'
-    if town in castles_island:
-        return 'island'
-    if town in castles_continent:
-        return 'continent'
-    raise ValueError(f"Town {town} не принадлежит ни одной известной зоне")
 
 
 # __________________________ Функция для завершения процесса со всеми вложенными процессами ___________________

@@ -9,11 +9,11 @@ from logs.logs import p_log
 from module.data_pars import get_point_mission
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
-    load_json_file, get_zone, kill_process_hierarchy
+    load_json_file, kill_process_hierarchy
 from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
-    go_auction, account_verification, online_tracking_only, find_mission
+    go_auction, account_verification, online_tracking_only, find_mission, get_zone
 from module.group import go_group
 from module.http_requests import make_request
 from setting import castles_all, url_world, url_map, url_zany_healer, event_healer_potions, auction_castles
