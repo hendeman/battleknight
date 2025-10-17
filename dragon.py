@@ -13,7 +13,7 @@ from module.all_function import time_sleep, wait_until, format_time, time_sleep_
 from module.cli import arg_parser
 from module.game_function import check_timer, post_dragon, check_hit_point, post_travel, my_place, check_time_sleep, \
     post_healer, check_progressbar, move_item, check_treasury_timers, buy_ring, contribute_to_treasury, get_silver, \
-    go_auction, account_verification, online_tracking_only, find_mission, get_zone
+    go_auction, account_verification, online_tracking_only, find_mission, get_zone, check_status_mission
 from module.group import go_group
 from module.http_requests import make_request
 from setting import castles_all, url_world, url_map, url_zany_healer, event_healer_potions, auction_castles
@@ -55,11 +55,8 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
             process_online_tracking.join()
             p_log("Дополнительное ожидание")
             time_sleep_main(650 + get_config_value("correct_time"), interval=300)
-
-            response = make_request(url_world)
-            soup = BeautifulSoup(response.content, 'lxml')
-            st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
-            a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
+            break
+            # a_tags = check_status_mission(name_mission)
         else:
             p_log("Есть доступные миссии")
             check_hit_point()  # проверка количества здоровья
@@ -70,10 +67,8 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
 
             post_dragon(name_mission=name_mission)
 
-            response = make_request(url_world)
-            soup = BeautifulSoup(response.content, 'lxml')
-            st = f"chooseMission('{length_mission}', '{name_mission}', 'Good', this)"
-            a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
+            a_tags = check_status_mission(name_mission)
+
             silver_count = int(soup.find(id='silverCount').text)
             p_log(f"Свободные очки миссий: {get_point_mission(soup)}")
 
