@@ -19,7 +19,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
     current_time, save_error_html, string_to_datetime
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
+    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -370,7 +370,7 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
     mission_karma = get_config_value("working_karma").capitalize()
     st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', '{mission_karma}', this\\);"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
-    if all_mission:
+    if all_mission and not name_mission:
         for tag in a_tags:
             onclick_value = tag['onclick']
             match = re.search(st_pattern, onclick_value)
@@ -378,7 +378,7 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
                 nm = match.group(1)  # Извлекаем значение name_mission
                 name_missions.append(nm)  # Добавляем в список
         return name_missions
-    if not name_mission:
+    if not name_mission and not all_mission:
         name_mission = random.choice(name_missions) if not name_mission else name_mission
     return name_mission, a_tags
 
@@ -521,8 +521,9 @@ def get_gold_for_player(gamer) -> int:
 def check_status_mission(name_mission):
     response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'html.parser')
+    p_log(f"Свободные очки миссий: {get_point_mission(soup)}")
     length_mission = get_config_value("mission_duration")
-    karma_mission = get_config_value("working_karma")
+    karma_mission = get_config_value("working_karma").capitalize()
     st = f"chooseMission('{length_mission}', '{name_mission}', '{karma_mission}', this)"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and st in onclick)
     return a_tags
@@ -574,9 +575,7 @@ def check_mission(name_mission, buy_rubies=''):
     dct1 = get_group_castles(get_all_items("key"))
     p_log(dct1, level='debug')
     post_dragon(
-        length_mission=get_config_value("mission_duration"),
-        name_mission=name_mission,
-        karma_mission=get_config_value("working_karma"),
+        name_mission,
         buy_rubies=buy_rubies
     )
     make_request(url_mission)  # Запрос в миссии для обновления ключей

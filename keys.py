@@ -31,7 +31,7 @@ MACRO_ZONE = {
 def complete_mission(current_castle, length_mission, save_mission=None, cog_plata=False):
     response = make_request(url_world)
     soup = BeautifulSoup(response.content, 'lxml')
-    name_mission = find_mission(soup, length_mission, all_mission=False)
+    name_mission = find_mission(soup, length_mission, all_mission=True)
     if save_mission:
         element = name_mission.index(save_mission)
         name_mission = name_mission[element:]
