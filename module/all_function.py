@@ -72,6 +72,21 @@ def wait_until(target_time_str):
     return int(sleep_duration)
 
 
+def string_to_datetime(date_string):
+    """
+
+    :param date_string: '2025-10-23 16:34:51'
+    :return: date_time_obj
+    """
+    try:
+        return datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        p_log(f"Неверный формат даты {date_string}", level='warning')
+        return None
+    except TypeError:
+        return None
+
+
 def get_config_value(key, default=0):
     """
     Оптимизированная версия с кэшированием config
