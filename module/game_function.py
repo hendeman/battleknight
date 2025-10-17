@@ -17,7 +17,7 @@ from requests import Response
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
-    current_time, save_error_html
+    current_time, save_error_html, string_to_datetime
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value
 from module.http_requests import post_request, make_request
@@ -365,18 +365,21 @@ class Namespace(Enum):
     NOT_DATA = auto()
 
 
-def find_mission(soup, length_mission, name_mission):
+def find_mission(soup, length_mission, name_mission=None, all_mission=False):
     name_missions = []
-    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', 'Good', this\\);"
+    mission_karma = get_config_value("working_karma").capitalize()
+    st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', '{mission_karma}', this\\);"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
-    for tag in a_tags:
-        onclick_value = tag['onclick']
-        match = re.search(st_pattern, onclick_value)
-        if match:
-            nm = match.group(1)  # Извлекаем значение name_mission
-            name_missions.append(nm)  # Добавляем в список
-
-    name_mission = random.choice(name_missions) if not name_mission else name_mission
+    if all_mission:
+        for tag in a_tags:
+            onclick_value = tag['onclick']
+            match = re.search(st_pattern, onclick_value)
+            if match:
+                nm = match.group(1)  # Извлекаем значение name_mission
+                name_missions.append(nm)  # Добавляем в список
+        return name_missions
+    if not name_mission:
+        name_mission = random.choice(name_missions) if not name_mission else name_mission
     return name_mission, a_tags
 
 
@@ -710,28 +713,30 @@ def get_item_loot(item_name):
     dct_loot = {"ring": r'itemRing\d+',
                 "key": r'itemClue\d+_closed',
                 "christmas": ['itemFastingPeriodSalt', 'itemFastingPeriodBread', 'itemFastingPeriodNuts']}
-    soup = BeautifulSoup(make_request(url_loot).text, 'lxml')
+    with open('loot.html', 'r', encoding='utf-8') as file:
+        response = file.read()
+    soup = BeautifulSoup(response, 'html.parser')
     items_loot = soup.find(id='lootContent')
-    item_list = []
+    item_list = {}
     if item_name in dct_loot:
-        # Если значение — это строка (регулярное выражение)
-        if isinstance(dct_loot[item_name], str):
-            pattern = re.compile(dct_loot[item_name])
+        # Нормализуем значение: строку превращаем в список из одного элемента
+        patterns = dct_loot[item_name]
+        if isinstance(patterns, str):
+            patterns = [patterns]
+
+        for pattern_str in patterns:
+            pattern = re.compile(pattern_str)
             for item in items_loot.find_all('div'):
                 if pattern.search(' '.join(item.get('class', []))):
-                    id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
-                    item_list.append(id_key)
-        # Если значение — это список
-        elif isinstance(dct_loot[item_name], list):
-            for sub_item in dct_loot[item_name]:
-                pattern = re.compile(sub_item)
-                for item in items_loot.find_all('div'):
-                    if pattern.search(' '.join(item.get('class', []))):
-                        id_key = ''.join(filter(lambda x: x.isdigit(), item['id']))
-                        item_list.append(id_key)
+                    id_key = ''.join(filter(str.isdigit, item['id']))
+                    item_expires = find_item_data(soup, id_key).get('item_expires')
+                    item_list[id_key] = string_to_datetime(item_expires) if item_expires else datetime.max
+    else:
+        p_log(f"item_name={item_name}. Допустимые значения {dct_loot.keys()}", level='warning')
     if item_list:
         p_log(f"Доступные {item_name} в сундуке добычи: {item_list}")
-        return item_list
+        sorted_keys = [item[0] for item in sorted(item_list.items(), key=lambda x: x[1])]
+        return sorted_keys
     p_log(f"В сундуке добычи нет {item_name}")
 
 
