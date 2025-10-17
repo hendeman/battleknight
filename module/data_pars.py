@@ -214,7 +214,8 @@ def find_item_data(soup, target_item_id):
                                 'speed_travel': data.get('item_special_ability').get('HorseTravelTimeReduction', 0)
                                 if data.get('item_special_ability')
                                 else 0,
-                                'item_use': int(data.get('item_use', 0))
+                                'item_use': int(data.get('item_use', 0)),
+                                'item_expires': data.get('item_expires')
                             }
                     except json.JSONDecodeError:
                         continue  # Пропускаем некорректные JSON
