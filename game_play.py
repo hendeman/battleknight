@@ -16,6 +16,8 @@ from module.group import go_group
 from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all, url_mission
 
+queue = None
+
 
 @use_helper("comp_mission")
 @use_helper("horse_mission")
@@ -149,6 +151,7 @@ def autoplay(town, mission_name, side):
 
 
 def wrapper_function(func1, func2):
+    global queue
     setup_logging(queue=queue)
     try:
         func1()  # Запускаем первую функцию

@@ -5,7 +5,7 @@ from functools import partial
 from bs4 import BeautifulSoup
 
 from logs.logging_config import setup_logging_system, cleanup_logging_system
-from logs.logs import p_log
+from logs.logs import p_log, setup_logging
 from module.data_pars import get_point_mission
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
@@ -241,6 +241,8 @@ def event_search(event):
 
 
 def wrapper_function(func1):
+    global queue
+    setup_logging(queue=queue)
     try:
         func1()  # Запускаем первую функцию с аргументами
     except Exception as e:

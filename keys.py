@@ -14,6 +14,8 @@ from module.all_function import time_sleep, format_time, get_save_castle, clear_
     get_config_value, time_sleep_main, load_json_file
 from setting import castles_all, url_world, url_map, auction_castles
 
+queue = None
+
 ZONE_GATEWAYS = load_json_file('configs', 'zone_gateways.json')
 MACRO_ZONE = {
     'brent': 'continent',
