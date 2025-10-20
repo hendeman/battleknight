@@ -202,7 +202,7 @@ def keys_search():
                                  save_mission=save_mission)
             else:
                 post_travel(out=my_town, where=name_max_city)
-                continue
+            continue
 
         # Случай 2: явно заданный маршрут (например, brent <-> alcran)
         route_key = f"{my_zone}->{dragon_zone}"

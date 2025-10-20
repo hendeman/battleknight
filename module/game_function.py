@@ -712,9 +712,7 @@ def get_item_loot(item_name):
     dct_loot = {"ring": r'itemRing\d+',
                 "key": r'itemClue\d+_closed',
                 "christmas": ['itemFastingPeriodSalt', 'itemFastingPeriodBread', 'itemFastingPeriodNuts']}
-    with open('loot.html', 'r', encoding='utf-8') as file:
-        response = file.read()
-    soup = BeautifulSoup(response, 'html.parser')
+    soup = BeautifulSoup(make_request(url_loot).text, 'lxml')
     items_loot = soup.find(id='lootContent')
     item_list = {}
     if item_name in dct_loot:
