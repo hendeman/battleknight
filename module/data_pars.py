@@ -8,9 +8,13 @@ from logs.logs import p_log
 from module.all_function import remove_cyrillic, availability_id, digi
 
 
-def pars_name(soup):
+def pars_name(soup, user_tag=False):
+    class_tag_name = 'char-title' if user_tag else 'profile-title'
     try:
-        div_content = soup.find('div', class_='profile-title').find('div')
+        if user_tag:
+            div_content = soup.find('div', class_=class_tag_name)
+        else:
+            div_content = soup.find('div', class_=class_tag_name).find('div')
         if div_content.br:
             # Получаем текст после <br>
             text_after_br = div_content.br.next_sibling
@@ -19,7 +23,7 @@ def pars_name(soup):
                 return name
         return div_content.text()
     except AttributeError:
-        p_log(f'Class profile-title not found for pars_name', level='warning')
+        p_log(f'Class {class_tag_name} not found for pars_name', level='warning')
 
 
 def heals(resp):
@@ -145,7 +149,7 @@ def set_name(resp):
     title = title_tag.get_text(strip=True) if title_tag else None
     if not title:
         raise Exception("Ошибка получения имени. Проверьте куки")
-    setting.NAME = pars_name(soup)  # Теперь это изменит глобальную переменную в модуле setting
+    setting.NAME = pars_name(soup, user_tag=True)  # Теперь это изменит глобальную переменную в модуле setting
     p_log(f"Добро пожаловать в игру, {setting.NAME}!")
 
 
