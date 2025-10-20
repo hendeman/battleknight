@@ -8,6 +8,20 @@ from logs.logs import p_log
 from module.all_function import remove_cyrillic, availability_id, digi
 
 
+def pars_name(soup):
+    try:
+        div_content = soup.find('div', class_='profile-title').find('div')
+        if div_content.br:
+            # Получаем текст после <br>
+            text_after_br = div_content.br.next_sibling
+            if text_after_br:
+                name = text_after_br.strip()
+                return name
+        return div_content.text()
+    except AttributeError:
+        p_log(f'Class profile-title not found for pars_name', level='warning')
+
+
 def heals(resp):
     soup = BeautifulSoup(resp.text, 'lxml')
     try:
@@ -131,7 +145,7 @@ def set_name(resp):
     title = title_tag.get_text(strip=True) if title_tag else None
     if not title:
         raise Exception("Ошибка получения имени. Проверьте куки")
-    setting.NAME = remove_cyrillic(title)  # Теперь это изменит глобальную переменную в модуле setting
+    setting.NAME = pars_name(soup)  # Теперь это изменит глобальную переменную в модуле setting
     p_log(f"Добро пожаловать в игру, {setting.NAME}!")
 
 
