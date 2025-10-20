@@ -197,9 +197,12 @@ def dict_values_difference(pars_dct: dict) -> list:
                 a = soup.find('table', class_='profileTable').find_all('tr')[4]
                 dc[key1] = {"loss": int(a.text.split()[2])}
                 name = pars_name(soup)
-                with open(STAT_FILE_LOSS, 'rb') as f:
-                    loss_dict = pickle.load(f)
-                    value_loss = 0 if key1 not in loss_dict else dc[key1]["loss"] - loss_dict[key1]["loss"]
+                try:
+                    with open(STAT_FILE_LOSS, 'rb') as f:
+                        loss_dict = pickle.load(f)
+                except FileNotFoundError:
+                    loss_dict = {}
+                value_loss = 0 if key1 not in loss_dict else dc[key1]["loss"] - loss_dict[key1]["loss"]
                 value1, value2 = pars_dct[key1], loaded_dict[key1]
                 profit = value1['gold'] - value2['gold'] if value1['gold'] - value2['gold'] > 0 else 1
                 nested_list.append([name,
