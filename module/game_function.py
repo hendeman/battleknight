@@ -678,7 +678,12 @@ def get_inventory_slots(num_inv):
 
 # ________________________________ Преобразование данных инвентаря в матричный вид _________________
 
-def get_free_coord(original_dict):
+def get_free_coord(original_dict) -> dict:
+    """
+
+    :param original_dict:
+    :return: {'number_bag':[(x1, y1), (x1, y2) ... (x2, y1) ... (xn, yn)]}
+    """
     coordinates_dict = {}
 
     # Преобразование
@@ -731,7 +736,8 @@ def get_item_loot(item_name):
     else:
         p_log(f"item_name={item_name}. Допустимые значения {dct_loot.keys()}", level='warning')
     if item_list:
-        p_log(f"Доступные {item_name} в сундуке добычи: {item_list}")
+        p_log(f"Доступные {item_name} в сундуке добычи: {item_list}", level='debug')
+        p_log(f"В сундуке добычи доступно: {len(item_list)} {item_name}")
         sorted_keys = [item[0] for item in sorted(item_list.items(), key=lambda x: x[1])]
         return sorted_keys
     p_log(f"В сундуке добычи нет {item_name}")
@@ -742,9 +748,9 @@ def get_item_loot(item_name):
 def move_item(how='buy', name='key', rand=True):
     id_key = get_item_loot(name) if how == 'loot' else get_item_market()
     if id_key:
+        inventory = get_inventory_slots(get_config_value(key='searching_slots_bag'))
+        free_coord = get_free_coord(inventory)
         for item in id_key:
-            inventory = get_inventory_slots(get_config_value(key='searching_slots_bag'))
-            free_coord = get_free_coord(inventory)
             dct_coor = choose_random_coor(free_coord, rand)
             if dct_coor:
                 inv, coor = next(iter(dct_coor.items()))
@@ -761,6 +767,9 @@ def move_item(how='buy', name='key', rand=True):
                     make_request(url_loot_item)
             else:
                 break
+            free_coord[inv].remove(coor)  # Удаляем кортеж из списка
+            if not free_coord[inv]:  # Если список стал пустым
+                del free_coord[inv]  # Удаляем ключ из словаря
             sleep(2)
 
 
