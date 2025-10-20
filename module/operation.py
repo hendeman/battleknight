@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 from logs.logs import p_log
 from module.all_function import all_party
-from module.data_pars import visit, party
+from module.data_pars import visit, party, pars_name
 from setting import exclusion_list, url_members, clan_html_file, FILE_NAME, deco_func, url_gold, SERVER
 
 from module.all_function import day, syntax_day, create_folder
@@ -196,12 +196,13 @@ def dict_values_difference(pars_dct: dict) -> list:
                 soup = BeautifulSoup(resp.text, 'lxml')
                 a = soup.find('table', class_='profileTable').find_all('tr')[4]
                 dc[key1] = {"loss": int(a.text.split()[2])}
+                name = pars_name(soup)
                 with open(STAT_FILE_LOSS, 'rb') as f:
                     loss_dict = pickle.load(f)
                     value_loss = 0 if key1 not in loss_dict else dc[key1]["loss"] - loss_dict[key1]["loss"]
                 value1, value2 = pars_dct[key1], loaded_dict[key1]
                 profit = value1['gold'] - value2['gold'] if value1['gold'] - value2['gold'] > 0 else 1
-                nested_list.append([value1['name'],
+                nested_list.append([name,
                                     value1['clan'],
                                     value1['level'],
                                     value1['gold'] - value2['gold'],
