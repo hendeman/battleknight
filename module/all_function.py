@@ -652,11 +652,11 @@ def save_error_html(response):
     try:
         os.makedirs(LOG_ERROR_HTML, exist_ok=True)
         to_day = date.today()
-        error_html = (f"{LOG_ERROR_HTML}/{get_name()}_{to_day.day:02d}_{to_day.month:02d}_"
-                      f"{to_day.hour:02d}_{to_day.minute:02d}.html")
-        filepath = os.path.join(error_html)
+        filename = f"{get_name()}_{to_day.day:02d}_{to_day.month:02d}_{to_day.hour:02d}_{to_day.minute:02d}.html"
+        filepath = os.path.join(LOG_ERROR_HTML, filename)
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(response.text)
+        p_log(f"HTML-ошибка сохранена в: {filepath}", level='debug')
     except Exception as er:
         p_log(f"Error saving HTML file in {LOG_ERROR_HTML}. Error: {er}", level='debug')
 
