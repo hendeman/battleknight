@@ -210,7 +210,7 @@ def keys_search():
 
         # Случай 2: явно заданный маршрут (например, brent <-> alcran)
         route_key = f"{my_zone}->{dragon_zone}"
-        if route_key in ZONE_GATEWAYS:
+        if route_key in ZONE_GATEWAYS and ZONE_GATEWAYS[route_key].get('transport') == "longBoat":
             get_directions(route_key, my_town, silver_count, length_mission, name_max_city)
             continue
 
