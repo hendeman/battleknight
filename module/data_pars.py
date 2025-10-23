@@ -155,12 +155,17 @@ def set_name(resp):
 
 def get_id(resp, not_token=False):
     soup = BeautifulSoup(resp.content, 'lxml')
+    bubble = soup.find(id='bubble')
     element = soup.find(id='shieldNeutral')
     url_profile = element.get('href') if element else None
-    if not url_profile:
+    if not url_profile and not bubble:
         raise Exception("Ошибка получения имени. Проверьте куки")
-    match = re.search(r'/profile/(\d+)/', url_profile)
-    user_id = match.group(1)
+    if bubble:
+        not_token = True
+        user_id = 'bubble'
+    else:
+        match = re.search(r'/profile/(\d+)/', url_profile)
+        user_id = match.group(1)
 
     if not availability_id(user_id, not_token):
         raise Exception("Доступ запрещен")
