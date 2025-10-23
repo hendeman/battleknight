@@ -110,9 +110,13 @@ def complete_mission(current_castle, length_mission, save_mission=None, cog_plat
                     #  _____ Запускаем новый процесс, который 1 час 45 мин будет сливать опыт и следить за врагами _____
                     if get_config_value(key="online_tracking_only"):
                         if get_config_value(key="reduce_experience"):
-                            run_process_for_hours(reduce_experience, 1.75, 'reduce_experience')
+                            run_process_for_hours(reduce_experience, 1.75,
+                                                  'reduce_experience',
+                                                  log_queue=queue)
                         else:
-                            run_process_for_hours(online_tracking_only, 1.75, 'online_tracking_only')
+                            run_process_for_hours(online_tracking_only, 1.75,
+                                                  'online_tracking_only',
+                                                  log_queue=queue)
                     else:
                         time_sleep_main(int(1.45 * 60 * 60))
 

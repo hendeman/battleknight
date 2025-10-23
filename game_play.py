@@ -150,9 +150,8 @@ def autoplay(town, mission_name, side):
                 p_log("Цикл получился более 24 часов. Уменьшите время выполнения промежуточным программ")
 
 
-def wrapper_function(func1, func2):
-    global queue
-    setup_logging(queue=queue)
+def wrapper_function(func1, func2, log_queue):
+    setup_logging(queue=log_queue)
     try:
         func1()  # Запускаем первую функцию
     except Exception as er:
@@ -171,9 +170,9 @@ def common_actions(process_function, process_name):
         time_sleep(function_duration * 60 * 60 + 650 + get_config_value("correct_time"))
 
 
-def run_process_for_hours(target_function, hours, process_name):
+def run_process_for_hours(target_function, hours, process_name, log_queue=queue):
     p_log(f"Запуск {process_name} процесса...")
-    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,))
+    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function, log_queue))
     process.start()
     p_log(f"Ожидание {hours} часов... Работает {process_name} функция")
     time_sleep_main(hours * 60 * 60, name=process_name)  # Ожидание в часах
