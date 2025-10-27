@@ -7,7 +7,7 @@ from module.game_function import post_travel, my_place, check_hit_point, hide_si
     get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, \
     get_silver, \
     check_progressbar, go_auction, buy_ring, account_verification, reduce_experience, online_tracking_only, \
-    find_mission, get_zone
+    find_mission, get_zone, select_castle_by_top_count
 from module.group import go_group
 from module.http_requests import make_request
 from module.all_function import time_sleep, format_time, get_save_castle, clear_save_castle, write_save_castle, \
@@ -174,20 +174,22 @@ def keys_search():
         all_keys = get_all_items("key")
         group_castles = get_group_castles(all_keys)
 
+        response = make_request(url_map)
+        soup = BeautifulSoup(response.text, 'lxml')
+        silver_count = int(soup.find(id='silverCount').text)
+        halloween_tag = soup.find('div', id='paymentPromo')
+
         save_castle = get_save_castle()  # проверяем, если замок в файле
         if save_castle:
             name_max_city, save_mission = next(iter(save_castle.items()))
         else:
             try:
-                name_max_city = max(group_castles, key=lambda k: group_castles[k]['count'])
+                name_max_city = select_castle_by_top_count(group_castles, halloween_tag)
                 save_mission = None
             except ValueError:
                 p_log(group_castles, level="debug")
                 raise ValueError("Все ключи открыты")
 
-        response = make_request(url_map)
-        soup = BeautifulSoup(response.text, 'lxml')
-        silver_count = int(soup.find(id='silverCount').text)
         if not name_max_city:
             raise f"Нет доступных ключей"
         p_log(f"Максимальное количество ключей находится в "
