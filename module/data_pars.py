@@ -5,7 +5,7 @@ import setting
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
-from module.all_function import remove_cyrillic, availability_id, digi
+from module.all_function import remove_cyrillic, availability_id, digi, save_error_html
 
 
 def pars_name(soup, user_tag=False):
@@ -111,6 +111,7 @@ def get_csrf_token(resp):
             return csrf_token
         else:
             p_log("Тег meta с именем 'csrf-token' не найден.", level='debug')
+            save_error_html(resp)
 
 
 def get_title(resp):
