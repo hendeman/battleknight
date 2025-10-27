@@ -50,6 +50,7 @@ EXTENSION_PICKLES = '.pickle'
 filename = 'configs/config.ini'
 attack_ids_gamers = 'configs/battle.json'
 helpers_info = "configs/helper.json"
+halloween_info = "configs/halloween.json"
 attack_ids_path = "configs/id_attack.txt"
 
 excel_file_path = f"bk\\statistic\\stat.xlsx"
