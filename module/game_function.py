@@ -600,6 +600,47 @@ def get_group_castles(dct: dict):
     return grouped_data
 
 
+def select_castle_by_top_count(dct: dict, halloween_tag=None):
+    """
+    Если активирован параметр "halloween_event", то в словаре из ключей будет выбрано топ 3 для сравнения со списком
+    городов, в которых находится монстр
+    :param dct: {'HarbourThree': {'count': 10, 'item_pic': {'22380855': 'Clue01_closed', '22380857': 'Clue01_closed'}}}
+    :param halloween_tag: presence of id='paymentPromo' in the tag <div>
+    :return: name castle
+    """
+    # Значение по умолчанию: castle с максимальным 'count'
+    selected_castle = max(dct, key=lambda name: dct[name]['count'])
+
+    try:
+        if get_config_value("halloween_event") and halloween_tag:
+            halloween_monster = halloween_tag.get('title')
+            if halloween_monster:
+                p_log(f"halloween event {halloween_monster}")
+
+                # Загружаем JSON с замками для Хэллоуина
+                halloween_json = load_json_file("", name_file=halloween_info)
+
+                lang = SERVER.split('.')[0].split('-')[1]  # 'https://s32-ru.battleknight.gameforge.com  ' -> 'ru'
+                castles_for_monster = halloween_json.get(lang, {}).get(halloween_monster)
+
+                if castles_for_monster:
+                    # Сортируем по 'count' и берем топ-3
+                    sorted_by_count = sorted(dct.items(), key=lambda item: item[1]['count'], reverse=True)
+                    top_3_counts = sorted_by_count[:4]
+                    p_log(f"Top 4 keys {[item[0] for item in top_3_counts]}")
+                    # Находим пересечение топ-3 с допустимыми замками
+                    intersection_top_3 = [item for item in top_3_counts if item[0] in castles_for_monster]
+
+                    # Если пересечение не пустое, выбираем первый элемент (с наивысшим 'count')
+                    if intersection_top_3:
+                        selected_castle = intersection_top_3[0][0]
+
+    except Exception as er:
+        p_log(f"Error {er}", level='warning')
+
+    return selected_castle
+
+
 # __________________ Купить зелье мудрости за 800 серебра ________________
 def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
