@@ -1,4 +1,5 @@
 import configparser
+import re
 import time
 
 from logs.logs import p_log
@@ -6,10 +7,41 @@ from module.proxy.proxy_checker import proxy_checker
 from setting import filename
 
 
-def proxies_validate(proxy: str):
-    num = proxy.replace(":", "").replace(".", "").strip()
-    length = len(proxy.split(":"))
-    return num.isdigit() and length == 2 and len(proxy.split(".")) == 4
+# __________________________________ Валидация прокси (так же прокси с аутенцификацией) ____________________________
+def proxies_validate(proxy_str):
+    # Проверка IP:PORT
+    if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
+        ip, port = proxy_str.split(':')
+        if is_valid_ip(ip) and is_valid_port(port):
+            return True
+
+    # Проверка user:pass@IP:PORT
+    if re.match(r"^http://[a-zA-Z0-9._-]+:[a-zA-Z0-9._-]+@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
+        parts = proxy_str.split('@')
+        auth = parts[0].split('://')[1]
+        user, pwd = auth.split(':', 1)
+        ip_port = parts[1]
+        ip, port = ip_port.split(':')
+        if is_valid_ip(ip) and is_valid_port(port):
+            return True
+
+    return False
+
+
+def is_valid_ip(ip):
+    pattern = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    return bool(re.match(pattern, ip))
+
+
+def is_valid_port(port):
+    try:
+        port = int(port)
+        return 1 <= port <= 65535
+    except ValueError:
+        return False
+
+
+# _______________________________________________________________________________________________________________
 
 
 def create_proxy_manager(read_conf=True):
