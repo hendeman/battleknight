@@ -1363,7 +1363,7 @@ def online_tracking():
                     dict_gamer[gamer]["spoil"] = received_gold
 
                     # Отправить в орден коровку
-                    if win_status == f"{get_name()} выиграл" and received_gold > 100:
+                    if get_name() in win_status and received_gold > 100:
                         p_log(win_status)
                         p_log(f"{filtered_data[gamer]['name']} +{received_gold}")
                         if get_config_value(key='order_message'):
