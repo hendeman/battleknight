@@ -23,6 +23,8 @@ from module.data_pars import heals, get_status_helper, pars_healer_result, get_a
 from module.http_requests import post_request, make_request
 from setting import *
 
+DATA_DEFAULT = datetime(2025, 10, 10)
+
 
 def print_status(from_town, where_town, how, tt):
     p_log(
@@ -624,16 +626,16 @@ def select_castle_by_top_count(dct: dict, halloween_tag=None):
                 castles_for_monster = halloween_json.get(lang, {}).get(halloween_monster)
 
                 if castles_for_monster:
-                    # Сортируем по 'count' и берем топ-3
+                    # Сортируем по 'count' и берем топ-4
                     sorted_by_count = sorted(dct.items(), key=lambda item: item[1]['count'], reverse=True)
-                    top_3_counts = sorted_by_count[:4]
-                    p_log(f"Top 4 keys {[item[0] for item in top_3_counts]}")
+                    top_4_counts = sorted_by_count[:4]
+                    p_log(f"Top 4 keys castles {[castles_all.get(item[0], None) for item in top_4_counts]}")
                     # Находим пересечение топ-3 с допустимыми замками
-                    intersection_top_3 = [item for item in top_3_counts if item[0] in castles_for_monster]
+                    intersection_top_4 = [item for item in top_4_counts if item[0] in castles_for_monster]
 
                     # Если пересечение не пустое, выбираем первый элемент (с наивысшим 'count')
-                    if intersection_top_3:
-                        selected_castle = intersection_top_3[0][0]
+                    if intersection_top_4:
+                        selected_castle = intersection_top_4[0][0]
 
     except Exception as er:
         p_log(f"Error {er}", level='warning')
@@ -1290,7 +1292,8 @@ def handle_error(nick):
 def update_players_gold(dict_gamer, list_of_players):
     for gamer in list_of_players:
         list_of_players[gamer].setdefault('time',
-                                          dict_gamer[gamer].get('time', date) if gamer in dict_gamer else date)
+                                          dict_gamer[gamer].get('time',
+                                                                DATA_DEFAULT) if gamer in dict_gamer else DATA_DEFAULT)
         list_of_players[gamer].setdefault('win_status',
                                           dict_gamer[gamer].get('win_status',
                                                                 "uncertain") if gamer in dict_gamer else "uncertain")
