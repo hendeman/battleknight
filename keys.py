@@ -64,7 +64,7 @@ def complete_mission(current_castle, length_mission, save_mission=None, cog_plat
         write_save_castle(current_castle, miss)
         return False, False  # Не прерываем цикл, продолжаем выполнение миссий
 
-    p_log(f"В {current_castle} имеются следующие миссии {name_mission}")
+    p_log(f"В {castles_all.get(current_castle)} имеются следующие миссии {name_mission}")
     for mission in name_mission:
         while True:
             gold_limit = get_config_value(key='gold_limit')

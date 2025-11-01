@@ -629,7 +629,8 @@ def select_castle_by_top_count(dct: dict, halloween_tag=None):
                     # Сортируем по 'count' и берем топ-4
                     sorted_by_count = sorted(dct.items(), key=lambda item: item[1]['count'], reverse=True)
                     top_4_counts = sorted_by_count[:4]
-                    p_log(f"Top 4 keys castles {[castles_all.get(item[0], None) for item in top_4_counts]}")
+                    p_log(f"Топ 4 замка с ключами "
+                          f"{[(castles_all.get(item[0], None), item[1].get('count')) for item in top_4_counts]}")
                     # Находим пересечение топ-3 с допустимыми замками
                     intersection_top_4 = [item for item in top_4_counts if item[0] in castles_for_monster]
 
