@@ -5,7 +5,7 @@ import setting
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
-from module.all_function import remove_cyrillic, availability_id, digi, save_error_html
+from module.all_function import remove_cyrillic, availability_id, digi, save_error_html, no_cache
 
 
 def pars_name(soup, user_tag=False):
@@ -162,8 +162,18 @@ def get_id(resp, not_token=False):
     if not url_profile and not bubble:
         raise Exception("Ошибка получения имени. Проверьте куки")
     if bubble:
-        not_token = True
-        user_id = 'bubble'
+        from module.http_requests import make_request
+        from setting import SERVER, url_user
+        p_log("Есть bubble блок")
+        bubble_url_reset = f'{SERVER}/ajax/user/hideLevelupHint/?{no_cache()}'
+        response = make_request(bubble_url_reset)
+        if not response.json():
+            p_log("bubble return False")
+            user_id = 'bubble'
+        else:
+            response = make_request(url_user)
+            get_id(response, not_token=not_token)
+            return
     else:
         match = re.search(r'/profile/(\d+)/', url_profile)
         user_id = match.group(1)
