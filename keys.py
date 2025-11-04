@@ -201,7 +201,7 @@ def keys_search():
         # Случай 1: один и тот же город
         if my_zone == dragon_zone:
             if my_town == name_max_city:
-                p_log(f"Вы в городе {name_max_city} с максимальным количеством ключей!")
+                p_log(f"Вы в городе {castles_all[name_max_city]} с максимальным количеством ключей!")
                 check_hit_point()
                 complete_mission(current_castle=name_max_city,
                                  length_mission=length_mission,
