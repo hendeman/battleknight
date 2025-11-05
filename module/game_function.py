@@ -632,7 +632,8 @@ def select_castle_by_top_count(dct: dict, halloween_tag=None):
                     p_log(f"Топ 4 замка с ключами "
                           f"{[(castles_all.get(item[0], None), item[1].get('count')) for item in top_4_counts]}")
                     # Находим пересечение топ-3 с допустимыми замками
-                    intersection_top_4 = [item for item in top_4_counts if item[0] in castles_for_monster]
+                    intersection_top_4 = [item for item in top_4_counts
+                                          if item[0] in halloween_json["locations"][castles_for_monster]]
 
                     # Если пересечение не пустое, выбираем первый элемент (с наивысшим 'count')
                     if intersection_top_4:

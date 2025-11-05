@@ -55,14 +55,16 @@ def complete_mission(current_castle, length_mission, save_mission=None, cog_plat
             return True, False  # Прерываем цикл, так как миссия не открыла ключ
 
         current_dict_key = get_group_castles(get_all_items("key"))
-        if current_castle != 'VillageOne' and current_castle not in current_dict_key:
-            p_log(f"В городе {current_castle} все ключи открыты")
-            return True, True  # Прерываем цикл, так как все ключи уже открыты
 
-        p_log(f"Миссия {miss} открыла ключ. Миссия будет выполнена повторно")
-        p_log(f"В данной локации осталось ещё {current_dict_key.get(current_castle, {}).get('count', 0)} ключей")
-        write_save_castle(current_castle, miss)
-        return False, False  # Не прерываем цикл, продолжаем выполнение миссий
+        if current_castle in current_dict_key or (get_config_value("fix_bad_keys") and current_castle == 'VillageOne'):
+            p_log(f"Миссия {miss} открыла ключ. Миссия будет выполнена повторно")
+            p_log(f"В данной локации осталось ещё {current_dict_key.get(current_castle, {}).get('count', 0)} ключей")
+            write_save_castle(current_castle, miss)
+            return False, False
+
+        # Если дошли до этой точки, значит current_castle НЕ в словаре и специальное условие не сработало
+        p_log(f"В городе {current_castle} все ключи открыты")
+        return True, True
 
     p_log(f"В {castles_all.get(current_castle)} имеются следующие миссии {name_mission}")
     for mission in name_mission:
