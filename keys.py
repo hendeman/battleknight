@@ -63,7 +63,7 @@ def complete_mission(current_castle, length_mission, save_mission=None, cog_plat
             return False, False
 
         # Если дошли до этой точки, значит current_castle НЕ в словаре и специальное условие не сработало
-        p_log(f"В городе {current_castle} все ключи открыты")
+        p_log(f"В городе {castles_all[current_castle]} все ключи открыты")
         return True, True
 
     p_log(f"В {castles_all.get(current_castle)} имеются следующие миссии {name_mission}")
