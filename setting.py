@@ -88,9 +88,9 @@ castles_symbol = {'v1': 'VillageOne', 'tp1': 'TradingPostOne', 'h3': 'HarbourThr
                   'tp2': 'TradingPostTwo', 'h1': 'HarbourOne', 'h2': 'HarbourTwo', 'tp4': 'TradingPostFour',
                   'v4': 'VillageFour', 'f2': 'FortressTwo', 'tp3': 'TradingPostThree', 'v3': 'VillageThree',
                   'f1': 'FortressOne', 'gt': 'GhostTown'}
-status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
-joust_status = 'Регистрация'
-work_status = 'Работа'
+# status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
+joust_status = ('Регистрация',)
+work_status = ('Работа',)
 type_helper_name = ('наездник', 'компаньон')
 start_time = ['09:00', '15:20', '22:50']
 potion_name = ['itemPotionRed50', 'itemPotionRed100', 'itemPotionRed200', 'itemPotionBlue300', 'itemPotionBlue500',

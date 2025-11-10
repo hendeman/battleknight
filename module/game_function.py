@@ -35,11 +35,14 @@ def print_status(from_town, where_town, how, tt):
 
 
 def check_timer():
-    response = make_request(url_mission)
-    soup = BeautifulSoup(response.text, 'lxml')
-    response = soup.find('h1').text.strip()
-    if response in status_list:
-        time_sleep(check_progressbar())
+    # response = make_request(url_mission)
+    # soup = BeautifulSoup(response.text, 'lxml')
+    # response = soup.find('h1').text.strip()
+    # if response in status_list:
+    #     time_sleep(check_progressbar())
+    progressbar_status = check_progressbar()
+    if progressbar_status:
+        time_sleep(progressbar_status)
 
 
 def seconds_to_hhmmss(seconds):
@@ -124,8 +127,9 @@ def check_progressbar(resp=None):
           f"progressbar_element={progressbar_element.text.strip() if progressbar_element else None}", level='debug')
     p_log("Проверка состояния")
 
-    if progressbar_element or element == work_status:
+    if progressbar_element or element in work_status:
         p_log(f"{get_name()} status <{element}>")
+        # возвращаем количество секунд прогресбара
         return progressbar_ends(soup)
     p_log(f"{get_name()} свободен")
 
@@ -136,7 +140,7 @@ def progressbar_ends(soup):
         hours, minutes, seconds = map(int, timer.split(':'))
         total_seconds = hours * 3600 + minutes * 60 + seconds + 2
     except AttributeError:
-        if soup.find('h1').text.strip() == work_status:
+        if soup.find('h1').text.strip() in work_status:
             get_reward()
         total_seconds = 0
 
@@ -932,7 +936,7 @@ def register_joust():
             except AttributeError:
                 joust = Namespace.NOT_DATA
             silver = int(soup.find(id="silverCount").text)
-            if joust == joust_status:
+            if joust in joust_status:
                 contribution = int(soup.find('div', class_='formField').text)
                 if silver < contribution:
                     payout(contribution - silver)
@@ -1212,15 +1216,20 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
     url_fight = url_duel_name + str(nick)
     p_log(f"Попытка атаки на {nick}")
     resp = make_request(url_fight)
-    status_duel = get_status(resp)
+    # status_duel = get_status(resp)
+    status_duel = get_status_duel(resp)
+    status_progress_bar = check_progressbar(resp=resp)
 
-    if status_duel == 'Дуэль':
+    # if status_duel == 'Дуэль':
+    #     p_log(f"Атака {nick} произведена успешно")
+    #     return True, resp
+    if status_duel:
         p_log(f"Атака {nick} произведена успешно")
         return True, resp
 
-    while status_duel in status_list:
-        p_log(f"{get_name()} status: {status_duel}")
-        time_sleep(check_progressbar())
+    if status_progress_bar:
+        p_log(f"{get_name()} status: {get_status(resp)}")
+        time_sleep(status_progress_bar)
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
         if resp.url == url_error:
@@ -1228,9 +1237,10 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
             if duel_stat:
                 return True, duel_stat
             return False, resp
-        status_duel = get_status(resp)
+        # status_duel = get_status(resp)
+        status_duel = get_status_duel(resp)
 
-        if status_duel == 'Дуэль':
+        if status_duel:
             p_log(f"Атака на {nick} произведена успешно")
             return True, resp
 
@@ -1242,7 +1252,17 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
 
 def get_status(resp):
     soup = BeautifulSoup(resp.text, 'lxml')
-    return soup.find('h1').text
+    content_title_div = soup.find('div', id='contentTitle')
+    if content_title_div:
+        h1_tag = content_title_div.find('h1')
+        if h1_tag:
+            h1_text = h1_tag.get_text(strip=True)
+            return h1_text
+
+
+def get_status_duel(resp):
+    soup = BeautifulSoup(resp.text, 'lxml')
+    return soup.find('div', class_="fightResults")
 
 
 def get_gold_duel(resp):
