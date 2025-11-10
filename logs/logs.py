@@ -67,13 +67,13 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     if enable_rotation:
-        file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10)
+        file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10, encoding='utf-8')
 
         # Запускаем поток, который будет вызывать ротацию в полночь
         # rollover_thread = threading.Thread(target=schedule_rollover, args=(file_handler,), daemon=True)
         # rollover_thread.start()
     else:
-        file_handler = logging.FileHandler(log_path)
+        file_handler = logging.FileHandler(log_path, encoding='utf-8')
 
     file_handler.setFormatter(file_formatter)
 
