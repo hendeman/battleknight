@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from logs.logs import p_log
 from setting import waiting_time, SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
-    LOG_ERROR_HTML, get_name
+    LOG_ERROR_HTML, get_name, SERVER
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
@@ -40,6 +40,15 @@ def check_last_word(url):
 
 def remove_cyrillic(bad_string: str):
     return re.sub(r'[а-яА-Я]', '', bad_string).strip()  # 'Святлейший князь Rusty' -> 'Rusty'
+
+
+def get_prefix_url(url=SERVER):
+    match = re.search(r'-(.*?)\.', url)  # Ищем текст между '-' и первой следующей '.'
+    if match:
+        result = match.group(1)
+        p_log(f"Получен префикс {result}", level="debug")
+        return result
+    raise ValueError(f"Не удалось найти префикс в строке: {url}")
 
 
 def digi(bad_string: str) -> int:
