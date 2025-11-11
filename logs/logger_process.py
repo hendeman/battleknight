@@ -25,14 +25,13 @@ def get_dictionary(name_file):
 def logger_process(queue, enable_rotation, log_file_path):
     setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
-    file_inode = None
-    current_inode = None
-
     # ЗАГРУЖАЕМ буферный словарь для непереведенных слов
     buffer_translate = get_dictionary(DICTIONARY_NOT_WORLDS)
 
     # ЗАГРУЖАЕМ существующий словарь при запуске
     loaded_dict = get_dictionary(DICTIONARY)
+    current_mtime = None
+    last_mtime = int(os.path.getmtime(DICTIONARY))
 
     while True:
         record = queue.get()
@@ -44,14 +43,14 @@ def logger_process(queue, enable_rotation, log_file_path):
             original_message = record.getMessage()
             try:
                 try:
-                    current_inode = os.stat(DICTIONARY).st_ino
+                    current_mtime = int(os.path.getmtime(DICTIONARY))
                 except FileNotFoundError:
                     logging.warning(f"File not found: {DICTIONARY}")
 
                 # Если inode изменился — файл был переименован или создан заново
-                if file_inode is not None and file_inode != current_inode:
+                if last_mtime != current_mtime:
                     loaded_dict = get_dictionary(DICTIONARY)
-                file_inode = current_inode
+                    last_mtime = current_mtime
 
                 modified_text, word_list = process_text(original_message)
                 translate_text = loaded_dict.get(modified_text)
