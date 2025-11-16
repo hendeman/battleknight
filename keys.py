@@ -190,7 +190,8 @@ def keys_search():
                 save_mission = None
             except ValueError:
                 p_log(group_castles, level="debug")
-                raise ValueError("Все ключи открыты")
+                p_log("Все ключи открыты")
+                break
 
         if not name_max_city:
             raise f"Нет доступных ключей"
