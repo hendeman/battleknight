@@ -2,10 +2,10 @@ import time
 import multiprocessing
 from random import choice
 
-from logs.logging_config import cleanup_logging_system, setup_logging_system
+import logs.logging_config as log_conf
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
-    get_next_time_and_index, get_random_value
+    get_next_time_and_index, get_random_value, reload_setting_param
 from module.cli import arg_parser
 from module.data_pars import heals
 from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
@@ -14,7 +14,8 @@ from module.game_function import check_progressbar, contribute_to_treasury, use_
     set_initial_gold, click, Namespace
 from module.group import go_group
 from module.http_requests import make_request
-from setting import start_game, start_time, auction_castles, castles_all, url_mission
+from setting import start_game, start_time, auction_castles, castles_all, url_mission, get_name, get_filename, \
+    get_env_path, LOG_DIR_NAME
 
 queue = None
 
@@ -150,7 +151,10 @@ def autoplay(town, mission_name, side):
                 p_log("Цикл получился более 24 часов. Уменьшите время выполнения промежуточным программ")
 
 
-def wrapper_function(func1, func2, log_queue):
+def wrapper_function(func1, func2, log_queue, setting_param=None):
+    if setting_param:
+        reload_setting_param(setting_param)
+
     setup_logging(queue=log_queue)
     try:
         func1()  # Запускаем первую функцию
@@ -171,8 +175,13 @@ def common_actions(process_function, process_name):
 
 
 def run_process_for_hours(target_function, hours, process_name, log_queue=queue):
+    # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
+    setting_value = {'name': get_name(), 'config': get_filename(),
+                     'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
+
     p_log(f"Запуск {process_name} процесса...")
-    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function, log_queue))
+    process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,
+                                                                     log_queue, setting_value))
     process.start()
     p_log(f"Ожидание {hours} часов... Работает {process_name} функция")
     time_sleep_main(hours * 60 * 60, name=process_name)  # Ожидание в часах
@@ -184,7 +193,7 @@ def run_process_for_hours(target_function, hours, process_name, log_queue=queue)
 
 
 if __name__ == "__main__":
-    queue, logging_process, translate = setup_logging_system()
+    log_conf.setup_logging_system()
     account_verification()
 
     event_list = {
@@ -208,4 +217,3 @@ if __name__ == "__main__":
         autoplay(**event_list.get('easter'))
     else:
         autoplay(**event_list.get('not_event'))
-    cleanup_logging_system(queue, logging_process, translate)
