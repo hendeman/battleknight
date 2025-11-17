@@ -22,7 +22,13 @@ def get_dictionary(name_file):
     return dct
 
 
-def logger_process(queue, enable_rotation, log_file_path):
+def logger_process(queue, enable_rotation, config_path, log_file_path):
+
+    #  Релоуд конфига, если функция logger_process запущена в отдельном процессе
+    import setting
+    if setting.CONFIG_NAME != config_path:
+        setting.reload_config(config_path)
+
     setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
     # ЗАГРУЖАЕМ буферный словарь для непереведенных слов
