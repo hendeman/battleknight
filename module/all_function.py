@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from logs.logs import p_log
 from setting import waiting_time, SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
-    LOG_ERROR_HTML, get_name, SERVER
+    LOG_ERROR_HTML, get_name, SERVER, reload_cookies
 
 # Глобальный кэш
 _config_cache: Optional[configparser.ConfigParser] = None
@@ -282,7 +282,7 @@ def get_random_value(a=0.1, b=0.5):
 def time_sleep(seconds=0):
     if seconds:
         for i in tqdm(range(int(seconds)),
-                      desc="Осталось времени",
+                      desc="Waiting",
                       unit="sec",
                       file=sys.stdout,
                       dynamic_ncols=True,
@@ -294,7 +294,7 @@ def time_sleep(seconds=0):
         seconds = random.randint(waiting_time + 60, waiting_time + 120)
         p_log(f"Ожидание {seconds} сек перед следующей атакой...")
         for i in tqdm(range(seconds),
-                      desc="Осталось времени",
+                      desc="Waiting",
                       unit="sec",
                       file=sys.stdout,
                       dynamic_ncols=True,
@@ -706,3 +706,31 @@ def kill_process_hierarchy(pid):
 
     except psutil.NoSuchProcess:
         p_log(f"Процесс {pid} не найден", level='warning')
+
+
+def reload_setting_param(values: dict):
+    """
+    Функция для копирования изменяемых значений основного процесса setting в дочерний:
+    (ENV_NAME, NAME, filename, LOG_DIR_NAME)
+    :param values: словарь значений
+    :return:
+    """
+    import setting
+
+    # Специальная обработка для env_file
+    if values.get('env_file') != setting.ENV_NAME:
+        reload_cookies(values.get('env_file'))
+
+    # Обновление остальных параметров
+    updates = [
+        ('name', 'NAME'),
+        ('config', 'filename'),
+        ('log_profile', 'LOG_DIR_NAME')
+    ]
+
+    for key, attr_name in updates:
+        if key in values:
+            new_value = values[key]
+            current_value = getattr(setting, attr_name)
+            if new_value != current_value:
+                setattr(setting, attr_name, new_value)
