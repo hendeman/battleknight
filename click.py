@@ -1,4 +1,6 @@
-from logs.logs import p_log, setup_logging
+# from logs.logging_config import setup_logging_system, cleanup_logging_system
+import logs.logging_config as log_conf
+from logs.logs import p_log
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
@@ -50,7 +52,8 @@ def main_loop_click(group=False):
 
 
 if __name__ == "__main__":
-    setup_logging()
+    log_conf.setup_logging_system()
+
     account_verification(helper_init=False)
     parser = arg_parser()
     args = parser.parse_args()
