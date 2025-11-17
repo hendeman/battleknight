@@ -1,15 +1,17 @@
 import time
 from functools import partial
+from json import JSONDecodeError
 
 from bs4 import BeautifulSoup
 import re
 
 from logs.logs import p_log
 
-from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters
+from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters, save_error_html
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
-from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members
+from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members, \
+    url_join_group, url_refresh_groups
 
 # Регулярное выражение для поиска
 pattern = re.compile(r'acquireMerc\d+npc')
@@ -140,6 +142,67 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
                     else:
                         delete_group()
                         break
+
+
+def find_group(knight_id):
+    """
+    Поиск созданной группы по ID игрока
+    :param knight_id: ID игрока
+    :return: ID группы или None
+    """
+    resp = None
+    make_request(url_group)
+    body = {'sortBy': 'Level',
+            'sortMode': 'down',
+            'page': 0,
+            'name': '',
+            'onlyNotApply': 0,
+            'onlyOrder': 0}
+
+    url_find = (f'{url_refresh_groups}/?sortBy={body["sortBy"]}'
+                f'&sortMode={body["sortMode"]}&page={body["page"]}&name={body["name"]}'
+                f'&onlyNotApply={body["onlyNotApply"]}&onlyOrder={body["onlyOrder"]}')
+    try:
+        resp = post_request(url_find, body).json()
+        if resp["result"]:
+            entries = resp["data"]["entries"]
+            if entries:
+                for gr in entries:
+                    if str(gr.get('knight_id')) == knight_id:
+                        return str(gr.get('grp_id'))
+            else:
+                p_log('Нет созданных групп')
+        else:
+            p_log(f"Ошибка запроса поиска группы: {resp}")
+    except JSONDecodeError:
+        p_log('Ошибка в find_group: получен не JSON-ответ от сервера', level='warning')
+        save_error_html(resp)
+
+
+def join_group(creator_id, retryer=6, refresh_seconds=300):
+    """
+    Присоединение к группе с creator_id. Поиск по параметрам.
+    :param creator_id: ID создателя группы
+    :param retryer: Количество попыток обновления поиска группы
+    :param refresh_seconds: Пауза между попытками обновления поиска группы
+    :return: None
+    """
+    check_progressbar()
+    while retryer:
+        grp_id = find_group(creator_id)
+        if grp_id:
+            url_join = f'{url_join_group}{grp_id}'
+            body = {'groupID': grp_id}
+            post_request(url_join, body)
+            make_request(url_group)
+            retryer = 0
+        else:
+            retryer -= 1
+            time_sleep(refresh_seconds)
+    timer_group = check_progressbar()
+    if timer_group:
+        p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
+        time_sleep(timer_group)
 
 
 if __name__ == "__main__":
