@@ -4,6 +4,7 @@ import threading
 import time
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import Union
 
 import colorlog
 from logging.handlers import TimedRotatingFileHandler, QueueHandler
@@ -39,8 +40,14 @@ def schedule_rollover(handler):
         handler.doRollover()
 
 
-def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
-    log_path = Path(LOG_DIR) / log_file_path / "app.log"
+def setup_logging(queue=None, enable_rotation=True, log_file_path: Union[bool, str] = False):
+    if not log_file_path:
+        from setting import LOG_DIR_NAME
+        log_path = Path(LOG_DIR, LOG_DIR_NAME, "app.log")
+
+    else:
+        log_path = Path(LOG_DIR, log_file_path, "app.log")
+
     logger = logging.getLogger()
 
     if logger.hasHandlers():
@@ -113,6 +120,7 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path="app"):
 
     sys.excepthook = handle_uncaught_exception
     threading.excepthook = handle_thread_exception
+
 
 if __name__ == "__main__":
     setup_logging(enable_rotation=True)  # Настраиваем логирование с ротацией
