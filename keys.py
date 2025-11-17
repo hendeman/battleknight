@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 from game_play import run_process_for_hours
-from logs.logging_config import setup_logging_system, cleanup_logging_system
+import logs.logging_config as log_conf
 from logs.logs import p_log
 from module.game_function import post_travel, my_place, check_hit_point, hide_silver, check_status_mission, \
     get_all_items, check_mission, get_group_castles, post_dragon, check_time_sleep, is_time_between, move_item, \
@@ -236,9 +236,8 @@ def keys_search():
 
 
 if __name__ == "__main__":
-    queue, logging_process, translate = setup_logging_system()
+    log_conf.setup_logging_system()
     account_verification()
 
     keys_search()
 
-    cleanup_logging_system(queue, logging_process, translate)

@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 from env_loader import load_custom_env
 
@@ -8,6 +9,8 @@ CHRISTMAS_MODE = False
 
 SERVER = 'https://s32-ru.battleknight.gameforge.com'
 NAME = None
+ENV_PATH = 'configs'
+ENV_NAME = ''
 CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "09:00"
@@ -43,6 +46,9 @@ GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
 LOG_DIR = 'logs'
+LOG_DIR_NAME = 'app'
+CONFIG_DIR = 'configs'
+CONFIG_NAME = 'config'
 LOG_ERROR_HTML = 'logs/error_html'
 DIRECTORY_PICKLES = 'pickles_data/'
 EXTENSION_PICKLES = '.pickle'
@@ -131,6 +137,8 @@ url_group_members = '/groupmission/groupMembers'
 url_group_pas = '/groupmission/dice'
 url_group_delete = '/groupmission/deleteGroup'
 url_greate_group = '/groupmission/foundGroup/'
+url_refresh_groups = '/groupmission/refreshGroups'
+url_join_group = '/groupmission/joinGroup/?groupID='
 url_orden_message = "/ajax/board/sendmessage"
 url_private_message = "/ajax/mail/sendMail"
 url_ordermail = "/mail/ordermail"
@@ -197,15 +205,22 @@ def get_header():
 
 def reload_cookies(env_file):
     """Перезагружает куки из указанного .env файла"""
-    global cookies, header
-    file_name = env_file + '.env'
+    global cookies, header, ENV_NAME
+    file_name = Path(ENV_PATH) / f"{env_file}.env"
+    ENV_NAME = env_file
     cookies, header = load_custom_env(file_name)
     return cookies, header
 
 
-def reload_config(name_config):
-    global filename
-    filename = name_config + '.ini'
+def get_env_path():
+    return ENV_NAME
+
+
+def reload_config(name_config):  # name_config = robusta
+    global filename, LOG_DIR_NAME, CONFIG_NAME
+    filename = Path(CONFIG_DIR) / f"{name_config}.ini"
+    LOG_DIR_NAME = name_config
+    CONFIG_NAME = name_config
     return filename
 
 

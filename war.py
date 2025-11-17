@@ -1,6 +1,6 @@
 import threading
 
-from logs.logging_config import setup_logging_system, cleanup_logging_system
+import logs.logging_config as log_conf
 from module.all_function import time_sleep_main, format_time, check_file_exists
 from module.game_function import account_verification
 from module.http_requests import post_request
@@ -182,7 +182,7 @@ def capture_enemy_castle(tag_castle='cf1'):
 
 
 if __name__ == "__main__":
-    queue, logging_process, translate = setup_logging_system(enable_rotation=False, log_file_path="war")
+    log_conf.setup_logging_system(enable_rotation=False, log_file_path="war")
     # setup_logging(enable_rotation=False, log_file_path="war")
     account_verification(helper_init=False)
     if not check_file_exists(data_files_directory, members):
@@ -214,4 +214,3 @@ if __name__ == "__main__":
             set_kick_members(args.set)
     else:
         parser.print_help()
-    cleanup_logging_system(queue, logging_process, translate)
