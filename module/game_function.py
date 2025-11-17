@@ -412,7 +412,8 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
                         fifth_argument = parts[4].strip().strip("');")
                         post_dragon(mission_name, buy_rubies=fifth_argument)
                         return Namespace.MISSION_RUBY
-            save_error_html(response)
+            if rubies:
+                save_error_html(response)
             return Namespace.NOT_MISSION
 
         else:
@@ -491,10 +492,17 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
         # Обычный интервал в пределах одного дня
         in_range = start_tm <= now <= end_tm
 
+    # Если текущее время между start_hour и end_hour и задано sleep_hour, то ждем до sleep_hour
     if in_range and sleep_hour:
         time_sleep(wait_until(sleep_hour))
+
+    # Если текущее время между start_hour и end_hour и не задано sleep_hour
     if in_range and sleep_hour is None:
         return True
+
+    # Если текущее время меньше стартового и есть sleep_hour, то ждем до стартового времени start_hour
+    if now < start_tm and sleep_hour:
+        time_sleep(wait_until(start_hour))
 
 
 def hide_silver(silver_limit):
