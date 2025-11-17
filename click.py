@@ -14,6 +14,7 @@ def main_loop_click(group=False):
     if karma_activate:
         activate_karma(skill=get_config_value("karma_activate_name"),
                        count=get_config_value("karma_activate_day"))
+    time_sleep(check_progressbar())  # проверить статус
     while ruby_manager.total_used < ruby_manager.total_limit:
 
         # ________________________ Для прохождения группы ____________________________
