@@ -476,7 +476,7 @@ def is_time_between(start_hour: str, end_hour: str):
     return start_tm <= now <= end_tm
 
 
-def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
+def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None, wait_for_start: bool = False):
     # Получаем текущее время
     now = datetime.now().time()
 
@@ -500,8 +500,8 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
     if in_range and sleep_hour is None:
         return True
 
-    # Если текущее время меньше стартового и есть sleep_hour, то ждем до стартового времени start_hour
-    if now < start_tm and sleep_hour:
+    # Если текущее время меньше стартового и есть wait_for_start, то ждем до стартового времени start_hour
+    if wait_for_start and now < start_tm:
         time_sleep(wait_until(start_hour))
 
 
