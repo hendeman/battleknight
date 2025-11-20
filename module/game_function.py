@@ -19,7 +19,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
     current_time, save_error_html, string_to_datetime
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission
+    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, pars_stats
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -35,11 +35,6 @@ def print_status(from_town, where_town, how, tt):
 
 
 def check_timer():
-    # response = make_request(url_mission)
-    # soup = BeautifulSoup(response.text, 'lxml')
-    # response = soup.find('h1').text.strip()
-    # if response in status_list:
-    #     time_sleep(check_progressbar())
     progressbar_status = check_progressbar()
     if progressbar_status:
         time_sleep(progressbar_status)
@@ -476,7 +471,7 @@ def is_time_between(start_hour: str, end_hour: str):
     return start_tm <= now <= end_tm
 
 
-def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
+def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None, wait_to_start=False):
     # Получаем текущее время
     now = datetime.now().time()
 
@@ -501,7 +496,7 @@ def check_time_sleep(start_hour: str, end_hour: str, sleep_hour: str = None):
         return True
 
     # Если текущее время меньше стартового и есть sleep_hour, то ждем до стартового времени start_hour
-    if now < start_tm and sleep_hour:
+    if now < start_tm and wait_to_start:
         time_sleep(wait_until(start_hour))
 
 
@@ -844,16 +839,57 @@ def place_bet(id_item, bet):
         p_log("Ошибка ставки. Ошибка json(). Неверный id_item", level='warning')
 
 
+# _________________________________ Взять из казны серебро ____________________________________
+
 def payout(silver_out: int):
-    to_silver = get_silver()
-    payload = {'silverToPayout': silver_out}
-    post_request(url_payout, payload)
-    after_silver = get_silver()
-    if after_silver - to_silver == silver_out:
+    response = make_request(url_treasury)
+    to_silver, to_silver_treasury = pars_treasury(response)
+    if silver_out <= to_silver:
+        payload = {'silverToPayout': silver_out}
+        response = post_request(url_payout, payload)
+        to_silver, to_silver_treasury = pars_treasury(response)
         p_log(f"Из казны взято {silver_out} серебра")
-        return after_silver
+        return to_silver
     else:
-        p_log(f"Ошибка запроса взять из казны to_silver={to_silver}, after_silver={after_silver}")
+        p_log(f"Недостаточно средств в казне: {silver_out} | {to_silver}")
+
+
+# _________________________________ Прокачать атрибут__________________________________________
+
+def up_attribute(attr_name, count=0, limit_treasury=0):
+    """
+    Функция для прокачки атрибута навыка
+    :param attr_name:  Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
+    :param count: Количество раз для прокачки, при count=0 прокачка по максимуму
+    :param limit_treasury: Сколько взять серебра из казны. При limit_treasury=0 из казны не берется ничего
+    :return: None
+    """
+    if attr_name in ATTRIBUTES:
+        response = make_request(url_user)
+        silver = get_silver(response)
+        data = pars_stats(response)
+        if silver >= data[attr_name]:
+            iteration_count = 0
+            while True:
+                resp = make_request(f"{url_raise_attr}{attr_name}").json()
+                p_log(f"Повышен {attr_name} атрибут")
+                new_price = resp["data"][attr_name]["newPrice"]
+                if resp["silver"] < new_price:
+                    break
+                iteration_count += 1
+                if 0 < count <= iteration_count:
+                    break
+                time.sleep(2)
+        else:
+            diff = data[attr_name] - silver
+            if diff < limit_treasury:
+                if not payout(diff):
+                    return
+                up_attribute(attr_name, count=count, limit_treasury=limit_treasury)
+    else:
+        p_log(f'Атрибут {attr_name} не найден', level='warning')
+
+# ______________________________________________________________________________________________________
 
 
 def handle_ring_operations(a: int, b: bool):
