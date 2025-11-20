@@ -121,6 +121,42 @@ def get_title(resp):
     return title
 
 
+def pars_treasury(resp):
+    """
+    Функция парсинга казны со страницы url_treasury = '/treasury'
+    :param resp: response по url_treasury
+    :return: (int, int)
+    """
+    soup = BeautifulSoup(resp.content, 'lxml')
+    # Находим все em элементы в форме
+    all_em = soup.select('#mailInbox .formLine em')
+
+    # Берем первый и четвертый em (нужные нам значения)
+    value1 = int(all_em[0].text)  # баланс серебра
+    value2 = int(all_em[3].text)  # серебро в казне
+    return value1, value2
+
+
+def pars_stats(resp):
+    """
+    Функция парсинга атрибутов со страницы url_user = '/user/'
+    :param resp: response по url_user
+    :return: словарь вида {"str": value, "dex": value, "end": value, "luck": value, "weapon": value, "defense": value}
+    """
+    soup = BeautifulSoup(resp.content, 'html.parser')
+
+    table = soup.find('table', id='charAttTable1')
+    rows = table.find_all('tr')
+    data = {}
+
+    for row, key in zip(rows, setting.ATTRIBUTES):
+        cost_td = row.find('td', class_='attrCost')
+        if cost_td:
+            cost_value = int(cost_td.get_text(strip=True))
+            data[key] = cost_value
+    return data
+
+
 def check_cooldown_poit(html_page):
     """
     Функция проверяет таймер перезарядки использования зелья, повторно т.к. зелье можно использовать раз в 30 минут.
