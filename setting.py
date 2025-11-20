@@ -26,7 +26,7 @@ NAME_HELPERS = {
     "companion": {'item_name': "itemCompanion", 'type_helper_names': 'компаньон'},
     "horse": {'item_name': "itemHorse", 'type_helper_names': 'наездник'}
 }
-
+ATTRIBUTES = ("str", "dex", "end", "luck", "weapon", "defense")
 # Выбор программы:
 # 1 - это программа клановой статистики
 # 0 - это программа серверной статистики
@@ -161,6 +161,7 @@ url_joust = '/joust'
 url_alchemist = '/market/merchant/alchemist'
 url_healer = '/zanyhealer/buyAndUsePotion/'
 url_zany_healer = '/zanyhealer/'
+url_raise_attr = '/ajax/ajax/raiseAttribute/?attribute='
 
 months = {
     1: "январь", 2: "февраль", 3: "март",
