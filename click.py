@@ -47,7 +47,7 @@ def main_loop_click(group=False):
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
             check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
-            check_time_sleep(start_hour='21:31', end_hour='23:45', sleep_hour='08:00')
+            check_time_sleep(start_hour='21:31', end_hour='23:55', sleep_hour='06:00')
 
     p_log("Достигнут общий лимит рубинов")
 
