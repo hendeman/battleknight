@@ -17,7 +17,7 @@ import psutil
 from tqdm import tqdm
 
 from logs.logs import p_log
-from setting import SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
+from setting import waiting_time, SAVE_CASTLE, get_filename, NICKS_GAMER, GOLD_GAMER, attack_ids_path, \
     LOG_ERROR_HTML, get_name, SERVER, reload_cookies
 
 # Глобальный кэш
@@ -280,33 +280,36 @@ def get_random_value(a=0.1, b=0.5):
 
 
 def time_sleep(seconds=0, delay=False):
+    # Если seconds is False, функция ничего не делает
+    if seconds is None:
+        return
+
     # Определяем время ожидания
-    wait_time = seconds
-    if delay or seconds == 0:
-        additional_time = random.randint(60, 120)
-        if seconds == 0:
-            wait_time = additional_time  # Используем только дополнительное время
-        else:
-            wait_time = seconds + additional_time  # Добавляем к основному времени
+    if seconds == 0:
+        wait_time = random.randint(waiting_time + 60, waiting_time + 120)
+    elif delay:
+        wait_time = random.randint(seconds + 60, seconds + 120)
+    else:
+        wait_time = int(seconds)  # Приводим к int, на случай если передали float
 
-    # Логируем ожидание, если есть задержка
-    if delay or seconds == 0:
-        p_log(f"Ожидание {wait_time} сек перед следующей атакой...")
+    # Логируем и выполняем ожидание, только если wait_time > 0
+    if wait_time > 0:
+        if delay or seconds == 0:
+            p_log(f"Ожидание {wait_time} сек перед следующей атакой...")
 
-    # Выполняем ожидание с прогресс-баром
-    for i in tqdm(range(int(wait_time)),
-                  desc="Waiting",
-                  unit="sec",
-                  file=sys.stdout,
-                  dynamic_ncols=True,
-                  position=0,
-                  leave=False,
-                  delay=1):
-        time.sleep(1)
+        for i in tqdm(range(int(wait_time)),
+                      desc="Waiting",
+                      unit="sec",
+                      file=sys.stdout,
+                      dynamic_ncols=True,
+                      position=0,
+                      leave=False,
+                      delay=1):
+            time.sleep(1)
 
-    # Логируем завершение ожидания, если была задержка
-    if delay or seconds == 0:
-        p_log("Готов к атаке")
+        if delay or seconds == 0:
+            p_log("Готов к атаке")
+    # Если wait_time <= 0, просто выходим без ожидания
 
 
 def format_time(seconds):
