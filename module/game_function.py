@@ -437,7 +437,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
         p_log(f"Потрачен {buy_rubies} рубин")
     p_log(f"Всего {get_all_silver(resp)} серебра")
     if sleeping:
-        time_sleep()
+        time_sleep(check_progressbar(resp), delay=True)
 
 
 def check_hit_point():
