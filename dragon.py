@@ -261,10 +261,11 @@ def autoplay(partial_event_search):
             # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
             setting_value = {'name': get_name(), 'config': get_filename(),
                              'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
+            log_queue = log_conf.queue
 
             p_log(f"Запуск {EVENT_NAME} процесса...")
             process = multiprocessing.Process(target=wrapper_function,
-                                              args=(partial_event_search, queue, setting_value))
+                                              args=(partial_event_search, log_queue, setting_value))
             process.start()
             p_log(f"Процесс {EVENT_NAME} будет работать до 20:00...")
             p_log(f"processPID={process.pid}", level='debug')

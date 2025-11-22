@@ -7,8 +7,7 @@ from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
     get_next_time_and_index, get_random_value, reload_setting_param
 from module.cli import arg_parser
-from module.data_pars import heals
-from module.game_function import check_progressbar, contribute_to_treasury, use_potion, post_travel, buy_ring, \
+from module.game_function import check_progressbar, contribute_to_treasury, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
     set_initial_gold, click, Namespace
@@ -31,12 +30,8 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
         mission_name = choice(mission_name) if isinstance(mission_name, list) else mission_name
         time.sleep(1)
 
-        if heals(response) < 20:
-            p_log("Слишком мало HP")
-            use_potion()
-            response = make_request(url)
-
         result = click(mission_duration, mission_name, find_karma)
+
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет.")
             if get_config_value("contribute_to_treasury") and not check_treasury_timers():
@@ -174,10 +169,11 @@ def common_actions(process_function, process_name):
         time_sleep(function_duration * 60 * 60 + 650 + get_config_value("correct_time"))
 
 
-def run_process_for_hours(target_function, hours, process_name, log_queue=queue):
+def run_process_for_hours(target_function, hours, process_name):
     # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
     setting_value = {'name': get_name(), 'config': get_filename(),
                      'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
+    log_queue = log_conf.queue
 
     p_log(f"Запуск {process_name} процесса...")
     process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,
