@@ -386,6 +386,12 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
 
 def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
     response = make_request(url_world)
+
+    if heals(response) < 20:
+        p_log("Слишком мало HP")
+        use_potion()
+        response = make_request(url_world)
+
     soup = BeautifulSoup(response.content, 'lxml')
 
     if mission_search:
