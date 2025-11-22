@@ -590,7 +590,7 @@ def all_party(a: dict, b: dict) -> dict:
 # _____________________________ Создание, чтение, изменение pickle ____________________________________________
 def read_conf_txt(loaded_dict):
     try:
-        with open(attack_ids_path, 'r', encoding='utf-8') as file_nicks:
+        with open(attack_ids_path, 'r', encoding='utf-8-sig') as file_nicks:
             for i in file_nicks:
                 id_gold = i.replace("\n", "").replace(" ", "").split(":")
                 key = id_gold[0]
