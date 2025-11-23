@@ -1,4 +1,5 @@
 import ast
+import html
 import json
 import pickle
 import re
@@ -1350,6 +1351,8 @@ def handle_error(nick):
             match = pattern.search(all_script_content)
             if match:
                 extracted_text = match.group(1)
+                if '&' in extracted_text and ';' in extracted_text:
+                    extracted_text = html.unescape(extracted_text)
                 p_log(extracted_text)
                 return extracted_text
             else:
@@ -1466,8 +1469,10 @@ def online_tracking_only(reduce_flag=False):
             break
 
 
-def reduce_experience(name_file=NICKS_GAMER, tracking=True):
-    init_handle_ring_operations = handle_ring_operations(buy_ring(initial=True), False)
+def reduce_experience(name_file=NICKS_GAMER, tracking=True, init_auction=True):
+    init_handle_ring_operations = None
+    if init_auction:
+        init_handle_ring_operations = handle_ring_operations(buy_ring(initial=True), False)
 
     with open(name_file, 'rb') as f:
         loaded_dict = pickle.load(f)
@@ -1495,7 +1500,8 @@ def reduce_experience(name_file=NICKS_GAMER, tracking=True):
                         received_gold = pars_gold_duel(resp, gold_info=True)
                         silver = get_silver(resp)
                         # инициализация стоимости кольца либо покупка кольца на аукционе
-                        init_handle_ring_operations(silver)
+                        if init_auction:
+                            init_handle_ring_operations(silver)
                     else:
                         received_gold = 0
 
@@ -1504,7 +1510,7 @@ def reduce_experience(name_file=NICKS_GAMER, tracking=True):
                     with open(name_file, 'wb') as file:
                         pickle.dump(loaded_dict, file)
                     if isinstance(resp, Response):
-                        time_sleep()
+                        time_sleep(check_progressbar(), delay=True)
                         attack_flag = True
                     else:
                         attack_flag = False
