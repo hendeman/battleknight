@@ -7,8 +7,6 @@ from logs.logs import setup_logging
 from module.all_function import get_config_value
 from module.translator.translator import process_text, restore_string_from_asterisks
 
-LANG = get_config_value("translate")
-DICTIONARY = f'module/translator/files/dictionary_{LANG}.pickle'
 DICTIONARY_NOT_WORLDS = 'module/translator/files/dictionary_not_worlds.pickle'
 
 
@@ -28,6 +26,9 @@ def logger_process(queue, enable_rotation, config_path, log_file_path):
     import setting
     if setting.CONFIG_NAME != config_path:
         setting.reload_config(config_path)
+
+    LANG = get_config_value("translate")
+    DICTIONARY = f'module/translator/files/dictionary_{LANG}.pickle'
 
     setup_logging(enable_rotation=enable_rotation, log_file_path=log_file_path)
 
