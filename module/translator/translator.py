@@ -8,7 +8,7 @@ LANG = 'eng'
 DIRECTORIES = ["../../dragon.py", "../../click.py", "../../game_play.py", "../../keys.py", "../../main.py",
                "../../online.py", "../../stats_server.py", "../../war.py", "../../robusta.py", ".."]
 FILE_NAME_RU = 'files/ru_phrases.txt'
-FILE_NAME_ENG = 'files/eng_phrases.txt'
+FILE_NAME_LANG = f'files/{LANG}_phrases.txt'
 DICTIONARY = f'files/dictionary_{LANG}.pickle'
 DICTIONARY_NOT_WORLDS = 'files/dictionary_not_worlds.pickle'
 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     # for i in result:
     #     print(i)
     # save_txt(FILE_NAME, result)
-    # create_dictionary(FILE_NAME_RU, FILE_NAME_ENG)
+    # create_dictionary(FILE_NAME_RU, FILE_NAME_LANG)
     # read_dictionary()
     # add_read_dictionary('компаньон Черепашка надет', 'Turtle companion is on')
     # for mes, val in read_dictionary(file=DICTIONARY_NOT_WORLDS).items():
