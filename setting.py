@@ -40,8 +40,8 @@ deco_func = False
 exclusion_list = ["Ksusha", "kimbow"]
 
 FILE_NAME = "pickles_data/all_dct.pickle"
-STAT_FILE_NAME = "pickles_data/stat_dct.pickle"
-STAT_FILE_LOSS = 'pickles_data/loss.pickle'
+STAT_FILE_NAME = "pickles_data/stat/stat_dct.pickle"
+STAT_FILE_LOSS = 'pickles_data/loss/loss.pickle'
 GOLD_GAMER = 'pickles_data/gamer_gold.pickle'
 NICKS_GAMER = 'pickles_data/nicks.pickle'
 SAVE_CASTLE = 'pickles_data/save_castle.pickle'
