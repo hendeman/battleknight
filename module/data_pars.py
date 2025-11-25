@@ -36,6 +36,19 @@ def heals(resp):
         p_log("Ошибка получения здоровья", level='warning')
 
 
+def is_horse_travel_button_active(resp, where):
+    # проверка активности кнопки перемещения с помощью лошади
+    # если не будет надет наездник, то кнопка будет "disabledBtn"
+    soup = BeautifulSoup(resp.text, 'lxml')
+    target_onclick = f"startTravel('{where}', 'horse', new Element(this), false);"
+    a_tag = soup.find('a', attrs={'onclick': target_onclick})
+
+    if a_tag:
+        classes = a_tag.get('class', [])
+        return 'disabledBtn' not in classes
+    return False
+
+
 def pars_gold_duel(response, gold_info=False, all_info=False, win_status=False):
     soup = BeautifulSoup(response.text, 'lxml')
     fight_results = soup.find('div', class_='fightResultsInner')

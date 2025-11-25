@@ -20,7 +20,8 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
     current_time, save_error_html, string_to_datetime
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, pars_stats
+    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
+    pars_stats, is_horse_travel_button_active
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -28,8 +29,9 @@ DATA_DEFAULT = datetime(2025, 10, 10)
 
 
 def print_status(from_town, where_town, how, tt):
+    ground_movement = {'horse': "Едем", 'foot': "Идем"}
     p_log(
-        f"{'Едем' if how == 'horse' else 'Плывем'} "
+        f"{ground_movement[how] if how in ground_movement else 'Плывем'} "
         f"из {castles_all.get(from_town, 'not defined')} в {castles_all[where_town]}. "
         f"Ожидание {tt}"
     )
@@ -303,13 +305,17 @@ def use_helper(config_name, restore=True, direct_call=False):
 
 @use_helper("horse_travel")
 def post_travel(out='', where='', how='horse'):
+    resp = make_request(url_travel)
+
+    if how == 'horse' and not is_horse_travel_button_active(resp, where):
+        how = 'foot'
+
     payload = {
         'travelwhere': f'{where}',
         'travelhow': f'{how}',
         'travelpremium': 0
     }
     p_log(payload, level='debug')
-    make_request(url_travel)
     resp = post_request(url_start_travel, payload)
     timer_travel = check_progressbar(resp)
     if not timer_travel:
