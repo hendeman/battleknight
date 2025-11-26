@@ -2,7 +2,8 @@ import time
 import multiprocessing
 from random import choice
 
-import logs.logging_config as log_conf
+from logs.logging_config import LoggingSystemManager
+# import logs.logging_config as log_conf
 from logs.logs import p_log, setup_logging
 from module.all_function import get_config_value, time_sleep_main, wait_until, format_time, time_sleep, \
     get_next_time_and_index, get_random_value, reload_setting_param
@@ -173,7 +174,7 @@ def run_process_for_hours(target_function, hours, process_name):
     # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
     setting_value = {'name': get_name(), 'config': get_filename(),
                      'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
-    log_queue = log_conf.queue
+    log_queue = queue
 
     p_log(f"Запуск {process_name} процесса...")
     process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,
@@ -189,27 +190,27 @@ def run_process_for_hours(target_function, hours, process_name):
 
 
 if __name__ == "__main__":
-    log_conf.setup_logging_system()
-    account_verification()
+    with LoggingSystemManager() as (queue, *_):
+        account_verification()
 
-    event_list = {
-        'not_event': {'town': get_config_value("town"),
-                      'mission_name': get_config_value("mission_name"),
-                      'side': get_config_value("working_karma")},
-        'easter': {'town': 'TradingPostOne',
-                   'mission_name': 'EgghatchGrotto',
-                   'side': 'neutral'},
-        'fehan': {'town': 'FogIsland',
-                  'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'],
-                  'side': get_config_value("working_karma")}
-    }
-    parser = arg_parser()
-    args = parser.parse_args()
-    if args.fehan:
-        p_log(f"Активирован мод Остров Фехан")
-        autoplay(**event_list.get('fehan'))
-    if args.easter:
-        p_log(f"Активирован мод Пасхальный")
-        autoplay(**event_list.get('easter'))
-    else:
-        autoplay(**event_list.get('not_event'))
+        event_list = {
+            'not_event': {'town': get_config_value("town"),
+                          'mission_name': get_config_value("mission_name"),
+                          'side': get_config_value("working_karma")},
+            'easter': {'town': 'TradingPostOne',
+                       'mission_name': 'EgghatchGrotto',
+                       'side': 'neutral'},
+            'fehan': {'town': 'FogIsland',
+                      'mission_name': ['Laguna', 'Tidesbeach', 'Fogforest'],
+                      'side': get_config_value("working_karma")}
+        }
+        parser = arg_parser()
+        args = parser.parse_args()
+        if args.fehan:
+            p_log(f"Активирован мод Остров Фехан")
+            autoplay(**event_list.get('fehan'))
+        if args.easter:
+            p_log(f"Активирован мод Пасхальный")
+            autoplay(**event_list.get('easter'))
+        else:
+            autoplay(**event_list.get('not_event'))

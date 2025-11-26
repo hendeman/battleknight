@@ -4,7 +4,7 @@ from functools import partial
 
 from bs4 import BeautifulSoup
 
-import logs.logging_config as log_conf
+from logs.logging_config import LoggingSystemManager
 from logs.logs import p_log, setup_logging
 from module.data_pars import get_point_mission
 from module.ruby_manager import ruby_manager
@@ -261,7 +261,7 @@ def autoplay(partial_event_search):
             # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
             setting_value = {'name': get_name(), 'config': get_filename(),
                              'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
-            log_queue = log_conf.queue
+            log_queue = queue
 
             p_log(f"Запуск {EVENT_NAME} процесса...")
             process = multiprocessing.Process(target=wrapper_function,
@@ -287,21 +287,21 @@ def autoplay(partial_event_search):
 
 
 if __name__ == "__main__":
-    log_conf.setup_logging_system()
+    with LoggingSystemManager() as (queue, *_):
 
-    parser = arg_parser()
-    args = parser.parse_args()
-    if args.dragon or args.healer:  # или другое условие для лекаря
-        account_verification()
-        check_timer()
+        parser = arg_parser()
+        args = parser.parse_args()
+        if args.dragon or args.healer:  # или другое условие для лекаря
+            account_verification()
+            check_timer()
 
-        if args.dragon:
-            p_log(f"Активирован мод Охота на драконов")
-            EVENT_NAME = 'dragon'
-        else:  # args.healer
-            p_log(f"Активирован мод Лекарь")
-            EVENT_NAME = 'healer'
+            if args.dragon:
+                p_log(f"Активирован мод Охота на драконов")
+                EVENT_NAME = 'dragon'
+            else:  # args.healer
+                p_log(f"Активирован мод Лекарь")
+                EVENT_NAME = 'healer'
 
-        autoplay(partial(event_search, EVENT_NAME))
-    else:
-        parser.print_help(filter_group='event')
+            autoplay(partial(event_search, EVENT_NAME))
+        else:
+            parser.print_help(filter_group='event')

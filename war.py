@@ -1,6 +1,6 @@
 import threading
 
-import logs.logging_config as log_conf
+from logs.logging_config import LoggingSystemManager
 from module.all_function import time_sleep_main, format_time, check_file_exists
 from module.game_function import account_verification
 from module.http_requests import post_request
@@ -182,35 +182,35 @@ def capture_enemy_castle(tag_castle='cf1'):
 
 
 if __name__ == "__main__":
-    log_conf.setup_logging_system(enable_rotation=False, log_file_path="war")
-    # setup_logging(enable_rotation=False, log_file_path="war")
-    account_verification(helper_init=False)
-    if not check_file_exists(data_files_directory, members):
-        p_log(f"Файл {members} не найден. Будет создан новый")
-        match_clan(create_file=True)
-    parser = war_parser()
-    args = parser.parse_args()
-    if args.save:
-        p_log(f"Программа сохранения замка")
-        check_status_war()
-    elif args.capture:
-        p_log(f"Программа захвата вражеского замка: '{args.capture}'")
-        capture_enemy_castle(args.capture)
-    elif args.clan:
-        p_log("Программа обновления списка участников ордена")
-        match_clan()
-    elif args.read:
-        kick_gamers = get_kick_members()
-        if kick_gamers:
-            p_log(f"Игроки, которые будут удалены из ордена: {', '.join(kick_gamers)}")
+    with LoggingSystemManager(enable_rotation=False, log_file_path="war") as (queue, *_):
+        # setup_logging(enable_rotation=False, log_file_path="war")
+        account_verification(helper_init=False)
+        if not check_file_exists(data_files_directory, members):
+            p_log(f"Файл {members} не найден. Будет создан новый")
+            match_clan(create_file=True)
+        parser = war_parser()
+        args = parser.parse_args()
+        if args.save:
+            p_log(f"Программа сохранения замка")
+            check_status_war()
+        elif args.capture:
+            p_log(f"Программа захвата вражеского замка: '{args.capture}'")
+            capture_enemy_castle(args.capture)
+        elif args.clan:
+            p_log("Программа обновления списка участников ордена")
+            match_clan()
+        elif args.read:
+            kick_gamers = get_kick_members()
+            if kick_gamers:
+                p_log(f"Игроки, которые будут удалены из ордена: {', '.join(kick_gamers)}")
+            else:
+                p_log("Никто не будет удален из ордена")
+        elif args.set:
+            if 'reset' in args.set:
+                p_log(f"Будет сброшен статус удаления из ордена для всех игроков")
+                set_kick_members('reset')
+            else:
+                p_log(f"Удалить из ордена следующие имена: {args.set}")
+                set_kick_members(args.set)
         else:
-            p_log("Никто не будет удален из ордена")
-    elif args.set:
-        if 'reset' in args.set:
-            p_log(f"Будет сброшен статус удаления из ордена для всех игроков")
-            set_kick_members('reset')
-        else:
-            p_log(f"Удалить из ордена следующие имена: {args.set}")
-            set_kick_members(args.set)
-    else:
-        parser.print_help()
+            parser.print_help()

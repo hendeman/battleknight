@@ -1,5 +1,4 @@
-# from logs.logging_config import setup_logging_system, cleanup_logging_system
-import logs.logging_config as log_conf
+from logs.logging_config import LoggingSystemManager
 from logs.logs import p_log
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
@@ -53,13 +52,13 @@ def main_loop_click(group=False):
 
 
 if __name__ == "__main__":
-    log_conf.setup_logging_system()
+    with LoggingSystemManager() as (queue, *_):
 
-    account_verification(helper_init=False)
-    parser = arg_parser()
-    args = parser.parse_args()
-    if args.group:
-        p_log(f"Запущен скрипт с прохождением группы")
-        main_loop_click(group=True)
-    else:
-        main_loop_click()
+        account_verification(helper_init=False)
+        parser = arg_parser()
+        args = parser.parse_args()
+        if args.group:
+            p_log(f"Запущен скрипт с прохождением группы")
+            main_loop_click(group=True)
+        else:
+            main_loop_click()
