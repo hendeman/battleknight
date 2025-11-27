@@ -69,7 +69,7 @@ def union_list(name_file_1: str, name_file_2: str) -> list:
                 gamer_data[change_field].append(gamer_data[field_name])
             if new_value in gamer_data[change_field]:
                 gamer_data[change_field].remove(new_value)
-            p_log(f"{gamer_data['name']} изменил {field_name} на <{new_value}>")
+            p_log(f"<{gamer_data['name']}> изменил {field_name} на <{new_value}>")
             gamer_data[field_name] = new_value
             return gamer_data[change_field]
         return gamer_data[change_field] if gamer_data[change_field] else ""

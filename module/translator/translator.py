@@ -35,15 +35,23 @@ def read_txt(filename):
 
 
 def process_text(text):
-    # Паттерн: только парные скобки, без вложенности
+    # Паттерн: только парные скобки, без вложенности (без <>)
     brackets_pattern = r'(\((?:[^\(\)]*)\))|(\[(?:[^\[\]]*)\])|(\{(?:[^{}]*)\})'
+    # Паттерн: содержимое внутри <>
+    angle_brackets_content = r'(?<=<)[^<>]*(?=>)'
     cyrillic_word_with_hyphen = r'\b[а-яёА-ЯЁ]+(?:-[а-яёА-ЯЁ]+)*\b'
     latin_or_digit_word = r'\S*[a-zA-Z0-9]\S*'
 
     matches = []
 
+    # Сопоставляем скобки
     for match in re.finditer(brackets_pattern, text):
         matches.append((match.start(), match.end(), match.group()))
+
+    # Сопоставляем содержимое <>
+    for match in re.finditer(angle_brackets_content, text):
+        # match.group() — только содержимое, без скобок
+        matches.append((match.start() - 1, match.end() + 1, match.group()))  # включаем скобки в диапазон, но сохраняем содержимое
 
     for match in re.finditer(latin_or_digit_word, text):
         word = match.group()
@@ -256,4 +264,4 @@ if __name__ == "__main__":
     # add_read_dictionary('компаньон Черепашка надет', 'Turtle companion is on')
     # for mes, val in read_dictionary(file=DICTIONARY_NOT_WORLDS).items():
     #     print(f"{mes}: {val}")
-    print(process_text("Будет куплено кольцо с id=900959106"))
+    print(process_text(f"Будет куплено кольцо с id=900959106"))

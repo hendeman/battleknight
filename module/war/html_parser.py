@@ -130,5 +130,5 @@ def main_pars_clanwar(soup, save=True):
             p_log("Содержимое тега <script> не найдено или не содержит данных до 'function'.")
     except Exception as f:
         p_log(f"Ошибка парсинга карты замков: {f}", is_error=True)
-        p_log(f"Будет произведена атака на замок <{attack_castle_num}> из config")
+        p_log(f"Будет произведена атака на замок {attack_castle_num} из config")
         return attack_castle_num

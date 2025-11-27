@@ -15,13 +15,13 @@ from module.war.settings import war_list, url_members, SERVER, url_war_damage
 @deco_time
 def post_remove_member(id_name):
     current_thread_name = threading.current_thread().name
-    p_log(f"Попытка отправить запрос на удаление {current_thread_name}")
+    p_log(f"Попытка отправить запрос на удаление <{current_thread_name}>")
     url_remove_member = f"{SERVER}/ajax/clan/removeMember/?knightID={id_name}"
     payload = {'knightID': id_name}
     try:
         resp = post_request(url_remove_member, payload).json()
         if resp["result"]:
-            p_log(f"{current_thread_name} успешно удален из ордена")
+            p_log(f"<{current_thread_name}> успешно удален из ордена")
         else:
             p_log(f'Неудача. Причина: {resp.get("reason")}')
     except Exception as err:
@@ -109,7 +109,7 @@ def get_applications_ids(soup):
 
 
 def knight_accept(player, name):
-    p_log(f"Попытка принять {name} в орден")
+    p_log(f"Попытка принять <{name}> в орден")
     payload = {'applierID': player}
     post_request(url_members, payload)
 
@@ -154,7 +154,8 @@ def accept_into_order():
             else number_id
             for number_id in list_numbers_app
         ]
-        p_log(f"В орден просятся: {', '.join(members)}" if members else 'Нет заявок в орден')
+        p_log(f"В орден просятся: {' '.join([f'<{member}>' for member in members])}" if members
+              else 'Нет заявок в орден')
         for number_id in list_numbers_app:
             if number_id in remove_member_list:
                 name = remove_member_list[number_id].get('name')

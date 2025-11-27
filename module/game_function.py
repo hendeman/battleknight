@@ -126,10 +126,10 @@ def check_progressbar(resp=None):
     p_log("Проверка состояния")
 
     if progressbar_element or element in work_status:
-        p_log(f"{get_name()} status <{element}>")
+        p_log(f"<{get_name()}> статус {element}")
         # возвращаем количество секунд прогресбара
         return progressbar_ends(soup)
-    p_log(f"{get_name()} свободен")
+    p_log(f"<{get_name()}> свободен")
 
 
 def progressbar_ends(soup):
@@ -445,7 +445,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
     }
 
     resp = post_request(url_mission, payload)
-    p_log(f"С миссии <{name_mission}> получено {pars_gold_duel(resp, gold_info=True)} серебра")
+    p_log(f"С миссии {name_mission} получено {pars_gold_duel(resp, gold_info=True)} серебра")
     if buy_rubies:
         p_log(f"Потрачен {buy_rubies} рубин")
     p_log(f"Всего {get_all_silver(resp)} серебра")
@@ -669,7 +669,7 @@ def select_castle_by_top_count(dct: dict, halloween_tag=None):
 def post_healer(potion_number):
     payload = {'potion': f'potion{str(potion_number)}'}
     name_potion = event_healer_potions[potion_number]['name']
-    p_log(f"Запрос на покупку <{name_potion}>")
+    p_log(f"Запрос на покупку {name_potion}")
     resp = post_request(url_healer, payload)
     try:
         dct = resp.json()
@@ -1285,7 +1285,7 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
         return True, resp
 
     if status_progress_bar:
-        p_log(f"{get_name()} status: {get_status(resp)}")
+        p_log(f"<{get_name()}> status: {get_status(resp)}")
         time_sleep(status_progress_bar)
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
