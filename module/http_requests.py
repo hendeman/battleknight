@@ -143,9 +143,11 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
 
             return response
 
-        except ProxyError as e:
+        except (ProxyError, Timeout) as e:
+            # Определяем тип исключения для логирования
+            exc_type = type(e).__name__
             request_retries += 1
-            p_log(f"ProxyError: {e}", level='debug')
+            p_log(f"{exc_type}: {e}", level='debug')
             p_log(f"Повтор через {timeout} сек...", level='debug')
 
             if request_retries >= max_retries:
@@ -155,10 +157,6 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
                     p_log(f"Превышено количество попыток для прокси {old_proxy}", level='debug')
                     p_log(f"Будет выбран следующий прокси {new_proxy}", level='debug')
                 request_retries = 0
-
-        except Timeout as e:
-            p_log(f"Timeout: {e}", level='debug')
-            p_log(f"Повтор через {timeout} сек...", level='debug')
 
         except RequestException as e:
             p_log(f"Ошибка: {e}", level='debug')
