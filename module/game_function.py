@@ -1285,7 +1285,7 @@ def make_attack(nick, heals_point=False) -> Tuple[bool, Union[bool, Response, st
         return True, resp
 
     if status_progress_bar:
-        p_log(f"<{get_name()}> status: {get_status(resp)}")
+        p_log(f"<{get_name()}> статус {get_status(resp)}")
         time_sleep(status_progress_bar)
         p_log(f"Попытка атаки на {nick}")
         resp = make_request(url_fight)
