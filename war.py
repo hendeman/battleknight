@@ -5,7 +5,7 @@ from module.all_function import time_sleep_main, format_time, check_file_exists
 from module.game_function import account_verification
 from module.http_requests import post_request
 from module.war.cli import war_parser
-from module.war.html_parser import main_pars_clanwar
+from module.war.html_parser import main_pars_clanwar, parse_battle_declaration
 from module.war.members_operation import remove_members, accept_into_order
 from module.war.other_func import *
 from module.war.settings import *
@@ -97,7 +97,8 @@ def check_status_war():
         time_end, sec, soup = get_time_end()
         p_log(f"Время до следующего раунда {time_end}")
         if sec:
-            war_init = soup.find('div', id='clanwarInitiator').text
+            # war_init = soup.find('div', id='clanwarInitiator').text
+            war_init = parse_battle_declaration(soup)
             p_log(war_init)
             battle_round_status = soup.find('div', class_='battlerounds')
 

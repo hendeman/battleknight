@@ -2,9 +2,33 @@ import json
 import re
 import random
 
+
 from logs.logs import p_log
 from module.all_function import get_config_value
 from module.war.settings import castles
+
+
+def parse_battle_declaration(soup):
+    div = soup.find('div', id='clanwarInitiator')
+
+    regular_text = []
+    a_texts = []
+
+    for string in div.strings:
+        text = string.strip()
+        if text:
+            if string.parent.name == 'a':
+                a_texts.append(text)
+            else:
+                regular_text.append(text)
+
+    # Формируем итоговый результат
+    if a_texts:
+        combined_a = f"<{' '.join(a_texts)}>"
+        regular_text.append(combined_a)
+
+    final_text = ' '.join(regular_text).strip()
+    return final_text
 
 
 def extract_script_content(html_content):
