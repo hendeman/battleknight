@@ -872,35 +872,57 @@ def payout(silver_out: int):
 def up_attribute(attr_name, count=0, limit_treasury=0):
     """
     Функция для прокачки атрибута навыка
-    :param attr_name:  Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
+    :param attr_name: Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
+                      Может быть строкой или кортежем/списком. Если передан кортеж/список,
+                      будет выбран случайный атрибут из пересечения с доступными атрибутами
     :param count: Количество раз для прокачки, при count=0 прокачка по максимуму
     :param limit_treasury: Сколько взять серебра из казны. При limit_treasury=0 из казны не берется ничего
     :return: None
     """
-    if attr_name in ATTRIBUTES:
-        response = make_request(url_user)
-        silver = get_silver(response)
-        data = pars_stats(response)
-        if silver >= data[attr_name]:
-            iteration_count = 0
-            while True:
-                resp = make_request(f"{url_raise_attr}{attr_name}").json()
-                p_log(f"Повышен {attr_name} атрибут")
-                new_price = resp["data"][attr_name]["newPrice"]
-                if resp["silver"] < new_price:
-                    break
-                iteration_count += 1
-                if 0 < count <= iteration_count:
-                    break
-                time.sleep(2)
-        else:
-            diff = data[attr_name] - silver
-            if diff < limit_treasury:
-                if not payout(diff):
-                    return
-                up_attribute(attr_name, count=count, limit_treasury=limit_treasury)
+
+    if isinstance(attr_name, (tuple, list, set)):
+        # Получаем пересечение переданных атрибутов с доступными
+        available_attrs = set(attr_name) & set(ATTRIBUTES)
+
+        if not available_attrs:
+            p_log(f'Нет доступных атрибутов из списка {attr_name}', level='warning')
+            return
+
+        # Выбираем случайный атрибут из доступных
+        selected_attr = random.choice(list(available_attrs))
+        p_log(f'Выбран случайный атрибут из {attr_name}: {selected_attr}')
+        attr_name = selected_attr
+
+    elif isinstance(attr_name, str):
+        if attr_name not in ATTRIBUTES:
+            p_log(f'Атрибут {attr_name} не найден', level='warning')
+            return
     else:
-        p_log(f'Атрибут {attr_name} не найден', level='warning')
+        p_log(f'Неверный тип параметра attr_name: {type(attr_name)}', level='warning')
+        return
+
+    response = make_request(url_user)
+    silver = get_silver(response)
+    data = pars_stats(response)
+    if silver >= data[attr_name]:
+        iteration_count = 0
+        while True:
+            resp = make_request(f"{url_raise_attr}{attr_name}").json()
+            p_log(f"Повышен {attr_name} атрибут")
+            new_price = resp["data"][attr_name]["newPrice"]
+            if resp["silver"] < new_price:
+                break
+            iteration_count += 1
+            if 0 < count <= iteration_count:
+                break
+            time.sleep(2)
+    else:
+        diff = data[attr_name] - silver
+        if diff < limit_treasury:
+            if not payout(diff):
+                return
+            up_attribute(attr_name, count=count, limit_treasury=limit_treasury)
+
 
 # ______________________________________________________________________________________________________
 
