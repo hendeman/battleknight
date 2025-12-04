@@ -378,17 +378,33 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
     mission_karma = get_config_value("working_karma").capitalize()
     st_pattern = f"chooseMission\\('{length_mission}', '([a-zA-Z]+)', '{mission_karma}', this\\);"
     a_tags = soup.find_all('a', onclick=lambda onclick: onclick and re.match(st_pattern, onclick))
-    if all_mission and not name_mission:
+    if not name_mission:
         for tag in a_tags:
             onclick_value = tag['onclick']
             match = re.search(st_pattern, onclick_value)
             if match:
                 nm = match.group(1)  # Извлекаем значение name_mission
                 name_missions.append(nm)  # Добавляем в список
+
+    if all_mission and not name_mission:
         return name_missions
+
     if not name_mission and not all_mission:
         name_mission = random.choice(name_missions) if not name_mission else name_mission
+
     return name_mission, a_tags
+
+    # if all_mission and not name_mission:
+    #     for tag in a_tags:
+    #         onclick_value = tag['onclick']
+    #         match = re.search(st_pattern, onclick_value)
+    #         if match:
+    #             nm = match.group(1)  # Извлекаем значение name_mission
+    #             name_missions.append(nm)  # Добавляем в список
+    #     return name_missions
+    # if not name_mission and not all_mission:
+    #     name_mission = random.choice(name_missions) if not name_mission else name_mission
+    # return name_mission, a_tags
 
 
 def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
