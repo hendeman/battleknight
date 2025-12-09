@@ -165,19 +165,20 @@ def check_health(heals_point=False):
                 time_sleep(600)
 
             use_potion()
-            resp = make_request(url_duel)
-            return heals(resp)
         else:
             p_log("Отдыхаем 10 минут, пока не восстановится здоровье")
             time_sleep()
-            resp = make_request(url_duel)
-            return heals(resp)
+        resp = make_request(url_duel)
+        return heals(resp)
     return life_count
 
 
 def use_potion():
     try:
         last_item_id, last_item_value = get_potion_bar()
+        if not last_item_id:
+            p_log("Нет зельев для использования")
+            return
         p_log(f"Будет использовано зелье на {last_item_value} HP")
         sleep(get_random_value())
         use_url = (
@@ -196,10 +197,43 @@ def get_potion_bar():
         'noCache': f'{int(time.time() * 1000)}'
     }
     data = post_request(url_point, payload).json()
-    result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
-    p_log(result, level='debug')
-    last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
-    return last_item_id, last_item_value
+
+    # если все слоты заняты баночками Inventory, то запрос имеет вид [dict, dict, dict, dict]
+    if isinstance(data, list):
+        result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
+        p_log(result, level='debug')
+        last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
+        return last_item_id, last_item_value
+
+    # если хотя бы один слот под покупку Merchantry, то запрос имеет вид {'0': dict, '1': dict, '2': dict, '3': dict}
+    elif isinstance(data, dict):
+        min_item = None
+        min_value = float('inf')
+
+        for key, item in data.items():
+            if key == '0':
+                continue  # пропускаем ключ '0' PotionYellowFull
+
+            if item.get('item_source') == 'Inventory':
+                item_value = item.get('item_value')
+
+                if item_value is not None:
+                    try:
+                        val = int(item_value)
+                        if val < min_value:
+                            min_value = val
+                            min_item = item['item_id']
+                    except (ValueError, TypeError):
+                        continue
+
+        if min_item is None:
+            return False, False
+
+        return min_item, min_value
+
+    else:
+        p_log(f"Ошибка в получении банок ХП. Неверный тип запроса", level='warning')
+        time_sleep(600)
 
 
 # ________________________ Проверить казну _____________________________________________
@@ -358,7 +392,7 @@ def christmas_bonus(func=None):
 
 
 def apply_christmas_bonus(func):
-    if CHRISTMAS_MODE:
+    if get_config_value("christmas"):
         return christmas_bonus(func)
     return func
 
@@ -394,25 +428,15 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
 
     return name_mission, a_tags
 
-    # if all_mission and not name_mission:
-    #     for tag in a_tags:
-    #         onclick_value = tag['onclick']
-    #         match = re.search(st_pattern, onclick_value)
-    #         if match:
-    #             nm = match.group(1)  # Извлекаем значение name_mission
-    #             name_missions.append(nm)  # Добавляем в список
-    #     return name_missions
-    # if not name_mission and not all_mission:
-    #     name_mission = random.choice(name_missions) if not name_mission else name_mission
-    # return name_mission, a_tags
-
 
 def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
     response = make_request(url_world)
 
-    if heals(response) < 20:
+    if heals(response) < 10:
         p_log("Слишком мало HP")
-        use_potion()
+        if check_health(heals_point=True) < 10:
+            buy_potion(1)
+            use_potion()
         response = make_request(url_world)
 
     soup = BeautifulSoup(response.content, 'lxml')
