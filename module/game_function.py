@@ -193,47 +193,41 @@ def use_potion():
 
 
 def get_potion_bar():
-    payload = {
-        'noCache': f'{int(time.time() * 1000)}'
-    }
+    payload = {'noCache': f'{int(time.time() * 1000)}'}
     data = post_request(url_point, payload).json()
 
-    # если все слоты заняты баночками Inventory, то запрос имеет вид [dict, dict, dict, dict]
+    min_item = None
+    min_value = float('inf')
+
+    # Нормализуем данные к единому формату
+    items = []
     if isinstance(data, list):
-        result = ', '.join(f"{item['item_pic']} - {str(item['count'])}" for item in data)
-        p_log(result, level='debug')
-        last_item_id, last_item_value = data[-1]['item_id'], data[-1]['item_value']
-        return last_item_id, last_item_value
-
-    # если хотя бы один слот под покупку Merchantry, то запрос имеет вид {'0': dict, '1': dict, '2': dict, '3': dict}
+        items = data
     elif isinstance(data, dict):
-        min_item = None
-        min_value = float('inf')
-
-        for key, item in data.items():
-            if key == '0':
-                continue  # пропускаем ключ '0' PotionYellowFull
-
-            if item.get('item_source') == 'Inventory':
-                item_value = item.get('item_value')
-
-                if item_value is not None:
-                    try:
-                        val = int(item_value)
-                        if val < min_value:
-                            min_value = val
-                            min_item = item['item_id']
-                    except (ValueError, TypeError):
-                        continue
-
-        if min_item is None:
-            return False, False
-
-        return min_item, min_value
-
+        items = data.values()
     else:
-        p_log(f"Ошибка в получении банок ХП. Неверный тип запроса", level='warning')
+        p_log("Ошибка в получении банок ХП. Неверный тип запроса", level='warning')
         time_sleep(600)
+        return False, False
+
+    # Обрабатываем все элементы
+    for item in items:
+        if item.get('item_pic') == "PotionYellowFull" and not get_config_value("use_yellow"):
+            continue
+
+        if item.get('item_source') == 'Inventory':
+            item_value = item.get('item_value') if item.get('item_pic') != "PotionYellowFull" else 100000
+
+            if item_value is not None:
+                try:
+                    val = int(item_value)
+                    if val < min_value:
+                        min_value = val
+                        min_item = item['item_id']
+                except (ValueError, TypeError):
+                    continue
+
+    return (min_item, 'FullHp' if min_value == 100000 else min_value) if min_item is not None else (False, False)
 
 
 # ________________________ Проверить казну _____________________________________________

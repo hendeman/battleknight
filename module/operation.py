@@ -12,7 +12,7 @@ from openpyxl.styles import Font, Alignment
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
-from module.all_function import all_party
+from module.all_function import all_party, get_prefix_url
 from module.data_pars import visit, party, pars_name
 from setting import exclusion_list, url_members, clan_html_file, FILE_NAME, deco_func, url_gold, SERVER
 
@@ -222,7 +222,8 @@ def dict_values_difference(pars_dct: dict) -> list:
 
 def write_2dlist_to_excel(diff_list, write_flag):
     pref = "_all" if write_flag else ""
-    excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}_{today.year}{pref}.xlsx"
+    pref_lang = get_prefix_url()
+    excel_file_path = f"bk\\result_xlsx\\stat_{today.day:02d}_{today.month:02d}_{today.year}{pref}_{pref_lang}.xlsx"
 
     def set_column_widths(sheet):
         """Устанавливает ширину колонок на основе длины данных."""
