@@ -5,8 +5,6 @@ from env_loader import load_custom_env
 
 today = date.today()
 
-CHRISTMAS_MODE = False
-
 SERVER = 'https://s32-ru.battleknight.gameforge.com'
 NAME = None
 ENV_PATH = 'configs'
