@@ -200,7 +200,6 @@ def get_potion_bar():
     min_value = float('inf')
 
     # Нормализуем данные к единому формату
-    items = []
     if isinstance(data, list):
         items = data
     elif isinstance(data, dict):
@@ -903,7 +902,7 @@ def payout(silver_out: int):
 
 # _________________________________ Прокачать атрибут__________________________________________
 
-def up_attribute(attr_name, count=0, limit_treasury=0):
+def up_attribute(attr_name=None, count=0, limit_treasury=0):
     """
     Функция для прокачки атрибута навыка
     :param attr_name: Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
@@ -913,6 +912,17 @@ def up_attribute(attr_name, count=0, limit_treasury=0):
     :param limit_treasury: Сколько взять серебра из казны. При limit_treasury=0 из казны не берется ничего
     :return: None
     """
+
+    if attr_name is None:
+        attr = get_config_value('up_attribute')
+        try:
+            attr = ast.literal_eval(attr)
+        except ValueError:
+            pass
+        except SyntaxError:
+            p_log(f"SyntaxError up_attribute: {attr}", level='warning')
+            return
+        attr_name = attr
 
     if isinstance(attr_name, (tuple, list, set)):
         # Получаем пересечение переданных атрибутов с доступными
@@ -927,7 +937,7 @@ def up_attribute(attr_name, count=0, limit_treasury=0):
         p_log(f'Выбран случайный атрибут из {attr_name}: {selected_attr}')
         attr_name = selected_attr
 
-    elif isinstance(attr_name, str):
+    elif isinstance(attr_name, (str, int)):
         if attr_name not in ATTRIBUTES:
             p_log(f'Атрибут {attr_name} не найден', level='warning')
             return
