@@ -1,10 +1,10 @@
-import ast
 import html
 import json
 import pickle
 import re
 import threading
 from enum import Enum, auto
+from functools import wraps
 from json import JSONDecodeError
 from typing import Union, Tuple
 from time import sleep
@@ -21,7 +21,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     current_time, save_error_html, string_to_datetime
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
-    pars_stats, is_horse_travel_button_active
+    pars_stats, is_horse_travel_button_active, get_mission_point
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -358,6 +358,7 @@ def christmas_bonus(func=None):
     if func is None:
         return lambda f: christmas_bonus(f)
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         p_log("Проверка рюкзака добычи на еду")
         bonus_items = get_item_loot('christmas')
@@ -385,9 +386,16 @@ def christmas_bonus(func=None):
 
 
 def apply_christmas_bonus(func):
-    if get_config_value("christmas"):
-        return christmas_bonus(func)
-    return func
+    # Возвращаем wrapper, который будет проверять config при каждом вызове
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Проверяем конфиг при каждом вызове функции
+        if get_config_value("christmas"):
+            # Если включено, применяем christmas_bonus
+            return christmas_bonus(func)(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 # ______________________________________________ Прохождение миссии _____________________________________
@@ -425,9 +433,10 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
 def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
     response = make_request(url_world)
 
-    if heals(response) < 10:
+    hit_point = heals(response)
+    if hit_point <= 10:
         p_log("Слишком мало HP")
-        if check_health(heals_point=True) < 10:
+        if check_health(heals_point=True) <= 10:
             buy_potion(1)
             use_potion()
         response = make_request(url_world)
@@ -455,6 +464,9 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
                         return Namespace.MISSION_RUBY
             if rubies:
                 save_error_html(response)
+            mission_point = get_mission_point(soup)
+            if mission_point >= 20:
+                p_log(f"Миссии недоступны. Здоровье {hit_point}")
             return Namespace.NOT_MISSION
 
         else:
@@ -748,13 +760,19 @@ def choose_random_coor(dct, rand):
 # _______________________ Получаем данные заполненности инвентаря в 3 и 4 сумке _______________________________
 
 def get_inventory_slots(num_inv):
+    """
+
+    :param num_inv: int or string '3, 4'
+    :return: dict
+    """
     # Определяем диапазон инвентарей
-    try:
-        inventories = ast.literal_eval(num_inv)
-    except ValueError:
-        if isinstance(num_inv, int):
-            inventories = [num_inv]
-        else:
+    if isinstance(num_inv, int):
+        inventories = [num_inv]
+    else:
+        try:
+            inventories = list(map(int, num_inv.split(',')))
+        except ValueError:
+            p_log(f"Неверный формат searching_slots_bag={num_inv}", level='warning')
             inventories = range(1, 5)
 
     item_key_list = {}
@@ -915,13 +933,10 @@ def up_attribute(attr_name=None, count=0, limit_treasury=0):
 
     if attr_name is None:
         attr = get_config_value('up_attribute')
-        try:
-            attr = ast.literal_eval(attr)
-        except ValueError:
-            pass
-        except SyntaxError:
-            p_log(f"SyntaxError up_attribute: {attr}", level='warning')
-            return
+        if isinstance(attr, str):
+            attr = list(map(str.strip, attr.split(',')))
+        else:
+            attr = int(attr)
         attr_name = attr
 
     if isinstance(attr_name, (tuple, list, set)):

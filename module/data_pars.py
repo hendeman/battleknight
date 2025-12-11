@@ -111,6 +111,20 @@ def get_all_silver(resp):
     return silver_count
 
 
+def get_mission_point(soup):
+    span_value = soup.select_one('p.missionPoints span')
+
+    if span_value:
+        value = span_value.get_text(strip=True)
+        try:
+            mission_point = int(value)
+            return mission_point
+        except ValueError:
+            p_log(f"Не удалось преобразовать '{value}' в число", level='warning')
+    else:
+        p_log("Не удалось найти количество очком миссий", level='warning')
+
+
 def get_csrf_token(resp):
     content_type = resp.headers.get('Content-Type', '')
     if 'text/html' in content_type:
