@@ -354,46 +354,34 @@ def post_travel(out='', where='', how='horse'):
 
 
 # __________________________________ Рождественский ивент ________________________________________
-def christmas_bonus(func=None):
-    if func is None:
-        return lambda f: christmas_bonus(f)
 
+def christmas_bonus(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        p_log("Проверка рюкзака добычи на еду")
-        bonus_items = get_item_loot('christmas')
-        if bonus_items:
-            bonus_item = random.choice(bonus_items)
-            p_log("Попытка применить рожденственский баф на миссию")
-            url_bonus = f'{SERVER}/ajax/ajax/activateQuestItem/{bonus_item}/lootbag?noCache={no_cache()}'
-            try:
-                resp = make_request(url_bonus).json()
-                p_log(resp, level='debug')
-                if resp['result']:
-                    p_log('Баф активирован')
-                else:
-                    p_log(f"Баф не был активирован: {resp['reason']}, {resp['data']}", level='warning')
-            except JSONDecodeError as er:
-                p_log(f"Error json christmas_bonus: {er}", level='warning')
-            except Exception as er:
-                p_log(f"Ошибка обработки запроса рожденственского бонуса: {er}", level='warning')
-            get_item_loot('christmas')
-        else:
-            p_log("Еды в рюкзаке добычи не обнаружено")
-        func(*args, **kwargs)
-
-    return wrapper
-
-
-def apply_christmas_bonus(func):
-    # Возвращаем wrapper, который будет проверять config при каждом вызове
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Проверяем конфиг при каждом вызове функции
+        # Проверяем конфиг при каждом вызове
         if get_config_value("christmas"):
-            # Если включено, применяем christmas_bonus
-            return christmas_bonus(func)(*args, **kwargs)
-        return func(*args, **kwargs)
+            p_log("Проверка рюкзака добычи на еду")
+            bonus_items = get_item_loot('christmas')
+            if bonus_items:
+                bonus_item = random.choice(bonus_items)
+                p_log("Попытка применить рождественский баф на миссию")
+                url_bonus = f'{SERVER}/ajax/ajax/activateQuestItem/{bonus_item}/lootbag?noCache={no_cache()}'
+                try:
+                    resp = make_request(url_bonus).json()
+                    p_log(resp, level='debug')
+                    if resp['result']:
+                        p_log('Баф активирован')
+                    else:
+                        p_log(f"Баф не был активирован: {resp['reason']}, {resp['data']}", level='warning')
+                except JSONDecodeError as er:
+                    p_log(f"Error json christmas_bonus: {er}", level='warning')
+                except Exception as er:
+                    p_log(f"Ошибка обработки запроса рождественского бонуса: {er}", level='warning')
+                get_item_loot('christmas')
+            else:
+                p_log("Еды в рюкзаке добычи не обнаружено")
+
+        func(*args, **kwargs)
 
     return wrapper
 
@@ -480,7 +468,7 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
 # ______________________________________________________________________________________________________________
 
 
-@apply_christmas_bonus
+@christmas_bonus
 def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None):
     payload = {
         'chooseMission': name_mission,
