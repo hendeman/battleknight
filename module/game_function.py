@@ -431,6 +431,11 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
 
     soup = BeautifulSoup(response.content, 'lxml')
 
+    # поиск всех миссий в локации, если нет mission_name, то берем случайную
+    name_missions = find_mission(soup, mission_duration, all_mission=True)
+    if mission_name not in name_missions:
+        mission_name = random.choice(name_missions)
+
     if mission_search:
         mission_name, a_tags = find_mission(soup, mission_duration, mission_name)
 
@@ -587,7 +592,7 @@ def check_status_mission(name_mission):
 def get_all_items(item, num_inv: Union[int, Tuple[int, int]] = None):
     dct_inventory = {
         "key": r'^Clue\d+_closed$',
-        "points": r'PotionRed\d+'
+        "points": r'(?:PotionRed\d+|FastingPeriodFish|FastingPeriodMeat)'
     }
 
     pattern = re.compile(dct_inventory[item])
