@@ -97,7 +97,6 @@ def check_status_war():
         time_end, sec, soup = get_time_end()
         p_log(f"Время до следующего раунда {time_end}")
         if sec:
-            # war_init = soup.find('div', id='clanwarInitiator').text
             war_init = parse_battle_declaration(soup)
             p_log(war_init)
             battle_round_status = soup.find('div', class_='battlerounds')
@@ -127,7 +126,7 @@ def check_status_war():
                     wait_until_target_time(time_end)
                     if get_config_value(key='activate_attack_castle'):
                         capture_castle(delete_war_list)
-                        time.sleep(10)
+                        time.sleep(5)
                         """
                             Далее идет проверка на неверное время от сервера. Очень редко после окончания таймера
                             войны сервер выдает снова 9 раунд
@@ -136,7 +135,7 @@ def check_status_war():
                             time_end, sec, soup = get_time_end()
                             p_log(f"Время до следующего раунда {time_end}")
                             if sec:
-                                war_init = soup.find('div', id='clanwarInitiator').text
+                                war_init = parse_battle_declaration(soup)
                                 p_log(war_init)
                                 battle_round_status = soup.find('div', class_='battlerounds')
 

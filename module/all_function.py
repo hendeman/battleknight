@@ -333,13 +333,13 @@ def format_time(seconds):
     # Формируем части только для ненулевых значений
     parts = []
     if days > 0:
-        parts.append(f"{days} дн")
+        parts.append(f"{days} d")
     if hours > 0:
-        parts.append(f"{hours} ч")
+        parts.append(f"{hours} h")
     if minutes > 0:
-        parts.append(f"{minutes} мин")
+        parts.append(f"{minutes} min")
     if seconds > 0 or not parts:  # Если все нули, показываем хотя бы секунды
-        parts.append(f"{seconds} сек")
+        parts.append(f"{seconds} sec")
 
     return ", ".join(parts)
 
@@ -358,7 +358,7 @@ def time_sleep_main(total_seconds, interval=1800, name="Осталось"):
 
         # Вывод информации о оставшемся времени
         # print(f"Осталось времени: {format_time(remaining_time)}")
-        p_log(f"{name}: {format_time(remaining_time)}")
+        p_log(f"{name}: <{format_time(remaining_time)}>")
 
 
 def no_cache():
