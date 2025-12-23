@@ -29,11 +29,21 @@ def pars_name(soup, user_tag=False):
 def heals(resp):
     soup = BeautifulSoup(resp.text, 'lxml')
     try:
-        life_count_element = int(soup.find(id="lifeCount").text.split()[0])
+        life_count_element = int(soup.find(id="lifeCount").text)
         p_log(f"Количество здоровья: {life_count_element}")
         return life_count_element
     except AttributeError:
         p_log("Ошибка получения здоровья", level='warning')
+
+
+def level(resp):
+    soup = BeautifulSoup(resp.text, 'lxml')
+    try:
+        level_count_element = int(soup.find(id="levelCount").text)
+        p_log(f"Количество опыта: {level_count_element}")
+        return level_count_element
+    except AttributeError:
+        p_log("Ошибка получения опыта", level='warning')
 
 
 def is_horse_travel_button_active(resp, where):
