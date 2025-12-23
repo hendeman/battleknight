@@ -38,10 +38,20 @@ def heals(resp):
 
 def level(resp):
     soup = BeautifulSoup(resp.text, 'lxml')
+
+    pattern = (
+        r"document\.id\('levelMeter'\)\.setStyle\('height',\s*"
+        r"calculateBubbleFillLevel\((\d+),\s*(\d+),\s*(\d+)\)\);"
+    )
+
+    match = re.search(pattern, str(soup))
+
     try:
-        level_count_element = int(soup.find(id="levelCount").text)
-        p_log(f"Количество опыта: {level_count_element}")
-        return level_count_element
+        if not match or not match.groups():
+            raise AttributeError
+        num1, num2, num3 = match.groups()
+        p_log(f"Количество опыта: {num1}/{num3}")
+        return int(num1)
     except AttributeError:
         p_log("Ошибка получения опыта", level='warning')
 
