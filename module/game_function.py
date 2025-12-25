@@ -946,7 +946,9 @@ def up_attribute(attr_name=None, count=0, limit_treasury=0):
         attr_name = selected_attr
 
     elif isinstance(attr_name, (str, int)):
-        if attr_name not in ATTRIBUTES:
+        if not attr_name:
+            return
+        elif attr_name not in ATTRIBUTES:
             p_log(f'Атрибут {attr_name} не найден', level='warning')
             return
     else:
