@@ -141,7 +141,7 @@ def autoplay(town, mission_name, side):
         if (count_work + 2) % 3 == 0:
             time_begin = wait_until(start_game)
             if time_begin < 36000:
-                p_log(f"До начала следующего цикла {format_time(time_begin)}. Ожидаем...")
+                p_log(f"До начала следующего цикла <{format_time(time_begin)}>. Ожидаем...")
                 time_sleep(time_begin)
             else:
                 p_log("Цикл получился более 24 часов. Уменьшите время выполнения промежуточным программ")
