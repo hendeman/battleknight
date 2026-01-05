@@ -913,7 +913,7 @@ def payout(silver_out: int):
 
 # _________________________________ Прокачать атрибут__________________________________________
 
-def up_attribute(attr_name=None, count=0, limit_treasury=0):
+def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold: int = 0):
     """
     Функция для прокачки атрибута навыка
     :param attr_name: Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
@@ -921,6 +921,9 @@ def up_attribute(attr_name=None, count=0, limit_treasury=0):
                       будет выбран случайный атрибут из пересечения с доступными атрибутами
     :param count: Количество раз для прокачки, при count=0 прокачка по максимуму
     :param limit_treasury: Сколько взять серебра из казны. При limit_treasury=0 из казны не берется ничего
+    :param silver_threshold: Минимальный порог наличия серебра для прокачки атрибутов. Если будет в наличии серебра
+    меньше данного значения, то повышение атрибутов прекратится
+
     :return: None
     """
 
@@ -958,13 +961,15 @@ def up_attribute(attr_name=None, count=0, limit_treasury=0):
     response = make_request(url_user)
     silver = get_silver(response)
     data = pars_stats(response)
+    if silver < silver_threshold:
+        return
     if silver >= data[attr_name]:
         iteration_count = 0
         while True:
             resp = make_request(f"{url_raise_attr}{attr_name}").json()
             p_log(f"Повышен {attr_name} атрибут")
             new_price = resp["data"][attr_name]["newPrice"]
-            if resp["silver"] < new_price:
+            if resp["silver"] < new_price or resp["silver"] < silver_threshold:
                 break
             iteration_count += 1
             if 0 < count <= iteration_count:
@@ -975,7 +980,7 @@ def up_attribute(attr_name=None, count=0, limit_treasury=0):
         if diff < limit_treasury:
             if not payout(diff):
                 return
-            up_attribute(attr_name, count=count, limit_treasury=limit_treasury)
+            up_attribute(attr_name, count=count, limit_treasury=limit_treasury, silver_threshold=silver_threshold)
 
 
 # ______________________________________________________________________________________________________
