@@ -913,7 +913,7 @@ def payout(silver_out: int):
 
 # _________________________________ Прокачать атрибут__________________________________________
 
-def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold: int = 0):
+def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold=None):
     """
     Функция для прокачки атрибута навыка
     :param attr_name: Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
@@ -926,6 +926,10 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
 
     :return: None
     """
+
+    # при отсутствии silver_threshold в config.ini будет значение 0
+    if silver_threshold is None:
+        silver_threshold = get_config_value('silver_threshold')
 
     if attr_name is None:
         attr = get_config_value('up_attribute')
