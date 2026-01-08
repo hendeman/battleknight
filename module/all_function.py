@@ -358,7 +358,7 @@ def time_sleep_main(total_seconds, interval=1800, name="Осталось"):
 
         # Вывод информации о оставшемся времени
         # print(f"Осталось времени: {format_time(remaining_time)}")
-        p_log(f"{name}: <{format_time(remaining_time)}>")
+        p_log(f"{name}: {format_time(remaining_time)}")
 
 
 def no_cache():
