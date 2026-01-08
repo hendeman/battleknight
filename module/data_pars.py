@@ -26,6 +26,24 @@ def pars_name(soup, user_tag=False):
         p_log(f'Class {class_tag_name} not found for pars_name', level='warning')
 
 
+def pars_player_compare(soup):
+    table = soup.find('table', id='challengerAttrib')
+
+    keys = setting.ATTRIBUTES
+
+    attributes = {}
+    rows = table.find_all('tr')
+
+    for i, row in enumerate(rows):
+        if i < len(keys):
+            td = row.find('td')
+            if td:
+                value = td.text.strip()
+                attributes[keys[i]] = value
+
+    return attributes
+
+
 def heals(resp):
     soup = BeautifulSoup(resp.text, 'lxml')
     try:

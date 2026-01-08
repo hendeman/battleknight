@@ -18,10 +18,10 @@ from requests import Response
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
-    current_time, save_error_html, string_to_datetime
+    current_time, save_error_html, string_to_datetime, create_pickle_file, date
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
-    pars_stats, is_horse_travel_button_active, get_mission_point
+    pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -1413,6 +1413,83 @@ def get_gold_duel(resp):
     fight_status = soup.find('div', class_='fightResultsInner').find_all('em')[0].text
     p_log(f"{fight_status}. Получено {result} серебра")
     return result
+
+
+def get_player_compare(id_player: Union[int, str]) -> dict:
+    """
+    Функция возвращает значения атрибутов со ссылки compare. При этом наш рыцарь должен быть свободен.
+    :param id_player: ID игрока
+    :return: {'str': '1605', 'dex': '2024', 'end': '940', 'luck': '3015', 'weapon': '1775', 'defense': '1582',
+                'damage': '1401 - 1534', 'armor': '1320'}
+    """
+    response = make_request(f"{url_compare}{id_player}")
+    soup = BeautifulSoup(response.text, 'lxml')
+    if not check_progressbar(resp=response):
+        return pars_player_compare(soup)
+    p_log("Информация недоступна. Попробуйте позже")
+
+
+def get_players_find(count,
+                     summ_stat,
+                     level: Union[int, tuple, list],
+                     weaker_or_stronger: bool = False,
+                     keys_to_sum: tuple = ('str', 'dex', 'luck', 'weapon', 'defense'),
+                     save_file="pickle"
+                     ):
+    """
+    Функция поиска игроков для дуэли
+    :param count: Количество найденных игроков
+    :param summ_stat: Сумма атрибутов Сила, Одаренность, Удача, Искусство атаки, Искусство защиты
+    :param level: Уровень соперника. Может принимать int or tuple, list
+    :param weaker_or_stronger: Тип поиска -> False слабее, True сильнее
+    :param keys_to_sum Ключи для сравнения атрибутов. Весь кортеж ('str', 'dex', 'end', 'luck', 'weapon', 'defense')
+    :param save_file: Расширение сохраняемого файла: "pickle", None - без сохранения
+    :return:
+    """
+    find_id_list = {}
+    save_prev = None
+    level_of_numbers = []
+    duel_type = DUEL_FIND[1] if weaker_or_stronger else DUEL_FIND[0]
+    url = url_duel_type + duel_type
+
+    if isinstance(level, int):
+        level_of_numbers.append(level)
+        save_prev = level
+    elif isinstance(level, (tuple, list)):
+        start, end = level
+        level_of_numbers.extend(list(range(start, end + 1)))
+        save_prev = f"{start}_{end}"
+
+    for cou in range(count * 2):
+        try:
+            resp = post_request(url, {"searchtype": duel_type}).json()
+            if resp["result"]:
+                knight_level = int(resp["data"][0]["knight_level"])
+                knight_id = resp["data"][0]["knight_id"]
+                if knight_level in level_of_numbers and knight_id not in find_id_list:
+                    stat_player = get_player_compare(knight_id)
+                    p_log(f"{knight_id}: {stat_player}", level='debug')
+                    total_stat_player = sum(
+                        int(stat_player[key])
+                        if key != 'damage'
+                        else int(sum(map(int, (x.strip() for x in stat_player[key].split('-')))) / 2)
+                        for key in keys_to_sum if key in stat_player
+                    )
+                    if total_stat_player <= summ_stat:
+                        find_id_list[knight_id] = {"time": date, "spoil": 0}
+                        if len(find_id_list) >= count:
+                            break
+            else:
+                p_log(resp["reason"])
+        except JSONDecodeError as er:
+            p_log(f"Error json get_players_find: {er}", level='warning')
+        except Exception as er:
+            p_log(f"Ошибка обработки запроса поиска на дуэль: {er}", level='warning')
+        time.sleep(1)
+
+    p_log(*find_id_list.keys())
+    if save_file == "pickle":
+        create_pickle_file(name_file=f'pickles_data/find_{save_prev}.pickle', loaded_dict=find_id_list)
 
 
 def check_status_group():
