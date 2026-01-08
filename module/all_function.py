@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Optional
+from typing import Optional, Any
 from inspect import signature
 
 import psutil
@@ -341,7 +341,7 @@ def format_time(seconds):
     if seconds > 0 or not parts:  # Если все нули, показываем хотя бы секунды
         parts.append(f"{seconds} sec")
 
-    return ", ".join(parts)
+    return f"<{', '.join(parts)}>"
 
 
 def time_sleep_main(total_seconds, interval=1800, name="Осталось"):
@@ -605,21 +605,23 @@ def read_conf_txt(loaded_dict):
     return loaded_dict
 
 
-def create_pickle_file(name_file=GOLD_GAMER):
-    loaded_dict = read_conf_txt({})
+def create_pickle_file(name_file=GOLD_GAMER, loaded_dict: dict = None):
+    if loaded_dict is None:
+        loaded_dict = read_conf_txt({})
 
     with open(name_file, 'wb') as f:
         pickle.dump(loaded_dict, f)
         p_log(f"Данные успешно обновлены в файл {name_file}. Всего {len(loaded_dict)} записей")
 
 
-def change_pickle_file(name_file=NICKS_GAMER):
+def change_pickle_file(name_file=NICKS_GAMER, loaded_dict: dict = None):
     if not os.path.exists(name_file):
         with open(name_file, 'wb') as f:
             pickle.dump({}, f)
 
     with open(name_file, 'rb+') as f:
-        loaded_dict = read_conf_txt(pickle.load(f))
+        if loaded_dict is None:
+            loaded_dict = read_conf_txt(pickle.load(f))
         f.seek(0)  # Перемещение курсора в начало файла
         f.truncate()  # Очистка содержимого файла
         pickle.dump(loaded_dict, f)
@@ -637,6 +639,30 @@ def read_pickle_file(name_file=NICKS_GAMER):
         p_log(f"Файл {name_file} не найден")
     except ValueError as er:
         p_log(f"Нарушена структура файла {name_file}. Ошибка: {er}")
+
+
+def update_pickle_field(filename: str, field_name: str, new_value: Any) -> None:
+    """
+    Обновляет указанное поле во всех записях.
+
+    Args:
+        filename: Путь к файлу
+        field_name: Имя поля для обновления
+        new_value: Новое значение
+    """
+    with open(filename, 'rb') as f:
+        data = pickle.load(f)
+
+    updated_count = 0
+    for key, value in data.items():
+        if isinstance(value, dict) and field_name in value:
+            value[field_name] = new_value
+            updated_count += 1
+
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
+
+    p_log(f"Поле '{field_name}' обновлено в {updated_count} записях", level='debug')
 
 
 # __________________________________________ Декоратор ленивой загрузки параметров ______________________________

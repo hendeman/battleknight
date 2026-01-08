@@ -24,7 +24,8 @@ NAME_HELPERS = {
     "companion": {'item_name': "itemCompanion", 'type_helper_names': 'компаньон'},
     "horse": {'item_name': "itemHorse", 'type_helper_names': 'наездник'}
 }
-ATTRIBUTES = ("str", "dex", "end", "luck", "weapon", "defense")
+ATTRIBUTES = ("str", "dex", "end", "luck", "weapon", "defense", "damage", "armor")
+DUEL_FIND = ("weaker", "stronger")
 # Выбор программы:
 # 1 - это программа клановой статистики
 # 0 - это программа серверной статистики
@@ -154,6 +155,7 @@ url_point = '/user/getPotionBar'
 url_auctioneer = '/market/auctioneer'
 url_payout = '/treasury/payout'
 url_duel = '/duel/'
+url_duel_type = '/ajax/duel/proposals/?searchtype='
 url_joust_sign = '/joust/signUp'
 url_joust = '/joust'
 url_alchemist = '/market/merchant/alchemist'
