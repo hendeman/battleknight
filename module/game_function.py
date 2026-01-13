@@ -478,7 +478,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
     payload = {
         'chooseMission': name_mission,
         'missionArt': f'{get_config_value("mission_duration") if not length_mission else length_mission}',
-        'missionKarma': get_config_value("working_karma"),
+        'missionKarma': get_config_value("working_karma").capitalize(),
         'buyRubies': buy_rubies
     }
 
@@ -901,14 +901,14 @@ def place_bet(id_item, bet):
 def payout(silver_out: int):
     response = make_request(url_treasury)
     to_silver, to_silver_treasury = pars_treasury(response)
-    if silver_out <= to_silver:
+    if silver_out <= to_silver_treasury:
         payload = {'silverToPayout': silver_out}
         response = post_request(url_payout, payload)
         to_silver, to_silver_treasury = pars_treasury(response)
         p_log(f"Из казны взято {silver_out} серебра")
         return to_silver
     else:
-        p_log(f"Недостаточно средств в казне: {silver_out} | {to_silver}")
+        p_log(f"Недостаточно средств в казне: {silver_out} | {to_silver_treasury}")
 
 
 # _________________________________ Прокачать атрибут__________________________________________
@@ -921,8 +921,8 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
                       будет выбран случайный атрибут из пересечения с доступными атрибутами
     :param count: Количество раз для прокачки, при count=0 прокачка по максимуму
     :param limit_treasury: Сколько взять серебра из казны. При limit_treasury=0 из казны не берется ничего
-    :param silver_threshold: Минимальный порог наличия серебра для прокачки атрибутов. Если будет в наличии серебра
-    меньше данного значения, то повышение атрибутов прекратится
+    :param silver_threshold: Минимальный порог наличия серебра для прокачки атрибутов + стоимость стата.
+    Если будет в наличии серебра меньше данного значения, то повышение атрибутов прекратится
 
     :return: None
     """
@@ -965,26 +965,28 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
     response = make_request(url_user)
     silver = get_silver(response)
     data = pars_stats(response)
-    if silver < silver_threshold:
-        return
-    if silver >= data[attr_name]:
+    attr_cost = data[attr_name]
+    if silver < silver_threshold + attr_cost:
+        diff = silver_threshold + attr_cost - silver
+        if diff < limit_treasury:
+            if not payout(diff):
+                return
+            up_attribute(attr_name, count=count, limit_treasury=limit_treasury, silver_threshold=silver_threshold)
+        else:
+            p_log(f"Недостаточно серебра. Имеется {silver} | порог {silver_threshold} | цена {attr_cost}")
+    else:
         iteration_count = 0
         while True:
             resp = make_request(f"{url_raise_attr}{attr_name}").json()
             p_log(f"Повышен {attr_name} атрибут")
             new_price = resp["data"][attr_name]["newPrice"]
-            if resp["silver"] < new_price or resp["silver"] < silver_threshold:
+            if resp["silver"] < silver_threshold + new_price:
+                p_log(f"Недостаточно серебра. Имеется {resp['silver']} | порог {silver_threshold} | цена {new_price}")
                 break
             iteration_count += 1
             if 0 < count <= iteration_count:
                 break
             time.sleep(2)
-    else:
-        diff = data[attr_name] - silver
-        if diff < limit_treasury:
-            if not payout(diff):
-                return
-            up_attribute(attr_name, count=count, limit_treasury=limit_treasury, silver_threshold=silver_threshold)
 
 
 # ______________________________________________________________________________________________________
