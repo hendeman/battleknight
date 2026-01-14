@@ -36,8 +36,8 @@ def main_loop_click(group=False):
             get_config_value("working_karma").capitalize()
         ]
 
-        result = click(*game_param, rubies=use_rubies)
-        up_attribute()
+        result, silver_in_stock = click(*game_param, rubies=use_rubies)
+        up_attribute(silver=silver_in_stock)
 
         if result == Namespace.MISSION_RUBY:
             ruby_manager.mark_ruby_used()
