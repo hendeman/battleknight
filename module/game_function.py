@@ -381,7 +381,7 @@ def christmas_bonus(func):
             else:
                 p_log("Еды в рюкзаке добычи не обнаружено")
 
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -418,8 +418,9 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
     return name_mission, a_tags
 
 
-def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False):
+def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False) -> tuple:
     response = make_request(url_world)
+    silver_in_stock = get_all_silver(response)
 
     hit_point = heals(response)
     if hit_point <= 10:
@@ -453,18 +454,18 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
                     parts = onclick_value.split(',')
                     if len(parts) > 4:
                         fifth_argument = parts[4].strip().strip("');")
-                        post_dragon(mission_name, buy_rubies=fifth_argument)
-                        return Namespace.MISSION_RUBY
+                        silver_in_stock = post_dragon(mission_name, buy_rubies=fifth_argument)
+                        return Namespace.MISSION_RUBY, silver_in_stock
             if rubies:
                 save_error_html(response)
             mission_point = get_mission_point(soup)
             if mission_point >= 20:
                 p_log(f"Миссии недоступны. Здоровье {hit_point}")
-            return Namespace.NOT_MISSION
+            return Namespace.NOT_MISSION, silver_in_stock
 
         else:
-            post_dragon(mission_name)
-            return Namespace.MISSION
+            silver_in_stock = post_dragon(mission_name)
+            return Namespace.MISSION, silver_in_stock
     else:
         p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
         raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
@@ -486,9 +487,11 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
     p_log(f"С миссии {name_mission} получено {pars_gold_duel(resp, gold_info=True)} серебра")
     if buy_rubies:
         p_log(f"Потрачен {buy_rubies} рубин")
+    silver_in_stock = get_all_silver(resp)
     p_log(f"Всего {get_all_silver(resp)} серебра")
     if sleeping:
         time_sleep(check_progressbar(), delay=True)
+    return silver_in_stock
 
 
 def check_hit_point():
@@ -912,10 +915,34 @@ def payout(silver_out: int):
 
 
 # _________________________________ Прокачать атрибут__________________________________________
+class Attribute:
+    """ Класс-контейнер для хранения списка атрибутов с ценами повышения"""
+    _data_attr = {}
 
-def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold=None):
+    @classmethod
+    def init_attribute(cls):
+        """Получить и сохранить словарь с атрибутами"""
+        response = make_request(url_user)
+        cls._data_attr = pars_stats(response)
+
+    @classmethod
+    def set_attribute(cls, attr, value):
+        cls._data_attr[attr] = value
+
+    @classmethod
+    def get_attribute(cls, attr):
+        return cls._data_attr[attr]
+
+    @classmethod
+    def get_all(cls):
+        """Получить все атрибуты"""
+        return cls._data_attr.copy()
+
+
+def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold=None):
     """
     Функция для прокачки атрибута навыка
+    :param silver: Серебро на руках
     :param attr_name: Название атрибута из списка: "str", "dex", "end", "luck", "weapon", "defense"
                       Может быть строкой или кортежем/списком. Если передан кортеж/список,
                       будет выбран случайный атрибут из пересечения с доступными атрибутами
@@ -926,6 +953,10 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
 
     :return: None
     """
+
+    if not Attribute.get_all():
+        p_log(f"Список атрибутов не проинициализирован", level='warning')
+        return
 
     # при отсутствии silver_threshold в config.ini будет значение 0
     if silver_threshold is None:
@@ -962,10 +993,12 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
         p_log(f'Неверный тип параметра attr_name: {type(attr_name)}', level='warning')
         return
 
-    response = make_request(url_user)
-    silver = get_silver(response)
-    data = pars_stats(response)
-    attr_cost = data[attr_name]
+    if silver is None:
+        response = make_request(url_user)
+        silver = get_silver(response)
+
+    attr_cost = Attribute.get_attribute(attr_name)
+
     if silver < silver_threshold + attr_cost:
         diff = silver_threshold + attr_cost - silver
         if diff < limit_treasury:
@@ -980,6 +1013,7 @@ def up_attribute(attr_name=None, count: int = 0, limit_treasury: int = 0, silver
             resp = make_request(f"{url_raise_attr}{attr_name}").json()
             p_log(f"Повышен {attr_name} атрибут")
             new_price = resp["data"][attr_name]["newPrice"]
+            Attribute.set_attribute(attr_name, new_price)
             if resp["silver"] < silver_threshold + new_price:
                 p_log(f"Недостаточно серебра. Имеется {resp['silver']} | порог {silver_threshold} | цена {new_price}")
                 break
@@ -1816,6 +1850,7 @@ def account_verification(not_token=False, helper_init=True):
     response = make_request(url_user)
     set_name(response)
     get_id(response, not_token)
+    Attribute.init_attribute()  # инициализация стоимости атрибутов
     # инициализация компаньонов и наездников
     if helper_init:
         all_helper(save_json=True)
