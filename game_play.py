@@ -31,7 +31,7 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
         mission_name = choice(mission_name) if isinstance(mission_name, list) else mission_name
         time.sleep(1)
 
-        result = click(mission_duration, mission_name, find_karma)
+        result, silver_in_stock = click(mission_duration, mission_name, find_karma)
 
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет.")
