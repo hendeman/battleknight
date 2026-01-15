@@ -64,6 +64,8 @@ def logger_process(queue, enable_rotation, config_path, log_file_path):
                 try:
                     restore_string = restore_string_from_asterisks(translate_text, word_list)
                 except AttributeError as er:
+                    if not os.path.exists(DICTIONARY_NOT_WORLDS):
+                        buffer_translate = {}
                     if original_message not in buffer_translate:
                         buffer_translate[original_message] = modified_text
                         with open(DICTIONARY_NOT_WORLDS, 'wb') as f:
