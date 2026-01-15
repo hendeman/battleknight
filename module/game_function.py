@@ -924,13 +924,17 @@ class Attribute:
         """Получить и сохранить словарь с атрибутами"""
         response = make_request(url_user)
         cls._data_attr = pars_stats(response)
+        p_log(f'Инициализация атрибутов: {cls._data_attr}', level='debug')
 
     @classmethod
     def set_attribute(cls, attr, value):
         cls._data_attr[attr] = value
+        p_log(f'Атрибуту {attr} присвоено {value}', level='debug')
+        p_log(f'{cls._data_attr}', level='debug')
 
     @classmethod
     def get_attribute(cls, attr):
+        p_log(f'Атрибут {attr}={cls._data_attr[attr]}', level='debug')
         return cls._data_attr[attr]
 
     @classmethod
@@ -939,7 +943,7 @@ class Attribute:
         return cls._data_attr.copy()
 
 
-def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury: int = 0, silver_threshold=None):
+def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury=None, silver_threshold=None):
     """
     Функция для прокачки атрибута навыка
     :param silver: Серебро на руках
@@ -958,9 +962,9 @@ def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury: in
         p_log(f"Список атрибутов не проинициализирован", level='warning')
         return
 
-    # при отсутствии silver_threshold в config.ini будет значение 0
-    if silver_threshold is None:
-        silver_threshold = get_config_value('silver_threshold')
+    # при отсутствии в config.ini будет значение 0
+    silver_threshold = silver_threshold if silver_threshold is not None else get_config_value('silver_threshold')
+    limit_treasury = limit_treasury if limit_treasury is not None else get_config_value('limit_treasury')
 
     if attr_name is None:
         attr = get_config_value('up_attribute')
@@ -980,7 +984,10 @@ def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury: in
 
         # Выбираем случайный атрибут из доступных
         selected_attr = random.choice(list(available_attrs))
-        p_log(f'Выбран случайный атрибут из {attr_name}: {selected_attr}')
+        if len(attr_name) > 1:
+            p_log(f'Выбран случайный атрибут из {attr_name}: {selected_attr}')
+        else:
+            p_log(f'Выбран атрибут: {selected_attr}')
         attr_name = selected_attr
 
     elif isinstance(attr_name, (str, int)):
@@ -1004,16 +1011,31 @@ def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury: in
         if diff < limit_treasury:
             if not payout(diff):
                 return
-            up_attribute(attr_name, count=count, limit_treasury=limit_treasury, silver_threshold=silver_threshold)
+            up_attribute(silver=silver,
+                         attr_name=attr_name,
+                         count=count,
+                         limit_treasury=limit_treasury,
+                         silver_threshold=silver_threshold)
         else:
             p_log(f"Недостаточно серебра. Имеется {silver} | порог {silver_threshold} | цена {attr_cost}")
     else:
         iteration_count = 0
         while True:
             resp = make_request(f"{url_raise_attr}{attr_name}").json()
-            p_log(f"Повышен {attr_name} атрибут")
-            new_price = resp["data"][attr_name]["newPrice"]
-            Attribute.set_attribute(attr_name, new_price)
+            if resp["result"]:
+                p_log(f"Повышен {attr_name} атрибут")
+                new_price = resp["data"][attr_name]["newPrice"]
+                Attribute.set_attribute(attr_name, new_price)
+            else:
+                p_log(f'Ошибка повышения атрибутов: {resp["reason"]}')
+                Attribute.init_attribute()
+                p_log(f'attr_old={attr_cost} | attr_new={Attribute.get_attribute(attr_name)}', level='debug')
+                up_attribute(silver=silver,
+                             attr_name=attr_name,
+                             count=count,
+                             limit_treasury=limit_treasury,
+                             silver_threshold=silver_threshold)
+                break
             if resp["silver"] < silver_threshold + new_price:
                 p_log(f"Недостаточно серебра. Имеется {resp['silver']} | порог {silver_threshold} | цена {new_price}")
                 break

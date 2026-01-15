@@ -11,7 +11,7 @@ from module.cli import arg_parser
 from module.game_function import check_progressbar, contribute_to_treasury, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
-    set_initial_gold, click, Namespace
+    set_initial_gold, click, Namespace, Attribute, up_attribute
 from module.group import go_group
 from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all, url_mission, get_name, get_filename, \
@@ -32,6 +32,7 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
         time.sleep(1)
 
         result, silver_in_stock = click(mission_duration, mission_name, find_karma)
+        up_attribute(silver=silver_in_stock)
 
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет.")
@@ -185,6 +186,7 @@ def run_process_for_hours(target_function, hours, process_name):
     p_log(f"Остановка {process_name} процесса...")
     process.terminate()
     process.join()
+    Attribute.init_attribute()  # Инициализация атрибутов
     p_log("Дополнительное ожидание")
     time_sleep_main(650 + get_config_value("correct_time"), interval=300)
 
