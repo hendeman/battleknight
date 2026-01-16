@@ -6,11 +6,17 @@ from module.all_function import get_config_value
 
 class RubyManager:
     def __init__(self):
-        self.total_limit = get_config_value("rubies_limit")
-        self.daily_limit = get_config_value("rubies_day")
         self.total_used = 0
         self.daily_used = 0
         self.last_reset_date = datetime.now().date()
+
+    @property
+    def total_limit(self):
+        return get_config_value("rubies_limit")
+
+    @property
+    def daily_limit(self):
+        return get_config_value("rubies_day")
 
     def should_use_rubies(self):
         # Проверяем смену дня
@@ -19,21 +25,12 @@ class RubyManager:
             self.last_reset_date = datetime.now().date()
             p_log("Новый день, сбрасываем счетчик рубинов")
 
-        self.update_ruby_config()
-
         # Возвращаем True если можно использовать рубины
         return self.daily_used < self.daily_limit and self.total_used < self.total_limit
 
     def mark_ruby_used(self):
         self.total_used += 1
         self.daily_used += 1
-
-    def update_ruby_config(self):
-        if self.daily_limit != get_config_value("rubies_day"):
-            self.daily_limit = get_config_value("rubies_day")
-
-        if self.total_limit != get_config_value("rubies_limit"):
-            self.total_limit = get_config_value("rubies_limit")
 
 
 ruby_manager = RubyManager()
