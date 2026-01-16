@@ -444,6 +444,8 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
     a_tags = soup.find('a', onclick=lambda onclick: onclick and search_string in onclick)
 
     if a_tags:
+        mission_point = get_mission_point(soup)
+        p_log(f"Свободные очки миссий {mission_point}")
         if 'disabledSpecialBtn' in a_tags.get('class', []):
             onclick_pattern = f"chooseMission('{mission_duration}', '{mission_name}', '{find_karma}', this, '1')"
             buy_rubies_tags = soup.find('a', class_='devSmall missionBuyRubies toolTip',
@@ -458,7 +460,6 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
                         return Namespace.MISSION_RUBY, silver_in_stock
             if rubies:
                 save_error_html(response)
-            mission_point = get_mission_point(soup)
             if mission_point >= 20:
                 p_log(f"Миссии недоступны. Здоровье {hit_point}")
             return Namespace.NOT_MISSION, silver_in_stock
