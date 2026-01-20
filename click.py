@@ -3,7 +3,7 @@ from logs.logs import p_log
 from module.all_function import time_sleep, get_config_value, format_time
 from module.cli import arg_parser
 from module.game_function import is_time_between, check_progressbar, check_time_sleep, account_verification, \
-    activate_karma, click, Namespace, up_attribute
+    activate_karma, click, Namespace
 from module.group import go_group
 from module.ruby_manager import ruby_manager
 
@@ -36,8 +36,7 @@ def main_loop_click(group=False):
             get_config_value("working_karma").capitalize()
         ]
 
-        result, silver_in_stock = click(*game_param, rubies=use_rubies)
-        up_attribute(silver=silver_in_stock)
+        result = click(*game_param, rubies=use_rubies)
 
         if result == Namespace.MISSION_RUBY:
             ruby_manager.mark_ruby_used()

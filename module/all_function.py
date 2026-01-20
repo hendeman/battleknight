@@ -641,6 +641,23 @@ def read_pickle_file(name_file=NICKS_GAMER):
         p_log(f"Нарушена структура файла {name_file}. Ошибка: {er}")
 
 
+def conv_pickle_txt_id(path_pickle: str, path_txt: str) -> None:
+    """
+    Функция для пересохранения pickle -> txt
+    :param path_pickle: путь для pickle файла
+    :param path_txt: путь для txt файла
+    :return: None
+    """
+    try:
+        with open(f"{path_pickle}", 'rb') as f:
+            loaded_dict = pickle.load(f)
+        with open(path_txt, 'w', encoding='utf-8-sig') as f:
+            f.write('\n'.join(str(key) for key in loaded_dict))
+        p_log(f"ID успешно сохранены в {path_txt}. Всего {len(loaded_dict)}")
+    except FileNotFoundError:
+        p_log(f"Файл {path_pickle} не найден")
+
+
 def update_pickle_field(filename: str, field_name: str, new_value: Any) -> None:
     """
     Обновляет указанное поле во всех записях.

@@ -418,9 +418,8 @@ def find_mission(soup, length_mission, name_mission=None, all_mission=False):
     return name_mission, a_tags
 
 
-def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False) -> tuple:
+def click(mission_duration, mission_name, find_karma, rubies=False, mission_search=False) -> Namespace:
     response = make_request(url_world)
-    silver_in_stock = get_all_silver(response)
 
     hit_point = heals(response)
     if hit_point <= 10:
@@ -456,17 +455,17 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
                     parts = onclick_value.split(',')
                     if len(parts) > 4:
                         fifth_argument = parts[4].strip().strip("');")
-                        silver_in_stock = post_dragon(mission_name, buy_rubies=fifth_argument)
-                        return Namespace.MISSION_RUBY, silver_in_stock
+                        post_dragon(mission_name, buy_rubies=fifth_argument)
+                        return Namespace.MISSION_RUBY
             if rubies:
                 save_error_html(response)
             if mission_point >= 20:
                 p_log(f"Миссии недоступны. Здоровье {hit_point}")
-            return Namespace.NOT_MISSION, silver_in_stock
+            return Namespace.NOT_MISSION
 
         else:
-            silver_in_stock = post_dragon(mission_name)
-            return Namespace.MISSION, silver_in_stock
+            post_dragon(mission_name)
+            return Namespace.MISSION
     else:
         p_log(f'Не удалось найти тег <a> с нужным атрибутом onclick.', level='error', is_error=True)
         raise TypeError('Не удалось найти тег <a> с нужным атрибутом onclick')
@@ -490,9 +489,11 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
         p_log(f"Потрачен {buy_rubies} рубин")
     silver_in_stock = get_all_silver(resp)
     p_log(f"Всего {get_all_silver(resp)} серебра")
+
+    up_attribute(silver=silver_in_stock)  # повысить атрибуты
+
     if sleeping:
         time_sleep(check_progressbar(), delay=True)
-    return silver_in_stock
 
 
 def check_hit_point():
@@ -921,9 +922,10 @@ class Attribute:
     _data_attr = {}
 
     @classmethod
-    def init_attribute(cls):
+    def init_attribute(cls, response=None):
         """Получить и сохранить словарь с атрибутами"""
-        response = make_request(url_user)
+        if response is None:
+            response = make_request(url_user)
         cls._data_attr = pars_stats(response)
         p_log(f'Инициализация атрибутов: {cls._data_attr}', level='debug')
 
@@ -1012,9 +1014,9 @@ def up_attribute(silver=None, attr_name=None, count: int = 0, limit_treasury=Non
         if diff < limit_treasury:
             if not payout(diff):
                 return
-            up_attribute(silver=silver,
+            up_attribute(silver=silver + diff,
                          attr_name=attr_name,
-                         count=count,
+                         count=count - 1,
                          limit_treasury=limit_treasury,
                          silver_threshold=silver_threshold)
         else:
@@ -1873,7 +1875,7 @@ def account_verification(not_token=False, helper_init=True):
     response = make_request(url_user)
     set_name(response)
     get_id(response, not_token)
-    Attribute.init_attribute()  # инициализация стоимости атрибутов
+    Attribute.init_attribute(response)  # инициализация стоимости атрибутов
     # инициализация компаньонов и наездников
     if helper_init:
         all_helper(save_json=True)
