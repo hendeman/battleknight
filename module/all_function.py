@@ -10,6 +10,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from functools import wraps
+from pathlib import Path
 from typing import Optional, Any
 from inspect import signature
 
@@ -680,6 +681,21 @@ def update_pickle_field(filename: str, field_name: str, new_value: Any) -> None:
         pickle.dump(data, f)
 
     p_log(f"Поле '{field_name}' обновлено в {updated_count} записях", level='debug')
+
+
+def find_files_with_word(directory: Path, find_word: str) -> Path:
+    """
+    Найти файлы, содержащие слово в имени
+    :param directory:  Директория для поиска файла
+    :param find_word:  Слово, которое содержит файл
+    :return: Полный пусть к файлу
+    """
+
+    for filename in os.listdir(directory):
+        if find_word.lower() in filename.lower():
+            return directory / filename
+    p_log(f"В директории {directory} нет файлов с именем {find_word}", level='debug')
+    return directory / find_word
 
 
 # __________________________________________ Декоратор ленивой загрузки параметров ______________________________
