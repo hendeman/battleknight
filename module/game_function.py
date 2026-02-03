@@ -18,7 +18,7 @@ from requests import Response
 from logs.logs import p_log
 from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple, get_random_value, \
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
-    current_time, save_error_html, string_to_datetime, create_pickle_file, date
+    current_time, save_error_html, string_to_datetime, create_pickle_file
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
     pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare
@@ -1537,7 +1537,7 @@ def get_players_find(count,
                         for key in keys_to_sum if key in stat_player
                     )
                     if total_stat_player <= summ_stat:
-                        find_id_list[knight_id] = {"time": date, "spoil": 0}
+                        find_id_list[knight_id] = {"time": DATA_DEFAULT, "spoil": 0}
                         if len(find_id_list) >= count:
                             break
             else:
