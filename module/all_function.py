@@ -239,12 +239,29 @@ def show_config():
         return f"Error: Failed to read the configuration file. {e}"
 
 
-def save_file(data: dict, name_file: str):
-    command = input().lower()
-    if command == "y":
+def save_file(data: dict, name_file: str, auto_save: bool = False):
+    """
+    Сохраняет данные в файл.
+
+    Args:
+        data: Данные для сохранения
+        name_file: Имя файла
+        auto_save: Если True, сохраняет без запроса подтверждения
+    """
+    if auto_save:
+        # Автоматическое сохранение без запроса
         with open(name_file, 'wb') as f:
             pickle.dump(data, f)
-            print(f"Данные записаны в файл {name_file}")
+            p_log(f"Данные автоматически записаны в файл {name_file}")
+    else:
+        # Сохранение с запросом подтверждения
+        command = input("Сохранить файл? (y/n): ").lower()
+        if command == "y":
+            with open(name_file, 'wb') as f:
+                pickle.dump(data, f)
+                p_log(f"Данные записаны в файл {name_file}")
+        else:
+            p_log("Сохранение отменено")
 
 
 day_list_1 = (5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27, 28, 29, 30)
