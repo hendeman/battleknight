@@ -475,7 +475,7 @@ def click(mission_duration, mission_name, find_karma, rubies=False, mission_sear
 
 
 @christmas_bonus
-def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None):
+def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None) -> Response:
     payload = {
         'chooseMission': name_mission,
         'missionArt': f'{get_config_value("mission_duration") if not length_mission else length_mission}',
@@ -494,6 +494,7 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
 
     if sleeping:
         time_sleep(check_progressbar(), delay=True)
+    return resp
 
 
 def check_hit_point():

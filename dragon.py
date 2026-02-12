@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from logs.logging_config import LoggingSystemManager
 from logs.logs import p_log, setup_logging
-from module.data_pars import get_point_mission
+from module.data_pars import get_point_mission, get_all_silver
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
     load_json_file, kill_process_hierarchy, reload_setting_param
@@ -69,12 +69,11 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
                 dragon_bar = soup.find('div', id='dragonLiveBar')['style']
                 p_log(f"У дракона осталось {dragon_bar.split()[1]} здоровья")
 
-            post_dragon(name_mission=name_mission)
+            resp = post_dragon(name_mission=name_mission)
 
             a_tags = check_status_mission(name_mission)
 
-            silver_count = int(soup.find(id='silverCount').text)
-            p_log(f"Свободные очки миссий: {get_point_mission(soup)}")
+            silver_count = get_all_silver(resp)
 
             # Купить кольцо на аукционе, либо положить в казну
             if name_mission == "DragonEventGreatDragon" and silver_count > get_config_value("gold_limit"):
@@ -269,7 +268,7 @@ def autoplay(partial_event_search):
             process.start()
             p_log(f"Процесс {EVENT_NAME} будет работать до 20:00...")
             p_log(f"processPID={process.pid}", level='debug')
-            time_sleep_main(wait_until('20:00'), interval=5000, name='Healer search program. Remaining:')
+            time_sleep_main(wait_until('20:00'), interval=5000, name='Программа поиска целителя. Осталось')
             p_log(f"Остановка {EVENT_NAME} процесса...")
             kill_process_hierarchy(process.pid)
             process.join()
