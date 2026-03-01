@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import requests
 import logging
 
+from telebot.apihelper import ApiTelegramException
+
 from module.all_function import change_config_value, show_config
 from module.bot.config import *
 from module.bot.utils import load_allowed_users, save_allowed_users, read_last_lines
@@ -147,7 +149,9 @@ def register_handlers(bot):
                         if meta_change:
                             lines = f.readlines()
                             f.seek(0, 2)  # Устанавливаем в конец файла
-
+                        else:
+                            lines = []  # Инициализируем пустым списком, если файл старый
+                            f.seek(0, 2)  # Все равно переходим в конец
                     else:
                         f.seek(last_positions[command])  # Продолжаем с текущей позиции
                         lines = f.readlines()
@@ -187,18 +191,29 @@ def register_handlers(bot):
                         try:
                             war_mess = f"\nwarning {len(warning_list) * '*'}" if warning_list else ""
                             log_message = '\n'.join(processed_lines) + war_mess
-                            for user_id in ALLOWED_USERS:
-                                max_length = 1000
-                                parts = [log_message[i:i + max_length] for i in range(0, len(log_message), max_length)]
-                                for part in parts:
-                                    while True:  # Бесконечный цикл для повторных попыток
-                                        try:
-                                            bot.send_message(user_id, part)
-                                            break  # Выход из цикла при успешной отправке
-                                        except requests.exceptions.ConnectionError as e:
-                                            logging.error(
-                                                f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
-                                            time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
+                            for user_id in ALLOWED_USERS.copy():
+                                try:
+                                    max_length = 1000
+                                    parts = [log_message[i:i + max_length] for i in range(0, len(log_message), max_length)]
+                                    for part in parts:
+                                        while True:  # Бесконечный цикл для повторных попыток
+                                            try:
+                                                bot.send_message(user_id, part)
+                                                break  # Выход из цикла при успешной отправке
+                                            except requests.exceptions.ConnectionError as e:
+                                                logging.error(
+                                                    f"Ошибка соединения при отправке сообщения пользователю {user_id}: {e}")
+                                                time.sleep(10)  # Задержка 10 секунд перед повторной попыткой
+
+                                # Удалить пользователя, если пользователь удалил чат с ботом
+                                except ApiTelegramException as e:
+                                    if e.error_code == 403:
+                                        logging.error(f"Пользователь {user_id} заблокировал бота. Удаляем из списка.")
+                                        ALLOWED_USERS.discard(user_id)
+                                        save_allowed_users(ALLOWED_USERS_FILE, ALLOWED_USERS)
+                                    else:
+                                        logging.error(f"Ошибка Telegram API при отправке пользователю {user_id}: {e}")
+
                         except requests.exceptions.HTTPError as e:
                             if e.response.status_code == 502:
                                 logging.error("Ошибка 502: Bad Gateway при отправке логов.")
