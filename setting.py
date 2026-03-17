@@ -92,7 +92,7 @@ castles_symbol = {'v1': 'VillageOne', 'tp1': 'TradingPostOne', 'h3': 'HarbourThr
                   'cf1': 'CoastalFortressOne', 'cf2': 'CoastalFortressTwo', 'c1': 'CityOne', 'v2': 'VillageTwo',
                   'tp2': 'TradingPostTwo', 'h1': 'HarbourOne', 'h2': 'HarbourTwo', 'tp4': 'TradingPostFour',
                   'v4': 'VillageFour', 'f2': 'FortressTwo', 'tp3': 'TradingPostThree', 'v3': 'VillageThree',
-                  'f1': 'FortressOne', 'gt': 'GhostTown'}
+                  'f1': 'FortressOne', 'gt': 'GhostTown', 'fi': 'FogIsland'}
 # status_list = ['Ожидание после дуэли', 'Ожидание после миссии', 'Путешествие', 'Работа', 'Рынок']
 joust_status = ('Регистрация',)
 work_status = ('Работа',)
