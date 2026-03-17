@@ -570,7 +570,11 @@ def get_silver(resp: Union[bool, Response] = False):
         soup = BeautifulSoup(resp.text, 'lxml')
     else:
         soup = BeautifulSoup(make_request(url_world).text, 'lxml')
-    silver_count = int(soup.find(id='silverCount').text)
+    silver_element = soup.find(id='silverCount')
+    if silver_element is None:
+        p_log("Элемент silverCount не найден!")
+        return 0
+    silver_count = int(silver_element.text)
     p_log(f"На руках {silver_count} серебра")
     return silver_count
 
