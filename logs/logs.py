@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Union
 
 import colorlog
-from logging.handlers import TimedRotatingFileHandler, QueueHandler
+from logging.handlers import TimedRotatingFileHandler, QueueHandler, WatchedFileHandler
 import os
 
 from setting import LOG_DIR
@@ -74,11 +74,32 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path: Union[bool, s
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     if enable_rotation:
-        file_handler = TimedRotatingFileHandler(log_path, when="midnight", interval=1, backupCount=10, encoding='utf-8')
+        # Проверяем существующий файл
+        if os.path.exists(log_path):
+            file_date = datetime.fromtimestamp(os.path.getmtime(log_path)).date()
+            today = datetime.now().date()
 
-        # Запускаем поток, который будет вызывать ротацию в полночь
-        # rollover_thread = threading.Thread(target=schedule_rollover, args=(file_handler,), daemon=True)
-        # rollover_thread.start()
+            # Если файл сегодняшний - просто используем FileHandler
+            if file_date == today:
+                file_handler = logging.FileHandler(log_path, encoding='utf-8')
+            else:
+                # Файл вчерашний или его нет - используем ротацию
+                file_handler = TimedRotatingFileHandler(
+                    log_path,
+                    when="midnight",
+                    interval=1,
+                    backupCount=10,
+                    encoding='utf-8'
+                )
+        else:
+            # Файла нет - используем ротацию
+            file_handler = TimedRotatingFileHandler(
+                log_path,
+                when="midnight",
+                interval=1,
+                backupCount=10,
+                encoding='utf-8'
+            )
     else:
         file_handler = logging.FileHandler(log_path, encoding='utf-8')
 
