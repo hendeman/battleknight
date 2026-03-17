@@ -170,11 +170,13 @@ def common_actions(process_function, process_name):
         time_sleep(function_duration * 60 * 60 + 650 + get_config_value("correct_time"))
 
 
-def run_process_for_hours(target_function, hours, process_name):
+def run_process_for_hours(target_function, hours, process_name, log_queue=None):
     # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
     setting_value = {'name': get_name(), 'config': get_filename(),
                      'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
-    log_queue = queue
+
+    if log_queue is None:
+        log_queue = queue
 
     p_log(f"Запуск {process_name} процесса...")
     process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,
