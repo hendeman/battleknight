@@ -90,15 +90,24 @@ def is_horse_travel_button_active(resp, where):
 def pars_gold_duel(response, gold_info=False, all_info=False, win_status=False):
     soup = BeautifulSoup(response.text, 'lxml')
     fight_results = soup.find('div', class_='fightResultsInner')
+    default_gold = 0
+    default_winner = "None"
 
-    winner = fight_results.find('h1').text.strip()  # "name выйграл"
-    result_gold = int(fight_results.find_all('em')[1].text)
-    result_str = f"{winner}\n" + "\n".join(p.text.strip() for p in fight_results.find_all('p')) + "\n"
+    try:
+        winner = fight_results.find('h1').text.strip()  # "name выйграл"
+        result_gold = int(fight_results.find_all('em')[1].text)
+        result_str = f"{winner}\n" + "\n".join(p.text.strip() for p in fight_results.find_all('p')) + "\n"
 
-    if all_info:
-        return result_gold, result_str
-    if gold_info:
-        return (result_gold, winner) if win_status else result_gold
+        if all_info:
+            return result_gold, result_str
+        if gold_info:
+            return (result_gold, winner) if win_status else result_gold
+    except AttributeError:
+        p_log("Сервер не вернул лог боя", level='warning')
+        if all_info:
+            return default_gold, default_winner
+        if gold_info:
+            return (default_gold, default_winner) if win_status else default_gold
 
 
 def get_status_helper(response, type_helper):
