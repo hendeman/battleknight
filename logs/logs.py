@@ -7,10 +7,22 @@ from datetime import datetime, timedelta
 from typing import Union
 
 import colorlog
-from logging.handlers import TimedRotatingFileHandler, QueueHandler, WatchedFileHandler
+from logging.handlers import TimedRotatingFileHandler, QueueHandler
 import os
 
 from setting import LOG_DIR
+
+
+class CompactSmartHandler(TimedRotatingFileHandler):
+    """ Переопределена ротация. Теперь происходит только когда не совпадает текущая дата и дата log-файла"""
+    def shouldRollover(self, record):
+        if os.path.exists(self.baseFilename):
+            file_date = datetime.fromtimestamp(os.path.getmtime(self.baseFilename)).date()
+            # Если дата файла НЕ сегодняшняя - делаем ротацию
+            if file_date != datetime.now().date():
+                return True
+
+        return False
 
 
 def p_log(*args, is_error=False, level='info'):
@@ -74,32 +86,13 @@ def setup_logging(queue=None, enable_rotation=True, log_file_path: Union[bool, s
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
     if enable_rotation:
-        # Проверяем существующий файл
-        if os.path.exists(log_path):
-            file_date = datetime.fromtimestamp(os.path.getmtime(log_path)).date()
-            today = datetime.now().date()
-
-            # Если файл сегодняшний - просто используем FileHandler
-            if file_date == today:
-                file_handler = logging.FileHandler(log_path, encoding='utf-8')
-            else:
-                # Файл вчерашний или его нет - используем ротацию
-                file_handler = TimedRotatingFileHandler(
-                    log_path,
-                    when="midnight",
-                    interval=1,
-                    backupCount=10,
-                    encoding='utf-8'
-                )
-        else:
-            # Файла нет - используем ротацию
-            file_handler = TimedRotatingFileHandler(
-                log_path,
-                when="midnight",
-                interval=1,
-                backupCount=10,
-                encoding='utf-8'
-            )
+        file_handler = CompactSmartHandler(
+            log_path,
+            when="midnight",  # ротация переопределена
+            interval=1,
+            backupCount=10,
+            encoding='utf-8'
+        )
     else:
         file_handler = logging.FileHandler(log_path, encoding='utf-8')
 
