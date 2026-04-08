@@ -26,6 +26,75 @@ def pars_name(soup, user_tag=False):
         p_log(f'Class {class_tag_name} not found for pars_name', level='warning')
 
 
+# _______________ Класс для хранения значений профиля. Поля формируются из аннотации __________________________________
+
+class PlayerBase:
+    def __init__(self, **kwargs):
+        # Создаем атрибуты из аннотаций текущего класса
+        for field in self.__annotations__.keys():
+            setattr(self, field, kwargs.get(field))
+
+    def __str__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
+
+
+class PlayerProfile(PlayerBase):
+    name: str
+    level: int
+    order: str
+    order_rank: str
+    looted: int
+    lost: int
+    tournaments: int
+    victories: int
+    draws: int
+    defeats: int
+    strength: int
+    aptitude: int
+    constitution: int
+    luck: int
+    weapon: int
+    defense: int
+    damage: int
+    armor: int
+
+
+class PlayerAttribute(PlayerBase):
+    name: str
+    strength: int
+    aptitude: int
+    constitution: int
+    luck: int
+    weapon: int
+    defense: int
+    damage: int
+    armor: int
+
+
+def pars_player_profile(resp) -> dict:
+    soup = BeautifulSoup(resp.content, 'lxml')
+    profile_table = soup.find_all('table', class_='profileTable')
+
+    fields = list(PlayerProfile.__annotations__.keys())
+
+    detailed = {'name': pars_name(soup)}
+    global_ind = 1  # первый индекс name
+
+    for table in profile_table:
+        for ind, dat in enumerate(table.find_all('tr')):
+            if global_ind >= len(fields):
+                break
+            try:
+                detailed[fields[global_ind]] = int(dat.text.split()[-1])
+            except ValueError:
+                detailed[fields[global_ind]] = dat.text.split()[-1]
+            except IndexError:
+                detailed[fields[global_ind]] = None
+            global_ind += 1
+
+    return detailed
+
+
 def pars_player_compare(soup):
     table = soup.find('table', id='challengerAttrib')
 
@@ -193,6 +262,17 @@ def get_title(resp):
     title_tag = soup.find('title')
     title = title_tag.get_text(strip=True) if title_tag else None
     return title
+
+
+def get_class_text(resp, class_):
+    soup = BeautifulSoup(resp.content, 'lxml')
+    headline = soup.find(class_=class_)
+
+    if headline:
+        text = headline.text.strip()
+        return text
+    else:
+        return f"Не удалось найти class_={class_}"
 
 
 def pars_treasury(resp):
