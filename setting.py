@@ -162,6 +162,8 @@ url_alchemist = '/market/merchant/alchemist'
 url_healer = '/zanyhealer/buyAndUsePotion/'
 url_zany_healer = '/zanyhealer/'
 url_raise_attr = '/ajax/ajax/raiseAttribute/?attribute='
+url_reward_eventend = '/birthday/eventend'
+url_profile = '/common/profile/{player_id}/Scores/Player'
 
 months = {
     1: "январь", 2: "февраль", 3: "март",
