@@ -5,8 +5,10 @@ import requests
 from module.bot.config import TOKEN
 from module.bot.logger import setup_logging
 from module.bot.handlers import register_handlers
+from telebot import apihelper
 
 setup_logging()
+apihelper.proxy = {'https': "http://dpxops:UZMMHo@168.81.206.220:9839"}
 bot = telebot.TeleBot(TOKEN)
 register_handlers(bot)
 
