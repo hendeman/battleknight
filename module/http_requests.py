@@ -6,9 +6,9 @@ from requests.exceptions import ProxyError
 
 from logs.logs import p_log
 from module.all_function import get_random_value, check_last_word
-from module.data_pars import get_csrf_token, get_title
+from module.data_pars import get_csrf_token, get_title, get_class_text
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import get_cookies, get_header, header_get, header_post, SERVER
+from setting import get_cookies, get_header, header_get, header_post, SERVER, url_reward_eventend
 
 csrf_token = None
 max_csrf_retries = 3
@@ -67,9 +67,15 @@ class LazyProxyManager:
 def validate_status(response):
     if response.status_code >= 400:
         raise RequestException(f"HTTP Error {response.status_code}: {response.reason}")
+
     title = get_title(response)
     if title and "error" in title.lower():
         raise RequestException(f"Страница 404: {title}")
+
+    if response.url == url_reward_eventend:
+        # проверка на ивент-ссылку
+        text = get_class_text(response, "scrollHeadline")
+        raise RequestException(f"Получена награда: {text}")
 
 
 def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwargs):
