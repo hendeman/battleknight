@@ -4,7 +4,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ENV_PATH_DEFAULT = 'configs/.env'
+current_dir = Path(__file__).parent
+ENV_PATH_DEFAULT = current_dir / 'configs' / '.env'
 
 # Определение всех возможных куки и их переменных окружения
 COOKIE_MAPPING = {
@@ -51,7 +52,7 @@ def load_custom_env(env_file=None, required_cookies=None):
         for env_var in chain(HEADER_MAPPING.values(), COOKIE_MAPPING.values()):
             os.environ.pop(env_var, None)
 
-        env_path = Path(env_file)
+        env_path = current_dir / env_file
         if not env_path.exists():
             raise FileNotFoundError(f"Env file not found: {env_file}")
         load_dotenv(env_path, override=True)
