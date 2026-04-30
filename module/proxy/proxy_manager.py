@@ -9,14 +9,19 @@ from setting import filename
 
 # __________________________________ Валидация прокси (так же прокси с аутенцификацией) ____________________________
 def proxies_validate(proxy_str):
-    # Проверка IP:PORT
-    if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
-        ip, port = proxy_str.split(':')
+    # Проверка [протокол://]IP:PORT (протокол опционален)
+    if re.match(r"^(?:(?:http|https|socks4|socks5|socks5h)://)?"
+                r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
+        # Извлекаем IP и порт (отбрасываем протокол, если есть)
+        ip_port = proxy_str.split('://')[-1]  # берем последнюю часть после ://
+        ip, port = ip_port.split(':')
         if is_valid_ip(ip) and is_valid_port(port):
             return True
 
-    # Проверка user:pass@IP:PORT
-    if re.match(r"^http://[a-zA-Z0-9._-]+:[a-zA-Z0-9._-]+@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
+    # Проверка протокол://user:pass@IP:PORT (протокол обязателен)
+    if re.match(r"^(http|https|socks4|socks5|socks5h)://"
+                r"[a-zA-Z0-9._-]+:[a-zA-Z0-9._-]+@"
+                r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}$", proxy_str):
         parts = proxy_str.split('@')
         auth = parts[0].split('://')[1]
         user, pwd = auth.split(':', 1)
@@ -24,6 +29,7 @@ def proxies_validate(proxy_str):
         ip, port = ip_port.split(':')
         if is_valid_ip(ip) and is_valid_port(port):
             return True
+    p_log(f"Прокси {proxy_str} невалидный")
 
     return False
 
@@ -55,6 +61,7 @@ def create_proxy_manager(read_conf=True):
         for p in config.get('proxy', 'proxy_list', fallback='').split(',')
         if proxies_validate(p)
     ]
+    print(proxy_list)
 
     return ProxyManager(
         proxies=proxy_list,
