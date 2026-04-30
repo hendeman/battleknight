@@ -120,7 +120,8 @@ def autoplay(town, mission_name, side):
                 common_actions(online_tracking_only, "online_tracking_only")
 
             # создание Групповой миссии
-            if (count_work + 2) % 3 == 1 - phase_offset:  # 1 - phase_offset 0 для первой фазы, 1 - для второй
+            # 1 - phase_offset 0 для первой фазы, 1 - для второй
+            if (count_work + 2) % 3 == 1 - phase_offset and get_config_value("group_create"):
                 go_group()
                 timer_group = check_progressbar()
                 if timer_group:
