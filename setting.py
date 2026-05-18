@@ -1,11 +1,12 @@
 from datetime import date
 from pathlib import Path
 
-from env_loader import load_custom_env
+from env_loader import load_custom_env, _get_server_immediately
 
 today = date.today()
 
-SERVER = 'https://s32-ru.battleknight.gameforge.com'
+SERVER_DEFAULT = 'https://s32-ru.battleknight.gameforge.com'
+SERVER = _get_server_immediately()
 NAME = None
 ENV_PATH = 'configs'
 ENV_NAME = ''

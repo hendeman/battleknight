@@ -79,6 +79,11 @@ def arg_parser():
     """Настройка парсера аргументов."""
     parser = FilteredHelpParser(description='Выбор программы', add_help=False)
 
+    parser.add_argument('--server',
+                        type=str,
+                        help='URL сервера (игнорируется, обрабатывается в settings.py)',
+                        default=None)
+
     parser.add_argument('-fehan',
                         action='store_true',
                         help='Мод Фехан',

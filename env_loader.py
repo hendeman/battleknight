@@ -1,4 +1,5 @@
 import os
+import sys
 from itertools import chain
 from pathlib import Path
 
@@ -79,3 +80,24 @@ def load_custom_env(env_file=None, required_cookies=None):
     if missing:
         raise ValueError(f"Missing required cookies: {missing}")
     return cookies, header
+
+
+def _get_server_immediately():
+    """
+    Получает SERVER при импорте модуля.
+    Проверяет переменную окружения ПРЯМО СЕЙЧАС.
+    """
+    # 1. Проверяем переменную окружения (уже должна быть установлена)
+    env_server = os.getenv('BK_SERVER')
+    if env_server:
+        return env_server
+
+    # 2. Проверяем аргументы командной строки
+    # ВНИМАНИЕ! sys.argv доступен даже при импорте
+    for arg in sys.argv:
+        if arg.startswith('--server='):
+            return arg.split('=')[1]
+
+    # Значение по умолчанию
+    from setting import SERVER_DEFAULT
+    return SERVER_DEFAULT
