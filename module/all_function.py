@@ -315,6 +315,9 @@ def time_sleep(seconds=0, delay=False):
         if delay or seconds == 0:
             p_log(f"Ожидание {wait_time} сек перед следующей атакой...")
 
+        start_time = time.monotonic()
+        end_time = start_time + wait_time
+
         for i in tqdm(range(int(wait_time)),
                       desc="Waiting",
                       unit="sec",
@@ -324,6 +327,9 @@ def time_sleep(seconds=0, delay=False):
                       leave=False,
                       delay=1):
             time.sleep(1)
+            now = time.monotonic()
+            if now >= end_time:
+                break
 
         if delay or seconds == 0:
             p_log("Готов к атаке")
