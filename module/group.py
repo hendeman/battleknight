@@ -8,6 +8,7 @@ import re
 from logs.logs import p_log
 
 from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters, save_error_html
+from module.data_pars import find_element, retry_on_element_found
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
 from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members, \
@@ -70,14 +71,13 @@ def hire_mercenary(id_mercenary):
         p_log("Ошибка найма. Ошибка json()", level='warning')
 
 
+@retry_on_element_found(inversion_action=True,
+                        tag='a', id_value='passDice')
 def pas_group():
-    make_request(url_group)  # попробуй url_group_pas
-    time.sleep(2)
     payload = {'dicePassValue': 1}
     post_request(url_group_pas, payload, csrf=False)
     p_log("Запрос на ПАС группы выполнен")
     time.sleep(2)
-    return BeautifulSoup(make_request(url_group).text, 'lxml').text
 
 
 def delete_group():
@@ -122,8 +122,13 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
             p_log(f"Ожидание игроков для группы {format_time(time_wait)} ...")
         time.sleep(time_wait)
         time_sleep(check_progressbar())
-        if "К сожалению, у вас недостаточно очков миссий" in pas_group():
+        response = make_request(url_group)
+
+        if find_element(response, tag='div', class_name='cap'):
             p_log("Группа успешно завершена с игроком")
+        elif find_element(response, tag='a', id_value='passDice'):
+            p_log("Группа успешно завершена с соклановцем")
+            pas_group()
         else:
             while True:
                 mercenary = get_mercenary()
