@@ -5,10 +5,15 @@ import requests
 from module.bot.config import TOKEN
 from module.bot.logger import setup_logging
 from module.bot.handlers import register_handlers
-from telebot import apihelper
+from module.bot.proxy_manage import init_proxy_manager
 
 setup_logging()
-apihelper.proxy = {'https': "http://dpxops:UZMMHo@168.81.206.220:9839"}
+# apihelper.proxy = {'https': "http://dpxops:UZMMHo@168.81.206.220:9839"}
+proxy_manager = init_proxy_manager(
+    proxy_file='proxy.txt',
+    check_interval=3600,
+    auto_start=True
+)
 bot = telebot.TeleBot(TOKEN)
 register_handlers(bot)
 
