@@ -1,8 +1,14 @@
+import functools
 import json
 import re
-import setting
+import time
 
-from bs4 import BeautifulSoup
+from requests import Response
+
+import setting
+from typing import Optional, Union
+
+from bs4 import BeautifulSoup, Tag
 
 from logs.logs import p_log
 from module.all_function import remove_cyrillic, availability_id, digi, save_error_html, no_cache
@@ -550,3 +556,98 @@ def party(soup) -> dict:
         list_tr.setdefault(key, value)
 
     return list_tr
+
+
+def find_element(
+    source: Union[Response, str],
+    tag: Optional[str] = None,
+    class_name: Optional[str] = None,
+    id_value: Optional[str] = None,
+    **attrs
+) -> Optional[Tag]:
+    """
+    Находит первый элемент в HTML-документе BeautifulSoup по указанным критериям.
+
+    Args:
+        source: Объект Response или html, представляющий ответ запроса.
+        tag (str): Имя тега (например, 'div', 'span', 'a').
+        class_name (str, optional): Значение атрибута 'class'. Defaults to None.
+        id_value (str, optional): Значение атрибута 'id'. Defaults to None.
+        **attrs: Другие пары имя-значение атрибутов для поиска.
+
+    Returns:
+        Tag or None: Найденный элемент Tag или None, если элемент не найден.
+    """
+
+    if isinstance(source, Response):
+        html_content = source.text
+    else:
+        html_content = source
+
+    # Подготовим словарь атрибутов для поиска
+    search_attrs = {}
+
+    if class_name is not None:
+        # BeautifulSoup ищет class по аргументу 'class_'
+        search_attrs['class_'] = class_name
+    if id_value is not None:
+        search_attrs['id'] = id_value
+
+    # Добавляем любые другие переданные атрибуты
+    search_attrs.update(attrs)
+
+    # Выполняем поиск с помощью метода find()
+    soup = BeautifulSoup(html_content, 'lxml')
+    element = soup.find(tag, attrs=search_attrs)
+    return element
+
+
+def retry_on_element_found(max_retries=2, inversion_action=False,
+                           tag=None, class_name=None, id_value=None, **element_attrs):
+    """
+    Декоратор для повторения выполнения функции, если в её результате (ожидается Response)
+    находится определённый элемент через find_element.
+    Такой декоратор лучше использовать для критических POST запросов,
+    потому что иногда сервер подсовывает старую страницу.
+
+    Args:
+        max_retries (int): Максимальное количество повторных попыток (default 2).
+        inversion_action (bool): Инверсия действия для найденного элемента для повтора
+        tag (str, optional): Имя тега для поиска элемента.
+        class_name (str, optional): Значение атрибута 'class' для поиска элемента.
+        id_value (str, optional): Значение атрибута 'id' для поиска элемента.
+        **element_attrs: Другие атрибуты для поиска элемента.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                response = func(*args, **kwargs)
+
+                # Ищем элемент в ответе
+                found_element = find_element(
+                    source=response,
+                    tag=tag,
+                    class_name=class_name,
+                    id_value=id_value,
+                    **element_attrs
+                )
+                p_log(f"Элемент поиска: {found_element}")
+
+                if inversion_action:
+                    success = found_element is None
+                else:
+                    success = found_element is not None
+
+                if success:
+                    return True
+
+                # Если элемент найден, проверяем, есть ли ещё попытки
+                if attempt < max_retries:
+                    p_log(f"Для {func.__name__}. Повторная попытка {attempt + 1} из {max_retries}")
+                    time.sleep((attempt + 5) * 2)  # небольшая задержка перед повторной попыткой
+
+            return False
+        return wrapper
+    return decorator
