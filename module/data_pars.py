@@ -641,13 +641,13 @@ def retry_on_element_found(max_retries=2, inversion_action=False,
                     success = found_element is not None
 
                 if success:
-                    return True
+                    return response
 
                 # Если элемент найден, проверяем, есть ли ещё попытки
                 if attempt < max_retries:
                     p_log(f"Для {func.__name__}. Повторная попытка {attempt + 1} из {max_retries}")
                     time.sleep((attempt + 5) * 2)  # небольшая задержка перед повторной попыткой
-
+            p_log("Все попытки ретрая исчерпаны, условие успеха не выполнено.")
             return False
         return wrapper
     return decorator

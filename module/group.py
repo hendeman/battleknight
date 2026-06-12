@@ -75,9 +75,10 @@ def hire_mercenary(id_mercenary):
                         tag='a', id_value='passDice')
 def pas_group():
     payload = {'dicePassValue': 1}
-    post_request(url_group_pas, payload, csrf=False)
+    response = post_request(url_group_pas, payload, csrf=False)
     p_log("Запрос на ПАС группы выполнен")
     time.sleep(2)
+    return response
 
 
 def delete_group():

@@ -21,7 +21,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     current_time, save_error_html, string_to_datetime, create_pickle_file
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
-    pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare
+    pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare, retry_on_element_found
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -343,7 +343,11 @@ def post_travel(out='', where='', how='horse'):
         'travelpremium': 0
     }
     p_log(payload, level='debug')
-    resp = post_request(url_start_travel, payload)
+    resp = (
+        retry_on_element_found(tag='div', id_value='progressbarEnds')(
+            lambda: post_request(url_start_travel, payload)
+        )()
+    )
     timer_travel = check_progressbar(resp)
     if not timer_travel:
         p_log("Рыцарь не уехал в другой город!", is_error=True)
