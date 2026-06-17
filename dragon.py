@@ -1,4 +1,5 @@
 import multiprocessing
+import time
 
 from functools import partial
 
@@ -6,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from logs.logging_config import LoggingSystemManager
 from logs.logs import p_log, setup_logging
-from module.data_pars import get_point_mission, get_all_silver
+from module.data_pars import get_all_silver
 from module.ruby_manager import ruby_manager
 from module.all_function import time_sleep, wait_until, format_time, time_sleep_main, get_config_value, \
     load_json_file, kill_process_hierarchy, reload_setting_param
@@ -42,24 +43,26 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
     while True:
         if 'disabledSpecialBtn' in a_tags[0].get('class', []):
             p_log("Миссий нет. Ждем час...")
-
-            # пока миссий нету, запускаем процесс атак на коровок
-            hours = 1
-            online_tracking = partial(online_tracking_only)
-            setting_value = {'name': get_name(), 'config': get_filename(),
-                             'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
-            process_online_tracking = multiprocessing.Process(target=wrapper_function,
-                                                              args=(online_tracking, queue, setting_value))
-            process_online_tracking.start()
-            p_log(f"Ожидание {hours} часов... Работает online_tracking функция")
-            p_log(f"processPID={process_online_tracking.pid}", level='debug')
-            time_sleep_main(hours * 60 * 60)  # Ожидание в часах
-            p_log(f"Остановка online_tracking процесса...")
-            process_online_tracking.terminate()
-            process_online_tracking.join()
-            p_log("Дополнительное ожидание")
-            time_sleep_main(650 + get_config_value("correct_time"), interval=300)
-            break
+            if get_config_value("online_tracking_only"):
+                # пока миссий нету, запускаем процесс атак на коровок
+                hours = 1
+                online_tracking = partial(online_tracking_only)
+                setting_value = {'name': get_name(), 'config': get_filename(),
+                                 'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
+                process_online_tracking = multiprocessing.Process(target=wrapper_function,
+                                                                  args=(online_tracking, queue, setting_value))
+                process_online_tracking.start()
+                p_log(f"Ожидание {hours} часов... Работает online_tracking функция")
+                p_log(f"processPID={process_online_tracking.pid}", level='debug')
+                time_sleep_main(hours * 60 * 60)  # Ожидание в часах
+                p_log(f"Остановка online_tracking процесса...")
+                process_online_tracking.terminate()
+                process_online_tracking.join()
+                p_log("Дополнительное ожидание")
+                time_sleep_main(650 + get_config_value("correct_time"), interval=300)
+                break
+            else:
+                time.sleep(4000)
             # a_tags = check_status_mission(name_mission)
         else:
             p_log("Есть доступные миссии")
@@ -278,11 +281,12 @@ def autoplay(partial_event_search):
         p_log(f"До начала группы осталось {format_time(time_begin)}. Ожидаем...")
         time_sleep(time_begin)
         # Создаем группу
-        go_group()
-        timer_group = check_progressbar()
-        if timer_group:
-            p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
-            time_sleep(timer_group)
+        if get_config_value("group_create"):
+            go_group()
+            timer_group = check_progressbar()
+            if timer_group:
+                p_log(f"Ожидание после группы {format_time(timer_group)}. Ожидаем...")
+                time_sleep(timer_group)
 
 
 if __name__ == "__main__":
