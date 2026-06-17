@@ -60,9 +60,9 @@ def complete_mission(soup, length_mission, name_mission, my_town, cog_plata=Fals
                 process_online_tracking.join()
                 p_log("Дополнительное ожидание")
                 time_sleep_main(650 + get_config_value("correct_time"), interval=300)
-                break
             else:
                 time.sleep(4000)
+            break
             # a_tags = check_status_mission(name_mission)
         else:
             p_log("Есть доступные миссии")
@@ -271,7 +271,7 @@ def autoplay(partial_event_search):
             process.start()
             p_log(f"Процесс {EVENT_NAME} будет работать до 20:00...")
             p_log(f"processPID={process.pid}", level='debug')
-            time_sleep_main(wait_until('20:00'), interval=5000, name='Программа поиска целителя. Осталось')
+            time_sleep_main(wait_until('20:00'), interval=5000, name=f'Программа поиска {EVENT_NAME}. Осталось')
             p_log(f"Остановка {EVENT_NAME} процесса...")
             kill_process_hierarchy(process.pid)
             process.join()
