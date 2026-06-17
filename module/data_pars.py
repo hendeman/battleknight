@@ -633,7 +633,7 @@ def retry_on_element_found(max_retries=2, inversion_action=False,
                     id_value=id_value,
                     **element_attrs
                 )
-                p_log(f"Элемент поиска: {found_element}")
+                p_log(f"Элемент поиска: {found_element}", level='debug')
 
                 if inversion_action:
                     success = found_element is None
