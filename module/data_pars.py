@@ -589,7 +589,7 @@ def find_element(
 
     if class_name is not None:
         # BeautifulSoup ищет class по аргументу 'class_'
-        search_attrs['class_'] = class_name
+        search_attrs['class'] = class_name
     if id_value is not None:
         search_attrs['id'] = id_value
 
