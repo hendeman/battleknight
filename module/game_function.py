@@ -1128,7 +1128,7 @@ def buy_ring(initial=False, tariff_travel=0):
             p_log(f"Недостаточно серебра для ставки. Нужно еще {need_silver}")
             if need_silver < 500:
                 after_silver = payout(need_silver)
-                place_bet(min_key, after_silver)
+                place_bet(min_key, after_silver - tariff_travel)
         else:
             p_log(f"Будет куплено кольцо с id={min_key}")
             place_bet(min_key, target_number)
