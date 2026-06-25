@@ -64,7 +64,7 @@ class LazyProxyManager:
         cls._force_enabled = False
 
 
-def validate_status(response):
+def validate_status(response, method):
     if response.status_code >= 400:
         raise RequestException(f"HTTP Error {response.status_code}: {response.reason}")
 
@@ -76,6 +76,9 @@ def validate_status(response):
         # проверка на ивент-ссылку
         text = get_class_text(response, "scrollHeadline")
         raise RequestException(f"Получена награда: {text}")
+
+    if method == 'GET' and response.content == 0:
+        raise RequestException(f"Пустая страница")
 
 
 def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwargs):
@@ -92,6 +95,7 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
     global csrf_token, referer
     csrf_retries = 0
     request_retries = 0
+    method = "POST" if request_func == requests.post else "GET"
 
     # Извлекаем параметры, которые не нужны для requests
     csrf_enabled = kwargs.pop('csrf', True)  # Удаляем csrf из kwargs
@@ -127,10 +131,9 @@ def make_http_request(request_func, url, timeout=10, proxy_manager=None, **kwarg
 
             # Выполнение запроса
             response = request_func(url, timeout=timeout, **kwargs)
-            validate_status(response)
+            validate_status(response, method)
 
             # Логирование
-            method = "POST" if request_func == requests.post else "GET"
             p_log(f"{method} {response.status_code}: {url} | proxy:{proxies}", level='debug')
 
             # CSRF-логика (только для GET запросов)
