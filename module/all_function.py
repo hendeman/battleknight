@@ -757,85 +757,96 @@ def save_error_html(response):
 
         # 1. Сохраняем полное тело ответа в бинарном виде
         body_filepath = os.path.join(LOG_ERROR_HTML, f"{base_filename}.html")
-        content_length = len(response.content)
+        content_bytes = response.content  # Получаем байты
+        content_length = len(content_bytes)
+
+        # Пытаемся получить текстовое представление
+        try:
+            text_content = response.text
+        except Exception as e:
+            text_content = f"<Ошибка декодирования: {e}>"
+
         with open(body_filepath, 'wb') as file_html:
-            file_html.write(response.text)
+            file_html.write(content_bytes)  # Записываем байты, а не строку
 
-            # 2. Сохраняем мета-информацию и превью для анализа
-            meta_filepath = os.path.join(LOG_ERROR_HTML, f"{base_filename}_meta.txt")
+        # 2. Сохраняем мета-информацию и превью для анализа
+        meta_filepath = os.path.join(LOG_ERROR_HTML, f"{base_filename}_meta.txt")
 
-            with open(meta_filepath, 'w', encoding='utf-8') as file:
-                file.write("=" * 60 + "\n")
-                file.write("ДИАГНОСТИКА ОТВЕТА СЕРВЕРА\n")
-                file.write("=" * 60 + "\n\n")
+        with open(meta_filepath, 'w', encoding='utf-8') as file:
+            file.write("=" * 60 + "\n")
+            file.write("ДИАГНОСТИКА ОТВЕТА СЕРВЕРА\n")
+            file.write("=" * 60 + "\n\n")
 
-                # Основная информация
-                file.write("📋 ОСНОВНАЯ ИНФОРМАЦИЯ:\n")
-                file.write(f"URL: {response.url}\n")
-                file.write(f"Status code: {response.status_code}\n")
-                file.write(f"Reason: {response.reason}\n")
-                file.write(f"Elapsed time: {response.elapsed.total_seconds()} сек\n")
-                file.write("\n")
+            # Основная информация
+            file.write("📋 ОСНОВНАЯ ИНФОРМАЦИЯ:\n")
+            file.write(f"URL: {response.url}\n")
+            file.write(f"Status code: {response.status_code}\n")
+            file.write(f"Reason: {response.reason}\n")
+            file.write(f"Elapsed time: {response.elapsed.total_seconds()} сек\n")
+            file.write("\n")
 
-                # Информация о кодировке
-                file.write("🔤 КОДИРОВКА:\n")
-                file.write(f"resp.encoding: {response.encoding}\n")
-                file.write(f"resp.apparent_encoding: {response.apparent_encoding}\n")
-                file.write(
-                    f"resp.headers.get('Content-Type'): {response.headers.get('Content-Type', 'Not specified')}\n")
-                file.write("\n")
+            # Информация о кодировке
+            file.write("🔤 КОДИРОВКА:\n")
+            file.write(f"resp.encoding: {response.encoding}\n")
+            file.write(f"resp.apparent_encoding: {response.apparent_encoding}\n")
+            file.write(
+                f"resp.headers.get('Content-Type'): {response.headers.get('Content-Type', 'Not specified')}\n")
+            file.write("\n")
 
-                # Размер ответа
-                file.write("📊 РАЗМЕР ОТВЕТА:\n")
-                file.write(f"Длина resp.content: {content_length} байт ({content_length / 1024:.2f} КБ)\n")
+            # Размер ответа
+            file.write("📊 РАЗМЕР ОТВЕТА:\n")
+            file.write(f"Длина resp.content: {content_length} байт ({content_length / 1024:.2f} КБ)\n")
+            file.write(f"Длина resp.text: {len(response.text) if response.text else 0} символов\n")
 
-                if content_length == 0:
-                    file.write("⚠️ ВНИМАНИЕ: Ответ пустой (0 байт)!\n")
-                file.write("\n")
+            if content_length == 0:
+                file.write("⚠️ ВНИМАНИЕ: Ответ пустой (0 байт)!\n")
+            file.write("\n")
 
-                # Все заголовки ответа
-                file.write("📌 ЗАГОЛОВКИ ОТВЕТА:\n")
-                for key, value in response.headers.items():
-                    file.write(f"{key}: {value}\n")
-                file.write("\n")
+            # Все заголовки ответа
+            file.write("📌 ЗАГОЛОВКИ ОТВЕТА:\n")
+            for key, value in response.headers.items():
+                file.write(f"{key}: {value}\n")
+            file.write("\n")
 
-                # Превью первых байт ответа (как сырые байты)
-                file.write("🔍 ПРЕВЬЮ ОТВЕТА (первые 500 байт):\n")
-                file.write("-" * 40 + "\n")
+            # Превью первых байт ответа (как сырые байты)
+            file.write("🔍 ПРЕВЬЮ ОТВЕТА (первые 500 байт):\n")
+            file.write("-" * 40 + "\n")
 
-                preview_bytes = response.content[:500]
+            preview_bytes = content_bytes[:500]  # Используем байты
 
-                # Сохраняем в двух представлениях: как текст и как hex
-                file.write("\n📝 Как текст (если возможно раскодировать):\n")
-                try:
-                    # Пробуем раскодировать с разными кодировками
-                    for enc in [response.encoding, response.apparent_encoding, 'utf-8', 'windows-1251', 'koi8-r',
-                                'latin1']:
-                        if enc:
-                            try:
-                                preview_text = preview_bytes.decode(enc)
-                                file.write(f"  Кодировка {enc}: {repr(preview_text)}\n")
-                            except (UnicodeDecodeError, TypeError):
-                                continue
-                except Exception as e:
-                    file.write(f"  Ошибка декодирования: {e}\n")
+            # Сохраняем в двух представлениях: как текст и как hex
+            file.write("\n📝 Как текст (если возможно раскодировать):\n")
+            try:
+                # Пробуем раскодировать с разными кодировками
+                for enc in [response.encoding, response.apparent_encoding, 'utf-8', 'windows-1251', 'koi8-r',
+                            'latin1']:
+                    if enc:
+                        try:
+                            preview_text = preview_bytes.decode(enc)
+                            file.write(f"  Кодировка {enc}: {repr(preview_text)}\n")
+                        except (UnicodeDecodeError, TypeError):
+                            continue
+            except Exception as e:
+                file.write(f"  Ошибка декодирования: {e}\n")
 
-                file.write("\n🔢 Как hex-дамп (байты):\n")
-                # Форматируем hex дамп
-                hex_lines = []
-                for i in range(0, len(preview_bytes), 16):
-                    chunk = preview_bytes[i:i + 16]
-                    hex_part = ' '.join(f'{b:02x}' for b in chunk)
-                    ascii_part = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in chunk)
-                    hex_lines.append(f"  {i:04x}: {hex_part:<48} {ascii_part}")
+            file.write("\n🔢 Как hex-дамп (байты):\n")
+            # Форматируем hex дамп
+            hex_lines = []
+            for i in range(0, len(preview_bytes), 16):
+                chunk = preview_bytes[i:i + 16]
+                hex_part = ' '.join(f'{b:02x}' for b in chunk)
+                ascii_part = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in chunk)
+                hex_lines.append(f"  {i:04x}: {hex_part:<48} {ascii_part}")
 
-                file.write('\n'.join(hex_lines))
+            file.write('\n'.join(hex_lines))
 
-                if len(response.content) > 500:
-                    file.write(f"\n\n  ... и еще {len(response.content) - 500} байт")
+            if content_length > 500:
+                file.write(f"\n\n  ... и еще {content_length - 500} байт")
 
-                file.write("\n\n" + "=" * 60 + "\n")
-                file.write(f"Полное тело ответа сохранено в: {body_filepath}\n")
+            file.write("\n\n" + "=" * 60 + "\n")
+            file.write(f"Полное тело ответа сохранено в: {body_filepath}\n")
+            file.write(f"Текстовое представление: {repr(text_content[:200])}\n")
+
         p_log(f"HTML-ошибка сохранена в: {body_filepath}", level='debug')
     except Exception as er:
         p_log(f"Error saving HTML file in {LOG_ERROR_HTML}. Error: {er}", level='debug')

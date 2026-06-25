@@ -343,11 +343,10 @@ def post_travel(out='', where='', how='horse'):
         'travelpremium': 0
     }
     p_log(payload, level='debug')
-    resp = (
-        retry_on_element_found(tag='div', id_value='progressbarEnds')(
-            lambda: post_request(url_start_travel, payload)
-        )()
-    )
+
+    wrapped_post = retry_on_element_found(tag='div', id_value='progressbarEnds')(post_request)
+    resp = wrapped_post(url_start_travel, payload)
+
     timer_travel = check_progressbar(resp)
     if not timer_travel:
         p_log("Рыцарь не уехал в другой город!", is_error=True)
