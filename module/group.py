@@ -8,7 +8,7 @@ import re
 from logs.logs import p_log
 
 from module.all_function import no_cache, format_time, get_config_value, time_sleep, call_parameters, save_error_html
-from module.data_pars import find_element, retry_on_element_found
+from module.data_pars import find_element, retry_on_element_found, pars_group_quantity
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
 from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members, \
@@ -33,29 +33,47 @@ def calculate_sum(num_list):
 
 
 def create_group():
+    return _create_or_update_group(success_message="Группа успешно создана")
+
+
+def update_group(max_member):
+    return _create_or_update_group(max_member, success_message="Группа успешно обновлена")
+
+
+def _create_or_update_group(max_member=None, success_message="Группа успешно создана"):
     gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
+
+    # Если max_member не передан, берем из конфига
+    if max_member is None:
+        max_member = gm_param.get("gm_max_member")
+
     payload = {
         'name': gm_param.get("gm_name"),
         'minLevel': 29,
         'maxLevel': 48,
-        'maxMember': gm_param.get("gm_max_member"),
+        'maxMember': max_member,
         'plandata': gm_param.get("gm_plandata"),
         'onlyApply': 0,
         'onlyOrder': gm_param.get("gm_only_order")
     }
+
+    return _send_request(payload, success_message)
+
+
+def _send_request(payload, success_message):
     p_log(payload, level='debug')
     make_request(url_group)
     time.sleep(1)
     try:
         result = post_request(url_greate_group, payload).json()
         if result['result']:
-            p_log("Группа успешно создана")
+            p_log(success_message)
             return True
         else:
-            p_log("Ошибка создания группы. Проверьте post-запрос")
+            p_log("Ошибка создания/обновления группы. Проверьте post-запрос")
             p_log(result, level='debug')
     except ValueError:
-        p_log("Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков",
+        p_log("Группа не может быть создана/обновлена. Ошибка json(). Возможные причины: занят, не хватает очков",
               level='warning')
 
 
@@ -124,6 +142,12 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
         time.sleep(time_wait)
         time_sleep(check_progressbar())
         response = make_request(url_group)
+
+        quantity_members = pars_group_quantity(response)
+        if quantity_members and quantity_members >= 2:
+            update_group(quantity_members)
+            time_sleep(check_progressbar())
+            response = make_request(url_group)
 
         if find_element(response, tag='div', class_name='cap'):
             p_log("Группа успешно завершена с игроком")

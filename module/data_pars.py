@@ -559,11 +559,11 @@ def party(soup) -> dict:
 
 
 def find_element(
-    source: Union[Response, str],
-    tag: Optional[str] = None,
-    class_name: Optional[str] = None,
-    id_value: Optional[str] = None,
-    **attrs
+        source: Union[Response, str],
+        tag: Optional[str] = None,
+        class_name: Optional[str] = None,
+        id_value: Optional[str] = None,
+        **attrs
 ) -> Optional[Tag]:
     """
     Находит первый элемент в HTML-документе BeautifulSoup по указанным критериям.
@@ -649,5 +649,34 @@ def retry_on_element_found(max_retries=2, inversion_action=False,
                     time.sleep((attempt + 5) * 2)  # небольшая задержка перед повторной попыткой
             p_log("Все попытки ретрая исчерпаны, условие успеха не выполнено.")
             return False
+
         return wrapper
+
     return decorator
+
+
+# ___________________ Парсинг эментов группы__________________________
+
+def pars_group_quantity(resp):
+    soup = BeautifulSoup(resp.content, 'lxml')
+    # Находим форму
+    form = soup.find('form', id='formFound')
+
+    if form:
+        form_lines = form.find_all('div', class_='formLine')
+
+        if len(form_lines) > 7:
+            target_line = form_lines[3]  # индекс 3 для количества участников
+
+            quantity_div = target_line.find('div', class_='formField')
+
+            if quantity_div:
+                quantity_value = quantity_div.get_text(strip=True)
+                p_log(f"Найдено значение: {quantity_value}")
+                return int(quantity_value)
+            else:
+                p_log("Div с классом formField не найден", level='warning')
+        else:
+            p_log(f"Найдено только {len(form_lines)} элементов formLine, ожидается минимум 9", level='warning')
+    else:
+        p_log("Форма не найдена")
