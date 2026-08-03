@@ -142,10 +142,14 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
         time.sleep(time_wait)
         time_sleep(check_progressbar())
         response = make_request(url_group)
+        config_quantity_members = get_config_value(key="gm_max_member")
 
         quantity_members = pars_group_quantity(response)
-        if quantity_members and quantity_members >= 2:
-            update_group(quantity_members)
+        if quantity_members:
+            if quantity_members == 1 and config_quantity_members > 2:
+                update_group(2)
+            if quantity_members > 1:
+                update_group(quantity_members)
             time_sleep(check_progressbar())
             response = make_request(url_group)
 
