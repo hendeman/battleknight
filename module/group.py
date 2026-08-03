@@ -12,10 +12,24 @@ from module.data_pars import find_element, retry_on_element_found, pars_group_qu
 from module.game_function import check_progressbar
 from module.http_requests import make_request, post_request
 from setting import SERVER, url_group, url_greate_group, url_group_pas, url_group_delete, url_group_members, \
-    url_join_group, url_refresh_groups
+    url_join_group, url_refresh_groups, url_save_group
 
 # Регулярное выражение для поиска
 pattern = re.compile(r'acquireMerc\d+npc')
+ACTIONS = {
+    "create": {
+        "url": url_greate_group,
+        "success_message": "Группа успешно создана",
+        "error_message": "Ошибка создания группы. Проверьте post-запрос",
+        "value_error": "Группа не может быть создана. Ошибка json(). Возможные причины: занят, не хватает очков"
+    },
+    "update": {
+        "url": url_save_group,
+        "success_message": "Группа успешно обновлена",
+        "error_message": "Ошибка обновления группы. Проверьте post-запрос",
+        "value_error": "Группа не может быть обновлена. Ошибка json(). Возможные причины: занят, не хватает очков"
+    }
+}
 
 
 def calculate_sum(num_list):
@@ -33,17 +47,16 @@ def calculate_sum(num_list):
 
 
 def create_group():
-    return _create_or_update_group(success_message="Группа успешно создана")
+    return _create_or_update_group(action_type='create')
 
 
 def update_group(max_member):
-    return _create_or_update_group(max_member, success_message="Группа успешно обновлена")
+    return _create_or_update_group(max_member, action_type='update')
 
 
-def _create_or_update_group(max_member=None, success_message="Группа успешно создана"):
+def _create_or_update_group(max_member=None, action_type='create'):
     gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
 
-    # Если max_member не передан, берем из конфига
     if max_member is None:
         max_member = gm_param.get("gm_max_member")
 
@@ -57,24 +70,24 @@ def _create_or_update_group(max_member=None, success_message="Группа ус�
         'onlyOrder': gm_param.get("gm_only_order")
     }
 
-    return _send_request(payload, success_message)
+    action = ACTIONS[action_type]
+    return _send_request(payload, action)
 
 
-def _send_request(payload, success_message):
+def _send_request(payload, action):
     p_log(payload, level='debug')
     make_request(url_group)
     time.sleep(1)
     try:
-        result = post_request(url_greate_group, payload).json()
+        result = post_request(action['url'], payload).json()
         if result['result']:
-            p_log(success_message)
+            p_log(action['success_message'])
             return True
         else:
-            p_log("Ошибка создания/обновления группы. Проверьте post-запрос")
+            p_log(action['error_message'])
             p_log(result, level='debug')
     except ValueError:
-        p_log("Группа не может быть создана/обновлена. Ошибка json(). Возможные причины: занят, не хватает очков",
-              level='warning')
+        p_log(action['value_error'], level='warning')
 
 
 def hire_mercenary(id_mercenary):
@@ -104,7 +117,7 @@ def delete_group():
     p_log("Группа удалена")
 
 
-def get_mercenary():
+def get_mercenary(quantity_members):
     response = make_request(url_group_members)
     soup = BeautifulSoup(response.text, 'lxml')
     try:
@@ -112,22 +125,22 @@ def get_mercenary():
 
         # Поиск всех ссылок с id=acquireMerc{numbers}npc и выделение numbers
         matches = [''.join(filter(lambda a: a.isdigit(), x['id'])) for x in table.find_all('a', id=pattern)]
-        print(matches)
+        p_log(matches, level='debug')
         attr_sum = []
         profile_table = table.find_all('table', {'class': 'profileTable'})
         for i in profile_table:
             attr_list = [x.text.strip() for x in i.find_all('td')]
             attr_sum.append(calculate_sum(attr_list))
-        print(attr_sum)
+        p_log(attr_sum, level='debug')
         if len(matches) != len(attr_sum):
             with open('group.html', 'w', encoding='utf-8') as file:
                 file.write(soup.text)
             raise AttributeError(f"Количество id={len(matches)} должно быть равно количеству attr={len(attr_sum)}")
-        if max(attr_sum) < 1500:
+        if max(attr_sum) < 1500 and quantity_members == 1:
             p_log("В группе слишком слабые наёмники. Группа будет пересоздана")
             return False
         strong_mercenary = matches[attr_sum.index(max(attr_sum))]
-        print(strong_mercenary)
+        p_log(strong_mercenary, level='debug')
         return strong_mercenary
     except Exception as s:
         p_log(f"Ошибка парсинга в группе. Группа будет удалена. {s}", level='warning')
@@ -160,7 +173,7 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
             pas_group()
         else:
             while True:
-                mercenary = get_mercenary()
+                mercenary = get_mercenary(quantity_members)
                 time.sleep(4)
                 if not mercenary:
                     delete_group()

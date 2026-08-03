@@ -137,6 +137,7 @@ url_group_members = '/groupmission/groupMembers'
 url_group_pas = '/groupmission/dice'
 url_group_delete = '/groupmission/deleteGroup'
 url_greate_group = '/groupmission/foundGroup/'
+url_save_group = 'groupmission/saveGroup'
 url_refresh_groups = '/groupmission/refreshGroups'
 url_join_group = '/groupmission/joinGroup/?groupID='
 url_orden_message = "/ajax/board/sendmessage"
