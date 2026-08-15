@@ -46,15 +46,15 @@ def calculate_sum(num_list):
     return total
 
 
-def create_group():
-    return _create_or_update_group(action_type='create')
+def create_group(max_member=None):
+    return _create_or_update_group(max_member=max_member, action_type='create')
 
 
-def update_group(max_member):
-    return _create_or_update_group(max_member, action_type='update')
+def update_group(max_member=None):
+    return _create_or_update_group(max_member=max_member, action_type='update')
 
 
-def _create_or_update_group(max_member=None, action_type='create'):
+def _create_or_update_group(max_member, action_type='create'):
     gm_param = get_config_value(key=("gm_name", "gm_max_member", "gm_plandata", "gm_only_order"))
 
     if max_member is None:
@@ -178,7 +178,7 @@ def go_group(time_wait: int = partial(get_config_value, key='group_wait')):
                 if not mercenary:
                     delete_group()
                     time.sleep(2)
-                    if not create_group():
+                    if not create_group(quantity_members):
                         break
                 elif isinstance(mercenary, Exception):
                     delete_group()
