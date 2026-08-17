@@ -11,7 +11,7 @@ from module.cli import arg_parser
 from module.game_function import check_progressbar, contribute_to_treasury, post_travel, buy_ring, \
     get_reward, work, move_item, register_joust, my_place, main_buy_potion, use_helper, get_castle_min_time, \
     init_status_players, account_verification, check_treasury_timers, reduce_experience, online_tracking_only, \
-    set_initial_gold, click, Namespace, Attribute
+    set_initial_gold, click, Namespace, Attribute, get_location_stay_time
 from module.group import go_group
 from module.http_requests import make_request
 from setting import start_game, start_time, auction_castles, castles_all, url_mission, get_name, get_filename, \
@@ -23,6 +23,15 @@ queue = None
 @use_helper("comp_mission")
 @use_helper("horse_mission")
 def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, game_mode=4):
+    """
+    Функция прохождения миссий заданное количество раз в game_mode
+    :param mission_name: Название миссии
+    :param mission_duration: Продолжительность миссии
+    :param find_karma: Карма миссии светлая/темная
+    :param url: Ссылка на локацию с миссиями
+    :param game_mode: Сколько раз проходить миссию
+    :return: Возвращает количество миссий, которое не смогли пройти
+    """
     response = make_request(url)
     time.sleep(1)
     time_sleep(check_progressbar(response))  # проверка состояния рыцаря
@@ -43,6 +52,7 @@ def attack_mission(mission_name, mission_duration, find_karma, url=url_mission, 
         if not game_mode and get_config_value("contribute_to_treasury") and not check_treasury_timers():
             contribute_to_treasury()
         time_sleep(check_progressbar())
+    return game_mode
 
 
 def autoplay(town, mission_name, side):
@@ -60,12 +70,11 @@ def autoplay(town, mission_name, side):
 
     count_work, next_time = get_next_time_and_index(start_time)
     time_sleep(wait_until(next_time))
-    game_param = [
-        get_config_value("mission_duration"),
-        get_config_value("working_karma").capitalize()
-    ]
+    mission_duration = get_config_value("mission_duration")
+    working_karma = get_config_value("working_karma").capitalize()
 
     while True:
+        travel_waiting_time_sec = 0
         phase_offset = get_config_value("phase_offset")
         p_log(f"phase_offset={phase_offset}, count_work={count_work}", level='debug')
         move_item(how='loot', name='ring', rand=False)  # переместить кольцо из сундука добычи
@@ -73,14 +82,17 @@ def autoplay(town, mission_name, side):
             register_joust()  # регистрация на турнир
 
         time_sleep(check_progressbar())
-        attack_mission(mission_name, *game_param, game_mode=get_config_value("game_mode"))
+        missions_left = attack_mission(mission_name,
+                                       mission_duration,
+                                       working_karma,
+                                       game_mode=get_config_value("game_mode"))
 
         # Если в городе нет аукциона, то едем в ближайший
         place, my_town = my_place()
         p_log(f"Я нахожусь в {place}")
         if my_town not in auction_castles and my_town != 'FogIsland':
             my_town = get_castle_min_time()
-            post_travel(out=town, where=my_town)
+            travel_waiting_time_sec = post_travel(out=town, where=my_town)
 
             p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
 
@@ -110,14 +122,18 @@ def autoplay(town, mission_name, side):
                 init_status_players()  # Обновление battle.json
 
             if get_config_value("reduce_experience"):
-                common_actions(reduce_experience, "reduce_experience")
+                common_actions(reduce_experience, "reduce_experience",
+                               mission_duration, missions_left, travel_waiting_time_sec)
             else:
-                common_actions(online_tracking_only, "online_tracking_only")
+                common_actions(online_tracking_only, "online_tracking_only",
+                               mission_duration, missions_left, travel_waiting_time_sec)
         else:
             if get_config_value("double_reduce_experience"):
-                common_actions(reduce_experience, "reduce_experience")
+                common_actions(reduce_experience, "reduce_experience",
+                               mission_duration, missions_left, travel_waiting_time_sec)
             else:
-                common_actions(online_tracking_only, "online_tracking_only")
+                common_actions(online_tracking_only, "online_tracking_only",
+                               mission_duration, missions_left, travel_waiting_time_sec)
 
             # создание Групповой миссии
             # 1 - phase_offset 0 для первой фазы, 1 - для второй
@@ -163,15 +179,15 @@ def wrapper_function(func1, func2, log_queue, setting_param=None):
         p_log(f"Исключение в {func2}: {er}", is_error=True)  # Логируем исключение с полным traceback
 
 
-def common_actions(process_function, process_name):
-    function_duration = get_config_value("function_duration")  # продолжительность работы цикла в часах
+def common_actions(process_function, process_name, mission_duration, missions_left, travel_waiting_time_sec):
+    function_duration = get_location_stay_time(mission_duration, missions_left, travel_waiting_time_sec)
     if get_config_value("attack"):
-        run_process_for_hours(target_function=process_function, hours=function_duration, process_name=process_name)
+        run_process_for_hours(target_function=process_function, seconds=function_duration, process_name=process_name)
     else:
-        time_sleep(function_duration * 60 * 60 + 650 + get_config_value("correct_time"))
+        time_sleep(function_duration + get_config_value("correct_time"))
 
 
-def run_process_for_hours(target_function, hours, process_name, log_queue=None):
+def run_process_for_hours(target_function, seconds, process_name, log_queue=None):
     # setting_value изменяемые переменные setting. Необходимо передавать в дочерний процесс
     setting_value = {'name': get_name(), 'config': get_filename(),
                      'env_file': get_env_path(), 'log_profile': LOG_DIR_NAME}
@@ -183,8 +199,8 @@ def run_process_for_hours(target_function, hours, process_name, log_queue=None):
     process = multiprocessing.Process(target=wrapper_function, args=(set_initial_gold, target_function,
                                                                      log_queue, setting_value))
     process.start()
-    p_log(f"Ожидание {hours} часов... Работает {process_name} функция")
-    time_sleep_main(hours * 60 * 60, name=process_name)  # Ожидание в часах
+    p_log(f"Ожидание {format_time(seconds)}... Работает {process_name} функция")
+    time_sleep_main(seconds, name=process_name)  # Ожидание в часах
     p_log(f"Остановка {process_name} процесса...")
     process.terminate()
     process.join()
