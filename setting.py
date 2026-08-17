@@ -14,6 +14,8 @@ CURRENT_TAX = 0.6
 waiting_time = 600
 start_game = "09:00"
 
+MISSION_COOLDOWN_FACTORS = {"small": 1, "medium": 2, "large": 3}
+
 BAG_CONFIG = {
     'companion': 6,
     'horse': (5, 7)
