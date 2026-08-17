@@ -66,6 +66,26 @@ def convert_to_minutes(time_str):
         raise ValueError("Invalid time format")
 
 
+def get_location_stay_time(mission_duration, missions_left, travel_waiting_time_sec) -> int:
+    """
+    Персонаж после прохождения миссий отправляется в зону с аукционами, где он находится некоторое время
+    :param mission_duration: Сложность миссии small, medium, large
+    :param missions_left: Количество миссий, которое не смогли пройти
+    :param travel_waiting_time_sec: Время путешествия в зону с аукционоами
+    :return: Время пребывания в локации
+    """
+    factor = MISSION_COOLDOWN_FACTORS.get(mission_duration, 1)
+    basic_time = get_config_value("basic_time_location") * 60 * 60
+    difficulty_mission_speed = get_config_value("difficulty_mission_speed")
+    game_mode = get_config_value("game_mode")
+    estimated_time = (
+            basic_time
+            - (game_mode + missions_left) * 60 * factor * difficulty_mission_speed
+            - travel_waiting_time_sec
+    )
+    return estimated_time
+
+
 # _________________________________ Найти ближайший замок с аукционами ________________________________
 
 def get_castle_min_time():
@@ -331,7 +351,7 @@ def use_helper(config_name, restore=True, direct_call=False):
 
 
 @use_helper("horse_travel")
-def post_travel(out='', where='', how='horse'):
+def post_travel(out='', where='', how='horse') -> int:
     resp = make_request(url_travel)
 
     if how == 'horse' and not is_horse_travel_button_active(resp, where):
@@ -354,6 +374,7 @@ def post_travel(out='', where='', how='horse'):
     else:
         print_status(out, where, how, seconds_to_hhmmss(timer_travel))
         time_sleep(timer_travel)
+    return timer_travel
 
 
 # __________________________________ Рождественский ивент ________________________________________
