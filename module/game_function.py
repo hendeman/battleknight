@@ -294,11 +294,14 @@ def use_helper(config_name, restore=True, direct_call=False):
             name_companion = get_config_value(config_name)
             available_helpers = {}
             validate_helper = None
+            result = None  # <-- Добавляем переменную для результата
+
             try:
                 available_helpers = load_json_file("", helpers_info)
                 validate_helper = check_name_companion(available_helpers, name_companion)
             except Exception as er:
                 p_log(f'Ошибка получения помощника {er}', level='warning')
+
             if validate_helper:
                 id_helper_start = None
                 id_helper = validate_helper.get('item_id')
@@ -328,7 +331,7 @@ def use_helper(config_name, restore=True, direct_call=False):
                         p_log(f"{type_helper} {name_helper} надет")
 
                 if not direct_call:
-                    func(*args, **kwargs)
+                    result = func(*args, **kwargs)  # <-- Сохраняем результат
 
                 if restore and get_config_value("ignor_mount"):
                     resp = make_request(
@@ -340,7 +343,9 @@ def use_helper(config_name, restore=True, direct_call=False):
             else:
                 p_log(f"{name_companion} не найден в списке mount_list", level='debug')
                 if not direct_call:
-                    func(*args, **kwargs)
+                    result = func(*args, **kwargs)  # <-- Сохраняем результат
+
+            return result  # <-- Возвращаем результат
 
         return wrapper
 
