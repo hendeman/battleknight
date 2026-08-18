@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Union, List
 from inspect import signature
 
 import psutil
@@ -704,6 +704,109 @@ def update_pickle_field(filename: str, field_name: str, new_value: Any) -> None:
         pickle.dump(data, f)
 
     p_log(f"Поле '{field_name}' обновлено в {updated_count} записях", level='debug')
+
+
+def delete_pickle_keys(filename: str, keys_to_delete: Union[str, List[str]]) -> None:
+    """
+    Удаляет указанные ключи из словаря в pickle-файле.
+
+    Args:
+        filename: Путь к файлу, например 'pickles_data/nicks.pickle'
+        keys_to_delete: Ключ или список ключей для удаления
+    """
+    # Приводим к списку для единообразия
+    if not isinstance(keys_to_delete, list):
+        keys_to_delete = [keys_to_delete]
+
+    # Загружаем данные
+    with open(filename, 'rb') as f:
+        data = pickle.load(f)
+
+    # Удаляем ключи
+    deleted_count = 0
+    not_found_keys = []
+
+    for key in keys_to_delete:
+        if key in data:
+            del data[key]
+            deleted_count += 1
+        else:
+            not_found_keys.append(key)
+
+    # Сохраняем обновленные данные
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
+
+    if deleted_count > 0:
+        p_log(f"Удалено {deleted_count} ключей из {len(keys_to_delete)} запрошенных", level='debug')
+    else:
+        p_log(f"Ключи {not_found_keys} не найдены", level='debug')
+
+
+def add_pickle_keys(
+        filename: str,
+        keys_to_add: Union[str, List[str]],
+        default_spoil: int = 0,
+        default_time: datetime = None
+) -> None:
+    """
+    Добавляет указанные ключи в словарь pickle-файла с дефолтными значениями.
+
+    Args:
+        filename: Путь к файлу, например 'pickles_data/nicks.pickle'
+        keys_to_add: Ключ или список ключей для добавления
+        default_spoil: Значение spoil по умолчанию (по умолчанию 0)
+        default_time: Время по умолчанию (по умолчанию datetime(2024, 9, 17, 19))
+    """
+    # Устанавливаем дефолтное время
+    if default_time is None:
+        default_time = date
+
+    # Приводим к списку для единообразия
+    if not isinstance(keys_to_add, list):
+        keys_to_add = [keys_to_add]
+
+    # Загружаем данные
+    try:
+        with open(filename, 'rb') as f:
+            data = pickle.load(f)
+    except FileNotFoundError:
+        # Если файл не существует, создаем новый словарь
+        p_log(f"Файл {filename} не найден, создаем новый", level='warning')
+        data = {}
+    except pickle.PickleError as e:
+        p_log(f"Ошибка при загрузке pickle: {e}", level='error')
+        return
+
+    # Проверяем, что данные - это словарь
+    if not isinstance(data, dict):
+        p_log(f"Данные в файле не являются словарем", level='error')
+        return
+
+    # Добавляем ключи
+    added_count = 0
+    existing_keys = []
+
+    for key in keys_to_add:
+        if key not in data:
+            # Создаем запись с дефолтными значениями
+            data[key] = {
+                'time': default_time,
+                'spoil': default_spoil
+            }
+            added_count += 1
+        else:
+            existing_keys.append(key)
+
+    # Сохраняем обновленные данные
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
+
+    if added_count > 0:
+        p_log(f"Добавлено {added_count} ключей из {len(keys_to_add)} запрошенных", level='debug')
+
+    if existing_keys:
+        p_log(f"Ключи уже существуют и не были добавлены: {existing_keys}", level='debug')
 
 
 def find_files_with_word(directory: Path, find_word: str) -> Path:
