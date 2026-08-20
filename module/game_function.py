@@ -26,6 +26,7 @@ from module.http_requests import post_request, make_request
 from setting import *
 
 DATA_DEFAULT = datetime(2025, 10, 10)
+MISSION_TIME_DELAY = 600
 
 
 def print_status(from_town, where_town, how, tt):
@@ -71,18 +72,16 @@ def get_location_stay_time(mission_duration, missions_left, travel_waiting_time_
     Персонаж после прохождения миссий отправляется в зону с аукционами, где он находится некоторое время
     :param mission_duration: Сложность миссии small, medium, large
     :param missions_left: Количество миссий, которое не смогли пройти
-    :param travel_waiting_time_sec: Время путешествия в зону с аукционоами
+    :param travel_waiting_time_sec: Время путешествия в зону с аукционами
     :return: Время пребывания в локации
     """
     factor = MISSION_COOLDOWN_FACTORS.get(mission_duration, 1)
     basic_time = get_config_value("basic_time_location") * 60 * 60
-    difficulty_mission_speed = get_config_value("difficulty_mission_speed")
     game_mode = get_config_value("game_mode")
-    estimated_time = (
-            basic_time
-            - (game_mode + missions_left) * 60 * factor * difficulty_mission_speed
-            - travel_waiting_time_sec
-    )
+    missions_time = (game_mode + missions_left) * (MISSION_TIME_DELAY * factor + random.randint(30, 90))
+    # учитывается рандомный добавок из-за специальной задержки после миссий
+    p_log(f'Время прохождения миссий в локации {format_time(missions_time)}', level='debug')
+    estimated_time = basic_time - missions_time - travel_waiting_time_sec
     return estimated_time
 
 
@@ -522,7 +521,9 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
     up_attribute(silver=silver_in_stock)  # повысить атрибуты
 
     if sleeping:
-        time_sleep(check_progressbar(), delay=True)
+        global MISSION_TIME_DELAY
+        MISSION_TIME_DELAY = check_progressbar()
+        time_sleep(MISSION_TIME_DELAY, delay=True)
     return resp
 
 
