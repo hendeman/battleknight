@@ -304,9 +304,9 @@ def time_sleep(seconds=0, delay=False):
 
     # Определяем время ожидания
     if seconds == 0:
-        wait_time = random.randint(waiting_time + 60, waiting_time + 120)
+        wait_time = random.randint(waiting_time + 30, waiting_time + 90)
     elif delay:
-        wait_time = random.randint(seconds + 60, seconds + 120)
+        wait_time = random.randint(seconds + 30, seconds + 90)
     else:
         wait_time = int(seconds)  # Приводим к int, на случай если передали float
 
