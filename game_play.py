@@ -92,7 +92,7 @@ def autoplay(town, mission_name, side):
         p_log(f"Я нахожусь в {place}")
         if my_town not in auction_castles and my_town != 'FogIsland':
             my_town = get_castle_min_time()
-            travel_waiting_time_sec = post_travel(out=town, where=my_town)
+            travel_waiting_time_sec = post_travel(out=town, where=my_town) * 2  # с учетом дороги обратно
 
             p_log(f"Сидим в {castles_all.get(my_town)} несколько часов...")
 
