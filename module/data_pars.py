@@ -502,12 +502,42 @@ def split_args(args_text):
     return args
 
 
-def get_karma_value(soup):
-    """ Возвращает значение кармы """
-    karma_element = soup.find('span', class_='icon iconKarmaGood')
+def get_karma_info(soup) -> dict:
+    """ Возвращает словарь со значением кармы и её типом """
+    karma_element = soup.find('span', class_=lambda c: c and 'iconKarma' in c)
+
     if karma_element:
-        karma_value = karma_element.parent.text.strip()
-        return int(karma_value)
+        classes = karma_element.get('class', [])
+
+        karma_type = None
+        for cls in classes:
+            if 'iconKarma' in cls:
+                karma_type = cls.replace('iconKarma', '')
+                break
+
+        karma_text = karma_element.parent.text.strip()
+
+        try:
+            karma_value = int(karma_text)
+        except ValueError:
+            p_log(f'Не удалось преобразовать "{karma_text}" в число', level='warning')
+            return {
+                'value': 0,
+                'type': karma_type or 'unknown'
+            }
+
+        p_log(f'Карма {karma_type}, значение {karma_value}')
+
+        return {
+            'value': karma_value,
+            'type': karma_type or 'unknown'
+        }
+
+    p_log("Не найден элемент iconKarma", level='warning')
+    return {
+        'value': 0,
+        'type': 'not_found'
+    }
 
 
 def get_point_mission(soup):

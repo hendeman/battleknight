@@ -14,12 +14,13 @@ def main_loop_click(group=False):
         activate_karma(skill=get_config_value("karma_activate_name"),
                        count=get_config_value("karma_activate_day"))
     time_sleep(check_progressbar())  # проверить статус
-    while ruby_manager.total_used < ruby_manager.total_limit:
+    # while ruby_manager.total_used < ruby_manager.total_limit:
+    while True:
 
         # ________________________ Для прохождения группы ____________________________
-        check_time_sleep(start_hour='21:15', end_hour='21:29', sleep_hour='21:30')
+        check_time_sleep(start_hour='20:35', end_hour='20:45', sleep_hour='20:45')
 
-        if group and is_time_between(start_hour='21:29', end_hour='21:35'):
+        if group and is_time_between(start_hour='20:45', end_hour='21:00'):
             go_group(get_config_value("group_wait"))
             timer_group = check_progressbar()
             if timer_group:
@@ -45,10 +46,10 @@ def main_loop_click(group=False):
                 f"Всего: {ruby_manager.total_used}/{ruby_manager.total_limit}")
         if result == Namespace.NOT_MISSION:
             p_log(f"Свободных миссий больше нет. Пауза для восстановления очков...")
-            check_time_sleep(start_hour='00:00', end_hour='21:16', sleep_hour='21:30')
-            check_time_sleep(start_hour='21:31', end_hour='23:55', sleep_hour='06:00')
+            check_time_sleep(start_hour='00:00', end_hour='20:45', sleep_hour='20:50')
+            check_time_sleep(start_hour='20:51', end_hour='23:55', sleep_hour='08:00')
 
-    p_log("Достигнут общий лимит рубинов")
+    # p_log("Достигнут общий лимит рубинов")
 
 
 if __name__ == "__main__":

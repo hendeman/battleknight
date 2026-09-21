@@ -20,8 +20,9 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
     get_config_value, save_json_file, load_json_file, check_name_companion, get_name_companion, format_time, \
     current_time, save_error_html, string_to_datetime, create_pickle_file
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
-    check_cooldown_poit, set_name, get_id, find_item_data, get_karma_value, get_point_mission, pars_treasury, \
-    pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare, retry_on_element_found
+    check_cooldown_poit, set_name, get_id, find_item_data, get_point_mission, pars_treasury, \
+    pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare, retry_on_element_found, \
+    get_karma_info
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -1411,8 +1412,8 @@ def activate_karma(skill, count):
             while counter > 0:
                 soup = BeautifulSoup(make_request(url_karma).text, 'html.parser')
 
-                point_karma_all = get_karma_value(soup)
-                day_karma = int(point_karma_all / point_karma)
+                karma_info = get_karma_info(soup)
+                day_karma = int(karma_info.get('value') / point_karma)
 
                 if day_karma > 0:
                     p_log(f"Кармы хватит на {day_karma} дней")
