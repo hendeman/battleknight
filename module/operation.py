@@ -1,6 +1,9 @@
+import json
 import re
 import pickle
 import os
+from pathlib import Path
+
 import pandas as pd
 from time import sleep
 from datetime import datetime
@@ -13,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from logs.logs import p_log
 from module.all_function import all_party, get_prefix_url
-from module.data_pars import visit, party, pars_name
+from module.data_pars import visit, party, pars_name, parse_profile_tables
 from setting import exclusion_list, url_members, clan_html_file, FILE_NAME, deco_func, url_gold, SERVER
 
 from module.all_function import day, syntax_day, create_folder
@@ -162,10 +165,20 @@ def get_statistic() -> dict:
             'searchUser': ''  # укажите значение, если необходимо
         }
         stat = post_request(url_stat, param)
-        with open(f'{folder_name}\\{i + 100}_BattleKnight.html', 'w', encoding='utf-8') as file:
-            file.write(stat.text)
         soup = BeautifulSoup(stat.text, 'lxml')
-        stat_dct.update(pars_player(soup))
+        try:
+            data = pars_player(soup)
+            file_path = Path(folder_name) / f"{i + 100}_BattleKnight.json"
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "w", encoding="utf-8-sig") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+            stat_dct.update(data)
+
+        except Exception as er:
+            p_log(f"Ошибка парсинга: {er}", level='warning')
+            with open(f'{folder_name}\\{i + 100}_BattleKnight.html', 'w', encoding='utf-8') as file:
+                file.write(stat.text)
         sleep(3)
     p_log(f"Ожидание паузы в 30 секунд перед парсингом потерь игроков...")
     sleep(30)
@@ -190,10 +203,20 @@ def dict_values_difference(pars_dct: dict) -> list:
                     loaded_dict[key1]['victory'] > 10:
                 url = f'{SERVER}/common/profile/{key1}/Scores/Player'
                 resp = make_request(url, game_sleep=False)
-                with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w', encoding='utf-8') as file2:
-                    file2.write(resp.text)
-
                 soup = BeautifulSoup(resp.text, 'lxml')
+
+                try:
+                    data = parse_profile_tables(soup)
+                    file_path = Path(folder_name) / f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.json'
+                    file_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(file_path, "w", encoding="utf-8-sig") as f:
+                        json.dump(data, f, ensure_ascii=False, indent=2)
+                except Exception as er:
+                    p_log(f"Ошибка парсинга: {er}", level='warning')
+                    with open(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.html', 'w',
+                              encoding='utf-8') as file2:
+                        file2.write(resp.text)
+
                 a = soup.find('table', class_='profileTable').find_all('tr')[4]
                 dc[key1] = {"loss": int(a.text.split()[2])}
                 name = pars_name(soup)

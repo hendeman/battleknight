@@ -378,36 +378,54 @@ def get_id(resp, not_token=False):
         raise Exception("Доступ запрещен")
 
 
-def pars_player(soup) -> dict:
+def pars_player(soup: BeautifulSoup) -> dict:
     list_tr = {}
     for row in soup.find_all('tr')[3:]:
-        list_td = []
-        for i in row.find_all('td'):
-            if not i.text.split():
-                continue
-            list_td.append(i.text.split()[-1])
-        try:
-            key = int(row.find(id='playerLink').get('href').split('/')[5])
-        except Exception:
-            raise "Ссылка на рыцаря не найдена. Проверить чередование 'tr'"
-        link_tr = row.find_all(id='playerLink')
-        if len(link_tr) == 2:
-            name = remove_cyrillic(link_tr[0].text)
-            clan = link_tr[1].text
-        else:
-            name = remove_cyrillic(link_tr[0].text)
-            clan = ""
-        value = {"name": name,
-                 "clan": clan,
-                 "level": int(list_td[2]),
-                 "gold": int(list_td[3].replace('.', '')),
-                 "fights": int(list_td[4].replace('.', '')),
-                 "victory": int(list_td[5].replace('.', '')),
-                 "defeats": int(list_td[6].replace('.', '')),
-                 "change_name": [],
-                 "change_clan": []}
-        list_tr.setdefault(key, value)
+        links = row.find_all(id='playerLink')  # один обход
+        if not links:
+            raise ValueError("Ссылка на рыцаря не найдена. Проверить чередование 'tr'")
+
+        key = int(links[0].get('href').split('/')[5])
+        name = remove_cyrillic(links[0].text)
+        clan = links[1].text if len(links) == 2 else ""
+
+        tds = [td.text.split()[-1] for td in row.find_all('td') if td.text.split()]
+
+        list_tr.setdefault(key, {
+            "name": name,
+            "clan": clan,
+            "level": int(tds[2]),
+            "gold": int(tds[3].replace('.', '')),
+            "fights": int(tds[4].replace('.', '')),
+            "victory": int(tds[5].replace('.', '')),
+            "defeats": int(tds[6].replace('.', '')),
+            "change_name": [],
+            "change_clan": [],
+        })
     return list_tr
+
+
+def parse_profile_tables(soup: BeautifulSoup) -> dict:
+    """
+    Извлекает данные из таблиц id="profileDetails" и id="profileAttrib".
+
+    :param soup: объект BeautifulSoup
+    :return: словарь {значение th: значение td}
+    """
+    result = {}
+    for table_id in ("profileDetails", "profileAttrib"):
+        table = soup.find("table", id=table_id)
+        if not table:
+            continue
+        for tr in table.find_all("tr"):
+            th = tr.find("th")
+            td = tr.find("td")
+            if not th or not td:
+                continue
+            key = th.get_text(strip=True).rstrip(":").strip()
+            value = td.get_text(strip=True)
+            result[key] = value
+    return result
 
 
 # __________________________________ Парсинг надетых компаньона и наездника по ID ______________________
