@@ -513,7 +513,13 @@ def post_dragon(name_mission, buy_rubies='', sleeping=True, length_mission=None)
     }
 
     resp = post_request(url_mission, payload)
-    p_log(f"С миссии {name_mission} получено {pars_gold_duel(resp, gold_info=True)} серебра")
+    result_gold = pars_gold_duel(resp, gold_info=True)
+
+    # для подсвечивания сообщения с вознаграждением миссии оканчивающимся цифрами "024"
+    is_warning = get_config_value("lottery_event") and str(result_gold).endswith("024")
+    log_level = 'warning' if is_warning else 'info'
+
+    p_log(f"С миссии {name_mission} получено {result_gold} серебра", level=log_level)
     if buy_rubies:
         p_log(f"Потрачен {buy_rubies} рубин")
     silver_in_stock = get_all_silver(resp)
