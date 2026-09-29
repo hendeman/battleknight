@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Путь к .env относительно корня проекта
+env_path = Path(__file__).resolve().parents[2] / 'configs' / '.env'
+load_dotenv(dotenv_path=env_path)
 
 TOKEN = os.getenv('TOKEN')
 CHAT_ID = 808158849  # Ваш полученный chat_id

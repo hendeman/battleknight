@@ -15,6 +15,10 @@ proxy_manager = init_proxy_manager(
     auto_start=True
 )
 bot = telebot.TeleBot(TOKEN)
+# Удаляем webhook и сбрасываем очередь обновлений
+bot.remove_webhook()
+# (опционально) сбросить pending updates
+bot.delete_webhook(drop_pending_updates=True)
 register_handlers(bot)
 
 # Основной цикл
