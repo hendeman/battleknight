@@ -207,7 +207,7 @@ def dict_values_difference(pars_dct: dict) -> list:
 
                 try:
                     data = parse_profile_tables(soup)
-                    file_path = Path(folder_name) / f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.json'
+                    file_path = Path(f'{folder_name_loss}\\{key1}_{pars_dct[key1]["name"]}.json')
                     file_path.parent.mkdir(parents=True, exist_ok=True)
                     with open(file_path, "w", encoding="utf-8-sig") as f:
                         json.dump(data, f, ensure_ascii=False, indent=2)
