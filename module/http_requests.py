@@ -68,9 +68,10 @@ def validate_status(response, method):
     if response.status_code >= 400:
         raise RequestException(f"HTTP Error {response.status_code}: {response.reason}")
 
-    title = get_title(response)
-    if title and "error" in title.lower():
-        raise RequestException(f"Страница 404: {title}")
+    if method == 'GET':
+        title = get_title(response)
+        if title and "error" in title.lower():
+            raise RequestException(f"Страница 404: {title}")
 
     if response.url == url_reward_eventend:
         # проверка на ивент-ссылку

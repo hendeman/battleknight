@@ -1537,7 +1537,8 @@ def get_players_find(count,
                      level: Union[int, tuple, list],
                      weaker_or_stronger: bool = False,
                      keys_to_sum: tuple = ('str', 'dex', 'luck', 'weapon', 'defense'),
-                     save_file="pickle"
+                     save_file="pickle",
+                     find_limit_count=40
                      ):
     """
     Функция поиска игроков для дуэли
@@ -1547,6 +1548,7 @@ def get_players_find(count,
     :param weaker_or_stronger: Тип поиска -> False слабее, True сильнее
     :param keys_to_sum Ключи для сравнения атрибутов. Весь кортеж ('str', 'dex', 'end', 'luck', 'weapon', 'defense')
     :param save_file: Расширение сохраняемого файла: "pickle", None - без сохранения
+    :param find_limit_count: Количество итераций для поиска
     :return:
     """
     find_id_list = {}
@@ -1563,7 +1565,7 @@ def get_players_find(count,
         level_of_numbers.extend(list(range(start, end + 1)))
         save_prev = f"{start}_{end}"
 
-    for cou in range(count * 2):
+    while find_limit_count:
         try:
             resp = post_request(url, {"searchtype": duel_type}).json()
             if resp["result"]:
@@ -1588,6 +1590,8 @@ def get_players_find(count,
             p_log(f"Error json get_players_find: {er}", level='warning')
         except Exception as er:
             p_log(f"Ошибка обработки запроса поиска на дуэль: {er}", level='warning')
+
+        find_limit_count -= 1
         time.sleep(1)
 
     p_log(*find_id_list.keys())
