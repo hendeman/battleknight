@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlparse
 
 import requests
 from requests import Timeout, RequestException, Response
@@ -8,7 +9,7 @@ from logs.logs import p_log
 from module.all_function import get_random_value, check_last_word
 from module.data_pars import get_csrf_token, get_title, get_class_text
 from module.proxy.proxy_manager import create_proxy_manager, ProxyManager, proxies_validate
-from setting import get_cookies, get_header, header_get, header_post, SERVER, url_reward_eventend
+from setting import get_cookies, get_header, header_get, header_post, SERVER
 
 csrf_token = None
 max_csrf_retries = 3
@@ -73,7 +74,7 @@ def validate_status(response, method):
         if title and "error" in title.lower():
             raise RequestException(f"Страница 404: {title}")
 
-    if response.url == url_reward_eventend:
+    if urlparse(response.url).path.rstrip('/').endswith('/eventend'):
         # проверка на ивент-ссылку
         text = get_class_text(response, "scrollHeadline")
         raise RequestException(f"Получена награда: {text}")
