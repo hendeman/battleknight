@@ -146,7 +146,8 @@ def complete_mission(current_castle, length_mission, save_mission=None, cog_plat
         try:
             if silver_count >= 140 and get_config_value("buy_key"):
                 move_item(how='buy')  # купить ключ
-            move_item(how='loot')  # переместить ключи из сундука добычи
+            if get_config_value("move_key"):
+                move_item(how='loot')  # переместить ключи из сундука добычи
         except Exception as er:
             p_log(f"Ошибка выполнения move_item: {er}", level='warning')
 

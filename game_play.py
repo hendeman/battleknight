@@ -169,6 +169,11 @@ def wrapper_function(func1, func2, log_queue, setting_param=None):
         reload_setting_param(setting_param)
 
     setup_logging(queue=log_queue)
+
+    import logging
+    p_log(f"log_queue={log_queue}", level="debug")
+    p_log(f"handlers={logging.getLogger().handlers}", level="debug")
+
     try:
         func1()  # Запускаем первую функцию
     except Exception as er:

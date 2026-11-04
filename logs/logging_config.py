@@ -1,4 +1,3 @@
-# logging_config.py
 import multiprocessing
 from typing import Union
 
@@ -23,26 +22,38 @@ class LoggingSystemManager:
         return None
 
     def _setup_logging_system(self):
-        from module.all_function import get_config_value  # импорт внутри, чтобы избежать циклических импортов
+        from module.all_function import get_config_value
+        from setting import CONFIG_NAME
 
         self.translate = get_config_value("translate")
 
-        from setting import CONFIG_NAME
+        # Всегда создаём очередь и отдельный процесс записи логов.
+        # Файл должен писать только один процесс.
+        self.queue = multiprocessing.Queue()
 
-        if self.translate:
-            self.queue = multiprocessing.Queue()
-            self.logging_process = multiprocessing.Process(
-                target=logger_process,
-                args=(self.queue, self.enable_rotation, CONFIG_NAME, self.log_file_path)
+        self.logging_process = multiprocessing.Process(
+            target=logger_process,
+            args=(
+                self.queue,
+                self.enable_rotation,
+                CONFIG_NAME,
+                self.log_file_path
             )
-            self.logging_process.start()
-            setup_main_logging(queue=self.queue, enable_rotation=self.enable_rotation, log_file_path=self.log_file_path)
-        else:
-            setup_main_logging(queue=None, enable_rotation=self.enable_rotation, log_file_path=self.log_file_path)
+        )
+
+        self.logging_process.start()
+
+        setup_main_logging(
+            queue=self.queue,
+            enable_rotation=self.enable_rotation,
+            log_file_path=self.log_file_path
+        )
 
         return self.queue, self.logging_process, self.translate
 
     def _cleanup_logging_system(self):
-        if self.translate:
+        if self.queue is not None:
             self.queue.put(None)
+
+        if self.logging_process is not None:
             self.logging_process.join()
