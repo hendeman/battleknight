@@ -1,4 +1,5 @@
 import os
+from typing import Union, Optional
 
 from openpyxl.utils import get_column_letter
 from openpyxl import Workbook, load_workbook
@@ -37,12 +38,44 @@ def get_excel_path(write_flag: bool) -> str:
     return os.path.join("bk", "result_xlsx", filename)
 
 
-def get_period_info() -> list:
-    days_have_passed = day(STAT_FILE_NAME)
+def get_period_info(base_stat_file: Optional[Union[str, bytes]] = None) -> list:
+    """Формирует текстовое описание периода для нового отчета статистики.
+
+    Функция берет сохраненный файл предыдущей статистики, рассчитывает
+    на его основе количество прошедших дней (сколько времени прошло с момента
+    последнего сохранения) и возвращает временные границы для нового отчета.
+
+    Args:
+        base_stat_file: Путь к сохраненному файлу прошлой статистики,
+             который выступает точкой отсчета для нового периода.
+
+    Returns:
+        Список из трех строк:
+            1. Заголовок с числом прошедших дней и правильным склонением слова.
+            2. Дата и время начала нового периода (модификация DATA_CHANGE_FILE).
+            3. Дата и время окончания периода (текущий момент).
+    """
+    if base_stat_file is None:
+        base_stat_file = STAT_FILE_NAME
+
+    days_have_passed = day(base_stat_file)
+
+    try:
+        # Получаем время модификации файла в секундах (timestamp)
+        modification_time = os.path.getmtime(base_stat_file)
+        # Конвертируем секунды в объект datetime
+        file_datetime = datetime.fromtimestamp(modification_time)
+        date_from = file_datetime.strftime("%d.%m.%Y %H:%M")
+    except (FileNotFoundError, OSError):
+        # Защита на случай, если файла еще нет (например, первый запуск)
+        date_from = "неизвестно (файл не найден)"
+
+    date_to = datetime.now().strftime("%d.%m.%Y %H:%M")
+
     return [
-        f'Статистика за {days_have_passed} {syntax_day(days_have_passed)}:',
-        f'c {DATA_CHANGE_FILE.strftime("%d.%m.%Y %H:%M")}',
-        f'по {datetime.now().strftime("%d.%m.%Y %H:%M")}',
+        f"Статистика за {days_have_passed} {syntax_day(days_have_passed)}:",
+        f"с {date_from}",
+        f"по {date_to}",
     ]
 
 

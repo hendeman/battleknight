@@ -37,7 +37,7 @@ def export_to_google_sheet(data_list, **kwargs):
         rows=data_list,
         start_row=start_row,
         first_row=first_row,
-        marker="",
+        marker="[SLAVS]",
         marker_col='B',
         color=color,
         sort_col="D",
@@ -112,7 +112,7 @@ if __name__ == "__main__":
         try:
             export_to_google_sheet(
                 difference_list,
-                first_row=get_period_info(),
+                first_row=get_period_info(base_stat_file=LOSS_STATISTICS),
             )
         except Exception as sheet_error:
             p_log(f"Ошибка в сохранении google-таблицы {sheet_error}")
