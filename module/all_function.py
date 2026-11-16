@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Any, Union, List
+from typing import Optional, Any, Union, List, Dict
 from inspect import signature
 
 import psutil
@@ -484,6 +484,7 @@ def availability_id(user_id, not_token=False):
 # _____________________ создание, загрузка и копия файла JSON __________________________________________
 
 def save_json_file(dct: dict, path: str, name_file: str):
+    os.makedirs(path, exist_ok=True)
     file_path = os.path.join(path, name_file)
     normalized_path = os.path.normpath(file_path)
     with open(file_path, "w", encoding="utf-8-sig") as f:
@@ -496,6 +497,19 @@ def load_json_file(path: str, name_file: str) -> dict:
     with open(file_path, "r", encoding="utf-8-sig") as f:
         loaded_data = json.load(f)
     return loaded_data
+
+
+def read_cached_json(file_path: Path) -> Optional[Dict[str, Any]]:
+    """Возвращает dict из готового json или None, если файла нет / он битый."""
+    if not file_path.is_file():
+        return None
+    try:
+        with open(file_path, encoding="utf-8-sig") as f:  # utf-8-sig — срезаем BOM
+            data = json.load(f)
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError) as er:
+        p_log(f"Кэш {file_path.name} не читается ({er}) — качаю заново", level="warning")
+        return None
+    return data or None  # пустой {} тоже считаем невалидным кэшем
 
 
 def backup_json_file(original_path: str, save_dir: str) -> str:

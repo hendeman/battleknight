@@ -112,7 +112,7 @@ if __name__ == "__main__":
         try:
             export_to_google_sheet(
                 difference_list,
-                first_row=get_period_info(base_stat_file=LOSS_STATISTICS),
+                first_row=get_period_info(base_stat_file=STAT_FILE_LOSS),
             )
         except Exception as sheet_error:
             p_log(f"Ошибка в сохранении google-таблицы {sheet_error}")

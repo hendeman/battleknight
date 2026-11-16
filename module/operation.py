@@ -15,7 +15,7 @@ from openpyxl.styles import Font, Alignment
 from bs4 import BeautifulSoup
 
 from logs.logs import p_log
-from module.all_function import all_party, get_prefix_url
+from module.all_function import all_party, get_prefix_url, read_cached_json
 from module.data_pars import visit, party, pars_name, parse_profile_tables
 from setting import exclusion_list, url_members, clan_html_file, FILE_NAME, deco_func, url_gold, SERVER
 
@@ -150,38 +150,67 @@ def get_statistic_clan(write_flag):
 
 
 # _____________________________________ Статистика онлайна _____________________________________________
-def get_statistic() -> dict:
+def get_statistic(use_cache: bool = True) -> dict:
+    """
+    Функция для сбора общей статистики Топ-листа
+    :param use_cache: Учитываются сохраненные сегодня json (если в день запускалось несколько раз)
+    :return: Общий словарь с данными вида:
+    {
+        "924306": {
+            "name": "DeathBlade",
+            "clan": "",
+            "level": 37,
+            "gold": 1423062,
+            "fights": 4993,
+            "victory": 3246,
+            "defeats": 1717,
+            "change_name": [],
+            "change_clan": []
+        },...
+    }
+    """
     stat_dct = {}
-    create_folder(folder_name)  # создание папки
-    make_request(url_stat)
+    folder = Path(folder_name)
+    folder.mkdir(parents=True, exist_ok=True)
 
+    make_request(url_stat)
     p_log("Прогресс: ....")
 
+    requested = False        # был ли хоть один реальный запрос
+
     for i in range(0, 2000, 100):
+        file_path = folder / f"{i + 100}_BattleKnight.json"
+
+        data = read_cached_json(file_path) if use_cache else None
+        if data is not None:
+            p_log(f"Диапазон {i + 1}-{i + 100}: из кэша {file_path.name} ({len(data)} записей)")
+            stat_dct.update(data)
+            continue
+
         p_log(f"Обработка диапазона {i + 1}-{i + 100}")
         param = {
-            'highscoreOffset': str(i),  # выберите нужное значение
+            'highscoreOffset': str(i),
             'sort': 'loot',
-            'searchUser': ''  # укажите значение, если необходимо
+            'searchUser': ''
         }
         stat = post_request(url_stat, param)
+        requested = True
         soup = BeautifulSoup(stat.text, 'lxml')
         try:
             data = pars_player(soup)
-            file_path = Path(folder_name) / f"{i + 100}_BattleKnight.json"
-            file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(file_path, "w", encoding="utf-8-sig") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-
             stat_dct.update(data)
-
         except Exception as er:
             p_log(f"Ошибка парсинга: {er}", level='warning')
             with open(f'{folder_name}\\{i + 100}_BattleKnight.html', 'w', encoding='utf-8') as file:
                 file.write(stat.text)
         sleep(3)
-    p_log(f"Ожидание паузы в 30 секунд перед парсингом потерь игроков...")
-    sleep(30)
+
+    if requested:            # если всё взяли из кэша — пауза не нужна
+        p_log("Ожидание паузы в 30 секунд перед парсингом потерь игроков...")
+        sleep(30)
+
     return stat_dct
 
 
