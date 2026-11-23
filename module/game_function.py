@@ -22,7 +22,7 @@ from module.all_function import time_sleep, wait_until, no_cache, dict_to_tuple,
 from module.data_pars import heals, get_status_helper, pars_healer_result, get_all_silver, pars_gold_duel, \
     check_cooldown_poit, set_name, get_id, find_item_data, get_point_mission, pars_treasury, \
     pars_stats, is_horse_travel_button_active, get_mission_point, pars_player_compare, retry_on_element_found, \
-    get_karma_info
+    get_karma_info, get_karma_skill_info
 from module.http_requests import post_request, make_request
 from setting import *
 
@@ -1412,13 +1412,24 @@ def activate_karma(skill, count):
             type_karma = get_config_value("working_karma")
             name_karma = karma[type_karma][skill]['name']
             id_karma = karma[type_karma][skill]['id_karma']
-            point_karma = karma[type_karma][skill]['point']
             time_delay = 2
 
             while counter > 0:
                 soup = BeautifulSoup(make_request(url_karma).text, 'html.parser')
 
                 karma_info = get_karma_info(soup)
+                karma_skill = get_karma_skill_info(soup, id_karma)
+
+                if karma_skill:
+                    name_karma = karma_skill["name"]
+                    point_karma = karma_skill["value"]
+                    p_log(f"Активная сила: {name_karma} стоит {point_karma} кармы")
+
+                else:
+                    p_log(f"Не удалось определить стоимость кармы для {name_karma}")
+                    point_karma = karma[type_karma][skill]['point']
+                    p_log(f"Будет использовано дефолтное значение {point_karma}")
+
                 day_karma = int(karma_info.get('value') / point_karma)
 
                 if day_karma > 0:

@@ -6,7 +6,7 @@ import time
 from requests import Response
 
 import setting
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 from bs4 import BeautifulSoup, Tag
 
@@ -556,6 +556,73 @@ def get_karma_info(soup) -> dict:
         'value': 0,
         'type': 'not_found'
     }
+
+
+def get_karma_skill_info(soup: BeautifulSoup, karma_id: int) -> Optional[Dict[str, object]]:
+    """
+    Возвращает {'name': str, 'value': int} для karmaSkill_{karma_id}
+    или None, если не найдено.
+
+    Ищет в inline-скриптах вызовы:
+        karmaSkill_{id}.store('tip:title', '...')
+        karmaSkill_{id}.store('tip:text',  '...: 169')
+
+    Язык интерфейса не важен:
+      - name берётся из литерала (может быть на любом языке);
+      - value — первое число из литерала tip:text.
+    """
+    pattern_title = re.compile(
+        rf"karmaSkill_{karma_id}\.store\(\s*['\"]tip:title['\"]\s*,\s*['\"]([^'\"]*)['\"]\s*\)"
+    )
+    pattern_text = re.compile(
+        rf"karmaSkill_{karma_id}\.store\(\s*['\"]tip:text['\"]\s*,\s*['\"]([^'\"]*)['\"]\s*\)"
+    )
+
+    scripts = soup.find_all("script")
+    p_log(
+        f"karma_id=%s: найдено <script> тегов: %d {karma_id, len(scripts)}", level='debug')
+
+    for idx, script in enumerate(scripts):
+        text = script.string or script.get_text() or ""
+
+        m_title = pattern_title.search(text)
+        m_text = pattern_text.search(text)
+
+        if not m_title and not m_text:
+            # этот скрипт вообще не содержит karmaSkill_{id} — не шумим
+            continue
+
+        if m_title and not m_text:
+            p_log(
+                f"karma_id={karma_id}: script[{idx}] — найден tip:title "
+                f"({m_title.group(1)!r}), но нет литерала tip:text",
+                level='debug',
+            )
+            continue
+
+        if m_text and not m_title:
+            p_log(f"karma_id=%s: script[%d] — найден tip:text (%r), но нет tip:title {karma_id, idx, m_text.group(1)}",
+                  level='debug')
+            continue
+
+        # оба найдены
+        name = m_title.group(1)
+        raw_text = m_text.group(1)
+        nums = re.findall(r"\d+", raw_text)
+        if not nums:
+            p_log(f"karma_id=%s: script[%d] — в tip:text нет цифр (raw=%r) {karma_id, idx, raw_text}",
+                  level='warning')
+            continue
+
+        value = int(nums[0])
+        p_log(f"karma_id=%s: script[%d] — name=%r, value=%d {karma_id, idx, name, value}",
+              level='debug')
+        return {
+            "name": name,
+            "value": value,
+        }
+    p_log(f"karma_id=%s: не найден ни в одном <script> {karma_id}", level='warning')
+    return None
 
 
 def get_point_mission(soup):
