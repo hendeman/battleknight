@@ -1229,6 +1229,8 @@ def buy_potion(need_point):
                 inventory = get_inventory_slots(1)
                 free_coord = get_free_coord(inventory)
                 free_coord_one = choose_coor(free_coord)
+                if free_coord_one is None:
+                    break
                 inv, coor = next(iter(free_coord_one.items()))
                 p_log(f"Попытка купить баночку на {min_value}ХП в сумку {inv}, ячейка {coor}")
                 url_potion_buy = (
